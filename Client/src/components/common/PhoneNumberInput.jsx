@@ -1,0 +1,170 @@
+
+import React, { useState, useMemo, useEffect } from 'react';
+import { parsePhoneNumber, isValidPhoneNumber, getCountryCallingCode } from 'libphonenumber-js';
+import Input from './Input.jsx'; // Corrected import to match same directory
+import CountryFlag from 'react-country-flag';
+
+// Country data with calling codes
+const countryData = [
+  // East Africa and Horn of Africa
+  { name: 'Ethiopia', code: 'ET', callingCode: '+251' },
+  { name: 'Kenya', code: 'KE', callingCode: '+254' },
+  { name: 'Somalia', code: 'SO', callingCode: '+252' },
+  { name: 'South Sudan', code: 'SS', callingCode: '+211' },
+  { name: 'Sudan', code: 'SD', callingCode: '+249' },
+  { name: 'Eritrea', code: 'ER', callingCode: '+291' },
+  { name: 'Djibouti', code: 'DJ', callingCode: '+253' },
+  // Major Global Countries
+  { name: 'United States', code: 'US', callingCode: '+1' },
+  { name: 'United Kingdom', code: 'GB', callingCode: '+44' },
+  { name: 'Canada', code: 'CA', callingCode: '+1' },
+  { name: 'Germany', code: 'DE', callingCode: '+49' },
+  { name: 'China', code: 'CN', callingCode: '+86' },
+  { name: 'India', code: 'IN', callingCode: '+91' },
+  { name: 'Australia', code: 'AU', callingCode: '+61' },
+  { name: 'South Africa', code: 'ZA', callingCode: '+27' },
+  { name: 'Nigeria', code: 'NG', callingCode: '+234' },
+  { name: 'Egypt', code: 'EG', callingCode: '+20' },
+  { name: 'France', code: 'FR', callingCode: '+33' },
+  { name: 'Brazil', code: 'BR', callingCode: '+55' },
+  { name: 'Japan', code: 'JP', callingCode: '+81' },
+  { name: 'Mexico', code: 'MX', callingCode: '+52' },
+];
+
+// PhoneNumberInput Component
+const PhoneNumberInput = ({
+  value = '',
+  onChange,
+  label = 'Phone Number',
+  required = false,
+  disabled = false,
+  name = 'phoneNumber',
+  error, // External error message prop
+  userType = 'farmer',
+  ...props
+}) => {
+  // State Management
+  const [selectedCountry, setSelectedCountry] = useState(() => {
+    return countryData.find(c => 
+      (userType === 'farmer' && c.code === 'ET') || 
+      (userType !== 'farmer' && c.code === 'US')
+    ) || countryData[0];
+  });
+  const [nationalNumber, setNationalNumber] = useState('');
+  const [internalErrorMessage, setInternalErrorMessage] = useState('');
+
+  // Effect to parse incoming value prop
+  useEffect(() => {
+    if (value) {
+      try {
+        const phoneNumber = parsePhoneNumber(value);
+        if (phoneNumber && phoneNumber.isValid()) {
+          const country = countryData.find(c => c.code === phoneNumber.country) || selectedCountry;
+          setSelectedCountry(country);
+          setNationalNumber(phoneNumber.nationalNumber);
+          setInternalErrorMessage('');
+        } else {
+          setNationalNumber(value.replace(/^\+\d{1,4}/, ''));
+          setInternalErrorMessage('Initial phone number format is invalid.');
+        }
+      } catch (e) {
+        setNationalNumber(value);
+        setInternalErrorMessage('Could not parse initial phone number.');
+      }
+    } else {
+      setNationalNumber('');
+      setInternalErrorMessage('');
+    }
+  }, [value, userType]);
+
+  // Memoized validation and change emission
+  const validateAndEmitChange = useMemo(() => {
+    return (countryCode, number) => {
+      let fullNumber = '';
+      let isValid = false;
+      let msg = '';
+
+      if (number) {
+        try {
+          const phoneNumber = parsePhoneNumber(`+${getCountryCallingCode(countryCode)}${number}`, countryCode);
+          fullNumber = phoneNumber.number; // E.164 format
+          isValid = phoneNumber.isValid();
+
+          if (!isValid) {
+            msg = `Invalid phone number for ${countryData.find(c => c.code === countryCode)?.name}.`;
+          }
+        } catch (e) {
+          msg = 'Invalid phone number format.';
+          isValid = false;
+        }
+      } else if (required) {
+        msg = 'Phone number is required.';
+      }
+
+      setInternalErrorMessage(msg);
+      onChange?.(isValid ? fullNumber : '');
+    };
+  }, [onChange, required]);
+
+  // Event Handlers
+  const handleCountryChange = (e) => {
+    const countryCode = e.target.value;
+    const country = countryData.find(c => c.code === countryCode);
+    if (country) {
+      setSelectedCountry(country);
+      validateAndEmitChange(country.code, nationalNumber);
+    }
+  };
+
+  const handleNationalNumberChange = (e) => {
+    const number = e.target.value;
+    setNationalNumber(number);
+    validateAndEmitChange(selectedCountry.code, number);
+  };
+
+  // Display error message
+  const displayError = error || internalErrorMessage;
+
+  return (
+    <div className="flex flex-col space-y-2">
+      <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <div className="flex items-center rounded-md shadow-sm border focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500">
+        <select
+          value={selectedCountry.code}
+          onChange={handleCountryChange}
+          disabled={disabled}
+          className="appearance-none w-16 pl-2 pr-6 py-2 border-r border-gray-300 rounded-l-md bg-gray-50 text-gray-900 focus:outline-none focus:ring-0 focus:border-transparent sm:text-sm"
+          style={{ paddingRight: '1.5rem', textAlign: 'center' }}
+        >
+          {countryData.map((country) => (
+            <option key={country.code} value={country.code} className="text-center">
+              <CountryFlag countryCode={country.code} svg style={{ width: '20px', marginRight: '4px', verticalAlign: 'middle' }} />
+              {country.callingCode}
+            </option>
+          ))}
+        </select>
+        <Input
+          type="tel"
+          id={name}
+          name={name}
+          value={nationalNumber}
+          onChange={handleNationalNumberChange}
+          disabled={disabled}
+          placeholder={`e.g., ${selectedCountry.code === 'ET' ? '911234567' : '1234567890'}`}
+          error={displayError}
+          className="flex-1 rounded-none rounded-r-md"
+          {...props}
+        />
+      </div>
+      {displayError && !error && (
+        <p id={`${name}-error`} className="text-sm text-red-600">
+          {displayError}
+        </p>
+      )}
+    </div>
+  );
+};
+
+export default PhoneNumberInput;
