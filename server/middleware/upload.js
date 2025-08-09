@@ -2,40 +2,23 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure uploads directory exists
-const uploadDir = process.env.UPLOAD_DIR || './uploads';
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+const makeStorage = (folder) => {
+  const dir = `uploads/${folder}`;
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-// Configure storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
-  },
-});
-
-// File filter for images
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/png', 'image/jpeg'];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only PNG and JPG files are allowed'), false);
-  }
+  return multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    },
+  });
 };
 
-// Multer configuration
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-});
+const profilePicUpload = multer({ storage: makeStorage('profilePics'), limits: { fileSize: 2 * 1024 * 1024 } }); // 2MB limit
+const productImageUpload = multer({ storage: makeStorage('productImages'), limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit
+const govIdUpload = multer({ storage: makeStorage('govIds'), limits: { fileSize: 5 * 1024 * 1024 } });
 
-module.exports = upload;
+module.exports = { profilePicUpload, productImageUpload, govIdUpload };

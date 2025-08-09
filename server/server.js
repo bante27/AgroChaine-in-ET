@@ -1,72 +1,38 @@
-// server.js
-
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose'); // Use mongoose directly instead of a wrapper function
-const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
-
-// Load environment variables from .env file
-require('dotenv').config();
+const helmet = require('helmet');
+const morgan = require('morgan');
+const path = require('path');
+const connectDB = require('./config/db');
+const userRoutes = require('./routes/userRoutes');
+const productRoutes = require('./routes/productRoutes');
+const errorHandler = require('./middleware/errorHandler');
+const rateLimiter = require('./middleware/rateLimiter');
+const transactionRoutes = require('./routes/transactionRoutes');
 
 const app = express();
+connectDB();
 
-// --- Database Connection Function ---
-// Let's use a simpler, more direct approach for connecting.
-const connectDB = async () => {
-    try {
-        await mongoose.connect(process.env.MONGO_URI);
-        console.log('MongoDB connected to agrochain_ethiopia');
-    } catch (error) {
-        console.error('Failed to connect to MongoDB:', error.message);
-        // Exit process with failure
-        process.exit(1);
-    }
-};
-
-// --- Middleware ---
+app.use(cors());
+app.use(helmet());
+app.use(morgan('combined'));
+app.use(rateLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-    origin: 'http://localhost:5174', // Specific origin for frontend
-    credentials: true, // Allow cookies if needed
-}));
 
-// Configure Cloudinary for image uploads
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+// Serve uploads statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/transactions', transactionRoutes);
+
+// Routes
+app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
+
+// Error handling middleware (last)
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-// Configure Multer for file uploads
-const upload = multer({ storage: multer.memoryStorage() });
-
-// --- Import Middleware and Routes ---
-const authMiddleware = require('./middleware/authMiddleware');
-const authRoutes = require('./routes/auth');
-const dashboardRoutes = require('./routes/dashboardRoutes');
-const productRoutes = require('./routes/productRoutes');
-
-// --- Routes ---
-// Public routes
-app.use('/api/auth', authRoutes);
-app.use('/api/marketplace', productRoutes);
-
-// Protected routes (require a valid token)
-app.use('/api/dashboard', authMiddleware, dashboardRoutes);
-app.use('/api/products', authMiddleware, productRoutes);
-// You can add more protected routes as needed, e.g.,
-// app.use('/api/orders', authMiddleware, orderRoutes);
-
-// --- Start Server Function ---
-const startServer = async () => {
-    await connectDB();
-
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
-};
-
-startServer();

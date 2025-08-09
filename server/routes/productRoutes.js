@@ -1,70 +1,86 @@
 const express = require('express');
 const router = express.Router();
-const Product = require('../models/product');
-const User = require('../models/User');
-const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
+const auth = require('../middleware/auth');
+const Product = require('../models/Product');
+const { productImageUpload } = require('../middleware/upload');
 
-// Configure Multer for file uploads
-const upload = multer({ storage: multer.memoryStorage() });
+// Utility to generate unique productId (10 digit)
+const generateProductId = () => {
+  return Math.floor(1000000000 + Math.random() * 9000000000).toString();
+};
 
-/**
- * @route POST /api/products
- * @desc Upload a new product
- * @access Private (requires a verified user)
- */
-router.post('/', upload.single('productImage'), async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id);
-        if (!user || user.verificationStatus !== 'verified') {
-            return res.status(403).json({ msg: 'User is not verified to sell products.' });
-        }
+// Add a product
+router.post('/', auth, productImageUpload.array('images', 5), async (req, res) => {
+  try {
+    const {
+      title, price, originAddress, type, quantity, description, comment,
+    } = req.body;
 
-        const { name, price, origin, quantity, type, description } = req.body;
-        const productImage = req.file;
+    const images = req.files ? req.files.map(f => `/uploads/productImages/${f.filename}`) : [];
 
-        if (!productImage) {
-            return res.status(400).json({ msg: 'Product image is required.' });
-        }
+    const productId = generateProductId();
 
-        // Upload image to Cloudinary
-        const imageUpload = await cloudinary.uploader.upload(`data:image/jpeg;base64,${productImage.buffer.toString('base64')}`, { folder: 'products' });
+    const newProduct = new Product({
+      productId,
+      title,
+      price,
+      originAddress,
+      type,
+      quantity,
+      description,
+      comment,
+      images,
+      ownerUserId: req.user.userId,
+    });
 
-        // Create a new product document in MongoDB
-        const newProduct = new Product({
-            seller: req.user.id,
-            name,
-            price,
-            origin,
-            quantity,
-            type,
-            description,
-            imageUrl: imageUpload.secure_url,
-        });
+    await newProduct.save();
 
-        await newProduct.save();
-        res.status(201).json(newProduct);
-
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
+    res.status(201).json({ success: true, product: newProduct });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Server error adding product' });
+  }
 });
 
-/**
- * @route GET /api/marketplace
- * @desc Get all products for the public marketplace
- * @access Public
- */
+// Get all products with pagination and optional search query
 router.get('/', async (req, res) => {
-    try {
-        // Fetch all products from the database and populate seller info
-        const products = await Product.find().populate('seller', 'name');
-        res.json(products);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
+  try {
+    const { page = 1, limit = 20, search = '', type } = req.query;
+
+    const filter = {};
+    if (search) filter.title = { $regex: search, $options: 'i' };
+    if (type) filter.type = type;
+
+    const products = await Product.find(filter)
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
+
+    const count = await Product.countDocuments(filter);
+
+    res.json({
+      success: true,
+      page: parseInt(page),
+      pages: Math.ceil(count / limit),
+      total: count,
+      products,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Server error fetching products' });
+  }
+});
+
+// Get single product by productId
+router.get('/:productId', async (req, res) => {
+  try {
+    const product = await Product.findOne({ productId: req.params.productId });
+    if (!product) return res.status(404).json({ success: false, error: 'Product not found' });
+    res.json({ success: true, product });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Server error fetching product' });
+  }
 });
 
 module.exports = router;
