@@ -5,7 +5,7 @@ import { Menu, X, User, Globe } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import Navigation from './Navigation';
-import logoIconDarkTransparent from "../../assets/images/logo1.png";
+import logoIconDarkTransparent from "../../assets/images/newlogo.png";
 
 const Header = () => {
       const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -34,7 +34,7 @@ const Header = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <motion.div
-            initial={{ scale: 0.9, y: 10 }}
+            initial={{ scale: 1.9, y: 10 }}
             animate={{ scale: 1, y: 0 }}
             transition={{ duration: 0.8, type: 'spring', stiffness: 100 }}
             className="flex items-center space-x-3"
@@ -79,13 +79,13 @@ const Header = () => {
                   </div>
                   <Link
                     to="/dashboard"
-                    className="px-4 py-2 bg-emerald-600 text-black rounded-lg hover:bg-emerald-700 transition-colors duration-300"
+                    className="px-4 py-2 bg-gradient-to-r from-gray-950 to-blue-950 text-gray-200 rounded-none hover:bg-blue-700 transition-colors duration-300"
                   >
                     Dashboard
                   </Link>
                   <button
                     onClick={logout}
-                    className="text-sm text-black hover:text-blue-400 transition-colors duration-300"
+                    className="text-sm text- hover:text-blue-400 transition-colors duration-300"
                   >
                     Logout
                   </button>
@@ -125,7 +125,7 @@ const Header = () => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden py-4 border-t border-gray-200/20 dark:border-gray-700/20 bg-purple-950 backdrop-blur-md"
+            className="md:hidden py-4 border-t border-gray-200/20 dark:border-gray-700/20 bg-gradient-to-r from-gray-950 to-blue-950 backdrop-blur-md"
           >
             <Navigation mobile onItemClick={() => setIsMenuOpen(false)} />
             <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200/20 dark:border-gray-700/20 mt-4">

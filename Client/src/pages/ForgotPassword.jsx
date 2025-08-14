@@ -7,7 +7,7 @@ import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Card from '../components/common/Card';
 import toast from 'react-hot-toast';
-import logoIconDarkTransparent from '../assets/images/logo-icon-dark-transparent.png';
+import logoIconDarkTransparent from '../assets/images/newlogo.png';
 
 const ForgotPassword = () => {
   // State Management

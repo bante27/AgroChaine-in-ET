@@ -18,4 +18,4 @@ soldQuantity: { type: Number, default: 0 },
 
 });
 
-module.exports = mongoose.model('Product', ProductSchema);
+module.exports = mongoose.model('Product', ProductSchema)

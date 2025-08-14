@@ -1,0 +1,1305 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import {
+  BarChart3,
+  TrendingUp,
+  Users,
+  Package,
+  ArrowUpRight,
+  Activity,
+  DollarSign,
+  Upload,
+  ShoppingCart,
+  Camera,
+  User,
+  LogOut,
+  ChevronDown,
+  ChevronUp,
+  Settings,
+  Bell,
+  Search,
+  Menu,
+  X,
+  Shield,
+  Star,
+  MapPin,
+  Phone,
+  Mail,
+  Edit3,
+  Check,
+  Plus
+} from 'lucide-react';
+import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
+
+// Card Component
+const Card = ({ children, hover = false, className = '' }) => (
+  <motion.div 
+    className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-6 ${hover ? 'hover:shadow-lg hover:shadow-blue-100/50 hover:-translate-y-1' : ''} transition-all duration-300 ${className}`}
+    whileHover={hover ? { y: -2 } : {}}
+  >
+    {children}
+  </motion.div>
+);
+
+// Button Component
+const Button = ({ children, variant = 'default', size = 'default', className = '', disabled = false, ...props }) => {
+  const baseStyles = 'font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2';
+  const variants = {
+    default: 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 focus:ring-blue-500 shadow-lg hover:shadow-xl',
+    primary: 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 focus:ring-blue-500 shadow-lg hover:shadow-xl',
+    success: 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 focus:ring-green-500 shadow-lg hover:shadow-xl',
+    outline: 'bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50 focus:ring-blue-500',
+    ghost: 'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+  };
+  const sizes = {
+    small: 'px-3 py-2 text-sm',
+    default: 'px-6 py-3 text-base',
+    large: 'px-8 py-4 text-lg',
+  };
+  return (
+    <button className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`} disabled={disabled} {...props}>
+      {children}
+    </button>
+  );
+};
+
+// Verification Modal
+const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) => {
+  const [govIdFront, setGovIdFront] = useState(null);
+  const [govIdBack, setGovIdBack] = useState(null);
+  const [name, setName] = useState('');
+  const [isFrontCameraActive, setIsFrontCameraActive] = useState(false);
+  const [isBackCameraActive, setIsBackCameraActive] = useState(false);
+  const videoFrontRef = useRef(null);
+  const canvasFrontRef = useRef(null);
+  const videoBackRef = useRef(null);
+  const canvasBackRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    let stream;
+    if (isFrontCameraActive) {
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((s) => {
+          stream = s;
+          if (videoFrontRef.current) videoFrontRef.current.srcObject = stream;
+        })
+        .catch(() => toast.error('Failed to access camera'));
+    }
+    return () => stream && stream.getTracks().forEach((t) => t.stop());
+  }, [isFrontCameraActive]);
+
+  useEffect(() => {
+    let stream;
+    if (isBackCameraActive) {
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((s) => {
+          stream = s;
+          if (videoBackRef.current) videoBackRef.current.srcObject = stream;
+        })
+        .catch(() => toast.error('Failed to access camera'));
+    }
+    return () => stream && stream.getTracks().forEach((t) => t.stop());
+  }, [isBackCameraActive]);
+
+  const dataURLtoFile = (dataUrl, filename) => {
+    const arr = dataUrl.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) u8arr[n] = bstr.charCodeAt(n);
+    return new File([u8arr], filename, { type: mime });
+  };
+
+  const captureFrontImage = () => {
+    if (videoFrontRef.current && canvasFrontRef.current) {
+      const ctx = canvasFrontRef.current.getContext('2d');
+      ctx.drawImage(videoFrontRef.current, 0, 0, 300, 200);
+      const imageData = canvasFrontRef.current.toDataURL('image/jpeg');
+      setGovIdFront(dataURLtoFile(imageData, 'id_front.jpg'));
+      setIsFrontCameraActive(false);
+      toast.success('Front ID captured');
+    }
+  };
+
+  const captureBackImage = () => {
+    if (videoBackRef.current && canvasBackRef.current) {
+      const ctx = canvasBackRef.current.getContext('2d');
+      ctx.drawImage(videoBackRef.current, 0, 0, 300, 200);
+      const imageData = canvasBackRef.current.toDataURL('image/jpeg');
+      setGovIdBack(dataURLtoFile(imageData, 'id_back.jpg'));
+      setIsBackCameraActive(false);
+      toast.success('Back ID captured');
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!govIdFront || !govIdBack || !name) {
+      toast.error('Please provide name and both ID images');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('govIdFront', govIdFront);
+      formData.append('govIdBack', govIdBack);
+      await onVerify(formData);
+      toast.success('Verification submitted, pending review');
+      onClose();
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Verification failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl"
+      >
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Shield className="w-8 h-8 text-blue-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Verify Your Identity</h2>
+          <p className="text-gray-600">Upload your government ID to get verified</p>
+        </div>
+        
+        {verificationStatus === 'pending' && <p className="text-yellow-600 mb-4 font-medium text-center">Verification pending...</p>}
+        {verificationStatus === 'verified' && <p className="text-green-600 mb-4 font-medium text-center">Verified successfully!</p>}
+        
+        {verificationStatus !== 'verified' && (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                placeholder="Enter your full name"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">National ID (Front)</label>
+              {isFrontCameraActive ? (
+                <div className="space-y-3">
+                  <video ref={videoFrontRef} autoPlay className="w-full h-48 bg-gray-100 rounded-xl" />
+                  <canvas ref={canvasFrontRef} width="300" height="200" className="hidden" />
+                  <Button onClick={captureFrontImage} disabled={isLoading} className="w-full">
+                    <Camera className="w-4 h-4" />
+                    Capture Front
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setGovIdFront(e.target.files[0])}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 transition-all"
+                    disabled={isLoading}
+                  />
+                  <Button
+                    onClick={() => setIsFrontCameraActive(true)}
+                    variant="outline"
+                    disabled={isLoading}
+                    className="w-full"
+                  >
+                    <Camera className="w-4 h-4" />
+                    Scan with Camera
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">National ID (Back)</label>
+              {isBackCameraActive ? (
+                <div className="space-y-3">
+                  <video ref={videoBackRef} autoPlay className="w-full h-48 bg-gray-100 rounded-xl" />
+                  <canvas ref={canvasBackRef} width="300" height="200" className="hidden" />
+                  <Button onClick={captureBackImage} disabled={isLoading} className="w-full">
+                    <Camera className="w-4 h-4" />
+                    Capture Back
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setGovIdBack(e.target.files[0])}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 transition-all"
+                    required
+                    disabled={isLoading}
+                  />
+                  <Button
+                    onClick={() => setIsBackCameraActive(true)}
+                    variant="outline"
+                    disabled={isLoading}
+                    className="w-full"
+                  >
+                    <Camera className="w-4 h-4" />
+                    Scan with Camera
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button variant="outline" onClick={onClose} disabled={isLoading} className="flex-1">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading} className="flex-1">
+                {isLoading ? 'Submitting...' : 'Submit'}
+              </Button>
+            </div>
+          </form>
+        )}
+      </motion.div>
+    </div>
+  );
+};
+
+// Product Upload Modal
+const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
+  const [product, setProduct] = useState({
+    title: '',
+    price: '',
+    originAddress: '',
+    quantity: '',
+    description: '',
+    type: '',
+    images: [],
+  });
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 6) {
+      toast.error('Maximum 6 images allowed');
+      return;
+    }
+    setProduct({ ...product, images: files });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!product.title || !product.price || !product.originAddress || !product.type || !product.quantity) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+      Object.keys(product).forEach(key => {
+        if (key === 'images') {
+          product.images.forEach(image => formData.append('images', image));
+        } else {
+          formData.append(key, product[key]);
+        }
+      });
+      await onSubmit(formData);
+      setProduct({ title: '', price: '', originAddress: '', quantity: '', description: '', type: '', images: [] });
+      toast.success('Product uploaded successfully');
+      onClose();
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Product upload failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto"
+      >
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Plus className="w-8 h-8 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Add New Product</h2>
+          <p className="text-gray-600">List your product in the marketplace</p>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Product Title</label>
+              <input
+                type="text"
+                value={product.title}
+                onChange={(e) => setProduct({ ...product, title: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                placeholder="Enter product title"
+                required
+                disabled={isLoading}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Type</label>
+              <select
+                value={product.type}
+                onChange={(e) => setProduct({ ...product, type: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                required
+                disabled={isLoading}
+              >
+                <option value="">Select Type</option>
+                <option value="vegetable">Vegetable</option>
+                <option value="fruit">Fruit</option>
+                <option value="grain">Grain</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Price (ETB)</label>
+              <input
+                type="number"
+                value={product.price}
+                onChange={(e) => setProduct({ ...product, price: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                placeholder="0.00"
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Quantity (kg)</label>
+              <input
+                type="number"
+                value={product.quantity}
+                onChange={(e) => setProduct({ ...product, quantity: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                placeholder="0"
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Origin Address</label>
+              <input
+                type="text"
+                value={product.originAddress}
+                onChange={(e) => setProduct({ ...product, originAddress: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                placeholder="Enter origin address"
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Images (up to 6)</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileChange}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 transition-all"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+              <textarea
+                value={product.description}
+                onChange={(e) => setProduct({ ...product, description: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                rows="4"
+                placeholder="Describe your product..."
+                disabled={isLoading}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button variant="outline" onClick={onClose} disabled={isLoading} className="flex-1">
+              Cancel
+            </Button>
+            <Button type="submit" variant="success" disabled={isLoading} className="flex-1">
+              {isLoading ? 'Uploading...' : 'Upload Product'}
+            </Button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+};
+
+// Profile Image Upload Modal
+const ProfileImageUploadModal = ({ isOpen, onClose, onImageSave }) => {
+  const [profileImage, setProfileImage] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setPreview(e.target.result);
+      reader.readAsDataURL(file);
+      toast.success('Image selected');
+    }
+  };
+
+  const handleSave = async () => {
+    if (profileImage) {
+      setIsLoading(true);
+      try {
+        await onImageSave(profileImage);
+        toast.success('Profile image updated');
+        onClose();
+      } catch (error) {
+        toast.error(error.response?.data?.error || 'Failed to update profile image');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl"
+      >
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Update Profile Picture</h2>
+          
+          <div className="relative w-32 h-32 mx-auto mb-6">
+            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-100 shadow-lg">
+              {preview ? (
+                <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-100 text-gray-400">
+                  <User className="w-16 h-16" />
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => fileInputRef.current.click()}
+              className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors shadow-lg"
+            >
+              <Camera className="w-5 h-5" />
+            </button>
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+
+          <p className="text-gray-600 mb-6">Choose a profile picture that represents you</p>
+
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={onClose} disabled={isLoading} className="flex-1">
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={isLoading || !profileImage} className="flex-1">
+              {isLoading ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// Google-style Profile Component
+const GoogleStyleProfile = ({ user, isOpen, onToggle, onImageUpload, onLogout, onSave, profileData, setProfileData }) => {
+  const [editMode, setEditMode] = useState(false);
+
+  return (
+    <div className="fixed top-4 right-4 z-50">
+      <div className="relative">
+        <motion.button
+          onClick={onToggle}
+          className="flex items-center gap-3 p-2 bg-white rounded-full shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-200"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <div className="relative">
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200">
+              {user?.profilePic ? (
+                <img
+                  src={`http://localhost:5000${user.profilePic}`}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold">
+                  {user?.fullName?.[0] || 'U'}
+                </div>
+              )}
+            </div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
+          </div>
+          <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </motion.button>
+
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
+            >
+              <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="w-16 h-16 rounded-full overflow-hidden border-3 border-white shadow-lg">
+                      {user?.profilePic ? (
+                        <img
+                          src={`http://localhost:5000${user.profilePic}`}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-xl">
+                          {user?.fullName?.[0] || 'U'}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={onImageUpload}
+                      className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all"
+                    >
+                      <Camera className="w-3 h-3 text-gray-600" />
+                    </button>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-bold text-gray-900 truncate">{profileData.fullName || 'User'}</h3>
+                    <p className="text-sm text-gray-600 truncate">{user?.email}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {user?.verified ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                          <Shield className="w-3 h-3" />
+                          Verified
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
+                          <Shield className="w-3 h-3" />
+                          Pending
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 max-h-96 overflow-y-auto">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-sm font-semibold text-gray-900">Profile Information</h4>
+                  <button
+                    onClick={() => setEditMode(!editMode)}
+                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {[
+                    { key: 'fullName', label: 'Full Name', icon: User },
+                    { key: 'username', label: 'Username', icon: User },
+                    { key: 'phone', label: 'Phone', icon: Phone },
+                    { key: 'address', label: 'Address', icon: MapPin },
+                    { key: 'location', label: 'Location', icon: MapPin }
+                  ].map(({ key, label, icon: Icon }) => (
+                    <div key={key}>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">{label}</label>
+                      <div className="relative">
+                        <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="text"
+                          value={profileData[key] || ''}
+                          onChange={(e) => setProfileData({ ...profileData, [key]: e.target.value })}
+                          disabled={!editMode}
+                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border transition-all text-sm ${
+                            editMode 
+                              ? 'border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white' 
+                              : 'border-transparent bg-gray-50 text-gray-700'
+                          }`}
+                          placeholder={`Enter ${label.toLowerCase()}`}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {editMode && (
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={() => {
+                        onSave();
+                        setEditMode(false);
+                      }}
+                      className="flex-1 bg-blue-600 text-white py-2.5 px-4 rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Check className="w-4 h-4" />
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setEditMode(false)}
+                      className="px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4 bg-gray-50 border-t border-gray-100">
+                <div className="space-y-1">
+                  <button className="w-full flex items-center gap-3 p-3 text-gray-700 hover:bg-white rounded-xl transition-colors">
+                    <Settings className="w-4 h-4" />
+                    <span className="text-sm font-medium">Account Settings</span>
+                  </button>
+                  <button 
+                    onClick={onLogout}
+                    className="w-full flex items-center gap-3 p-3 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="text-sm font-medium">Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
+
+// Marketplace Component
+const Marketplace = ({ token, onAddToCart }) => {
+  const [products, setProducts] = useState([]);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/products', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setProducts(response.data.items || []);
+      } catch (error) {
+        setError(error.response?.data?.error || 'Failed to load products');
+        toast.error(error.response?.data?.error || 'Failed to load products');
+      }
+    };
+    if (token) fetchProducts();
+  }, [token]);
+
+  if (error) {
+    return <div className="text-center py-10 text-2xl text-red-600">{error}</div>;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/30 py-8 px-4">
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h2 className="text-4xl font-bold text-gray-900 mb-2">Marketplace</h2>
+          <p className="text-lg text-gray-600">Discover fresh products from local farmers</p>
+        </motion.div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {products.length === 0 ? (
+            <div className="col-span-full text-center py-16">
+              <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-xl text-gray-600">No products available.</p>
+            </div>
+          ) : (
+            products.map((product) => (
+              <motion.div
+                key={product._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -4 }}
+                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg hover:shadow-blue-100/50 transition-all duration-300"
+              >
+                <div className="relative">
+                  {product.images && product.images.length > 0 ? (
+                    <img
+                      src={`http://localhost:5000${product.images[0]}`}
+                      alt={product.title}
+                      className="w-full h-48 object-cover"
+                      onError={(e) => (e.target.src = 'https://images.pexels.com/photos/1300972/pexels-photo-1300972.jpeg?auto=compress&cs=tinysrgb&w=300')}
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                      <Package className="h-12 w-12 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="absolute top-3 right-3">
+                    <span className="px-2 py-1 bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 rounded-full">
+                      {product.type}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="p-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">{product.title}</h3>
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-green-600">{product.price} ETB</span>
+                      <span className="text-sm text-gray-500">per kg</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <MapPin className="w-4 h-4" />
+                      <span className="truncate">{product.originAddress}</span>
+                    </div>
+                  </div>
+                  {product.description && (
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">{product.description}</p>
+                  )}
+                  <Button
+                    onClick={() => onAddToCart(product)}
+                    className="w-full"
+                    variant="primary"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    Add to Cart
+                  </Button>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Main Dashboard Component
+const Dashboard = () => {
+  const { user, isAuthenticated, loading, logout, setUser } = useAuth();
+  const navigate = useNavigate();
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [showProfileImageModal, setShowProfileImageModal] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState(user?.verified ? 'verified' : 'unverified');
+  const [currentView, setCurrentView] = useState('main');
+  const [products, setProducts] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [profileData, setProfileData] = useState({
+    fullName: '',
+    username: '',
+    phone: '',
+    address: '',
+    location: '',
+  });
+  const [error, setError] = useState(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      if (!isAuthenticated && !loading) {
+        axios
+          .get('http://localhost:5000/api/users/profile', {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((response) => {
+            setUser(response.data.user);
+            setProfileData({
+              fullName: response.data.user.fullName || '',
+              username: response.data.user.username || '',
+              phone: response.data.user.phone || '',
+              address: response.data.user.address || '',
+              location: response.data.user.location || '',
+            });
+            setVerificationStatus(response.data.user.verified ? 'verified' : 'unverified');
+          })
+          .catch(() => {
+            localStorage.removeItem('token');
+            navigate('/login', { replace: true });
+          });
+      }
+    } else if (!isAuthenticated && !loading) {
+      navigate('/login', { replace: true });
+    }
+  }, [isAuthenticated, loading, navigate, setUser]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:5000/api/products', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setProducts(response.data.items || []);
+      } catch (error) {
+        setError(error.response?.data?.error || 'Failed to load products');
+        toast.error(error.response?.data?.error || 'Failed to load products');
+      }
+    };
+    if (isAuthenticated && user) fetchProducts();
+  }, [isAuthenticated, user]);
+
+  const stats = [
+    {
+      title: 'Total Revenue',
+      value: user?.transactionHistory?.reduce((sum, tx) => sum + (tx.amount || 0), 0) || '0 ETB',
+      change: '+0%',
+      trend: 'up',
+      icon: DollarSign,
+      color: 'blue',
+      bg: 'from-blue-500 to-blue-600'
+    },
+    {
+      title: 'Active Products',
+      value: user?.soldProducts?.length || '0',
+      change: '+0',
+      trend: 'up',
+      icon: Package,
+      color: 'green',
+      bg: 'from-green-500 to-emerald-600'
+    },
+    {
+      title: 'Total Orders',
+      value: user?.transactionHistory?.length || '0',
+      change: '+0',
+      trend: 'up',
+      icon: BarChart3,
+      color: 'purple',
+      bg: 'from-purple-500 to-indigo-600'
+    },
+    {
+      title: 'Customer Rating',
+      value: user?.customerRating || '0',
+      change: '0',
+      trend: 'up',
+      icon: Star,
+      color: 'yellow',
+      bg: 'from-amber-500 to-orange-500'
+    },
+  ];
+
+  const recentActivities = user?.transactionHistory?.length
+    ? user.transactionHistory.map((tx, index) => ({
+        id: index,
+        type: tx.type || 'transaction',
+        description: tx.description || `Transaction #${index + 1}`,
+        amount: tx.amount ? `${tx.amount} ETB` : null,
+        time: new Date(tx.date || Date.now()).toLocaleString(),
+        status: tx.status || 'completed',
+      }))
+    : [
+        {
+          id: 1,
+          type: 'info',
+          description: 'No recent transactions',
+          amount: null,
+          time: new Date().toLocaleString(),
+          status: 'info',
+        },
+      ];
+
+  const quickActions = [
+    { 
+      title: 'Add Product', 
+      description: 'List a new product for sale', 
+      action: () => handleSellClick(),
+      icon: Plus,
+      color: 'blue'
+    },
+    { 
+      title: 'View Orders', 
+      description: 'Check your recent orders', 
+      action: () => toast.info('Orders feature coming soon!'),
+      icon: ShoppingCart,
+      color: 'green'
+    },
+    { 
+      title: 'Analytics', 
+      description: 'View sales analytics', 
+      action: () => toast.info('Analytics feature coming soon!'),
+      icon: TrendingUp,
+      color: 'purple'
+    },
+  ];
+
+  const handleVerify = async (formData) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:5000/api/users/verify', formData, {
+        headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
+      });
+      setVerificationStatus('pending');
+      setShowVerificationModal(false);
+      const userData = await axios.get('http://localhost:5000/api/users/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(userData.data.user);
+      toast.success('Government ID uploaded, pending verification');
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Verification failed');
+    }
+  };
+
+  const handleProductSubmit = async (productData) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('http://localhost:5000/api/products', productData, {
+        headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
+      });
+      setProducts([...products, response.data.product]);
+      setShowProductModal(false);
+      setCurrentView('marketplace');
+      toast.success('Product uploaded successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Product upload failed');
+    }
+  };
+
+  const handleProfileImageSave = async (imageFile) => {
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('profilePic', imageFile);
+      await axios.post('http://localhost:5000/api/users/profile-pic', formData, {
+        headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
+      });
+      const userData = await axios.get('http://localhost:5000/api/users/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(userData.data.user);
+      toast.success('Profile image updated');
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to update profile image');
+    }
+  };
+
+  const saveProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(
+        'http://localhost:5000/api/users/profile',
+        {
+          fullName: profileData.fullName,
+          username: profileData.username,
+          phone: profileData.phone,
+          address: profileData.address,
+          location: profileData.location,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const userData = await axios.get('http://localhost:5000/api/users/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(userData.data.user);
+      toast.success('Profile updated successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to update profile');
+    }
+  };
+
+  const handleBuyClick = () => {
+    if (verificationStatus !== 'verified') {
+      setShowVerificationModal(true);
+    } else {
+      setCurrentView('marketplace');
+    }
+  };
+
+  const handleSellClick = () => {
+    if (verificationStatus !== 'verified') {
+      setShowVerificationModal(true);
+    } else {
+      setShowProductModal(true);
+    }
+  };
+
+  const handleAddToCart = (product) => {
+    setCart([...cart, product]);
+    toast.success(`${product.title} added to cart!`);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/30">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-xl text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="text-center py-10 text-2xl text-red-600">{error}</div>;
+  }
+
+  if (currentView === 'marketplace') {
+    return <Marketplace token={localStorage.getItem('token')} onAddToCart={handleAddToCart} />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/30">
+      <GoogleStyleProfile
+        user={user}
+        isOpen={isProfileOpen}
+        onToggle={() => setIsProfileOpen(!isProfileOpen)}
+        onImageUpload={() => setShowProfileImageModal(true)}
+        onLogout={() => {
+          toast.success('Logged out successfully');
+          logout();
+          navigate('/login', { replace: true });
+        }}
+        onSave={saveProfile}
+        profileData={profileData}
+        setProfileData={setProfileData}
+      />
+
+      <div className="px-4 md:px-6 lg:px-8 py-6 pb-20">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.6 }}
+          className="mb-8"
+        >
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+                Welcome back, {profileData.fullName || 'User'}! 👋
+              </h1>
+              <p className="text-lg text-gray-600">
+                {currentTime.toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button onClick={handleBuyClick} variant="outline" className="whitespace-nowrap">
+                <ShoppingCart className="w-5 h-5" />
+                Browse Products
+              </Button>
+              <Button onClick={handleSellClick} variant="success" className="whitespace-nowrap">
+                <Upload className="w-5 h-5" />
+                Sell Products
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+        >
+          {stats.map((stat, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+            >
+              <Card hover className="relative overflow-hidden">
+                <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${stat.bg} opacity-10 rounded-bl-3xl`}></div>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-2">{stat.title}</p>
+                    <p className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">{stat.value}</p>
+                    <div className="flex items-center gap-1">
+                      <ArrowUpRight className="w-4 h-4 text-green-500" />
+                      <span className="text-sm font-medium text-green-600">{stat.change}</span>
+                      <span className="text-sm text-gray-500">vs last month</span>
+                    </div>
+                  </div>
+                  <div className={`p-3 bg-gradient-to-r ${stat.bg} rounded-2xl`}>
+                    <stat.icon className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="lg:col-span-2"
+          >
+            <Card>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
+                <Button variant="ghost" size="small">
+                  View All
+                </Button>
+              </div>
+              <div className="space-y-4">
+                {recentActivities.map((activity) => (
+                  <motion.div
+                    key={activity.id}
+                    className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                    whileHover={{ x: 4 }}
+                  >
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                      <Activity className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{activity.description}</p>
+                      <p className="text-sm text-gray-600">{activity.time}</p>
+                    </div>
+                    <div className="text-right">
+                      {activity.amount && (
+                        <p className="font-bold text-gray-900">{activity.amount}</p>
+                      )}
+                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                        activity.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        activity.status === 'active' ? 'bg-blue-100 text-blue-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {activity.status}
+                      </span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <Card>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+              <div className="space-y-4">
+                {quickActions.map((action, index) => (
+                  <motion.button
+                    key={index}
+                    onClick={action.action}
+                    className="w-full text-left p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all group"
+                    whileHover={{ x: 4 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`p-2 bg-gradient-to-r ${
+                        action.color === 'blue' ? 'from-blue-500 to-blue-600' :
+                        action.color === 'green' ? 'from-green-500 to-emerald-600' :
+                        'from-purple-500 to-indigo-600'
+                      } rounded-lg`}>
+                        <action.icon className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                          {action.title}
+                        </h3>
+                        <p className="text-sm text-gray-600">{action.description}</p>
+                      </div>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            </Card>
+          </motion.div>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="mt-8"
+        >
+          <Card>
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+              <h2 className="text-xl font-bold text-gray-900">Sales Overview</h2>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="small">7 Days</Button>
+                <Button variant="ghost" size="small">30 Days</Button>
+                <Button variant="primary" size="small">90 Days</Button>
+              </div>
+            </div>
+            <div className="h-64 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl flex items-center justify-center border-2 border-dashed border-blue-200">
+              <div className="text-center">
+                <TrendingUp className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Sales Analytics</h3>
+                <p className="text-gray-600">Interactive charts and insights coming soon</p>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+      </div>
+
+      <VerificationModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        onVerify={handleVerify}
+        verificationStatus={verificationStatus}
+      />
+      <ProductUploadModal
+        isOpen={showProductModal}
+        onClose={() => setShowProductModal(false)}
+        onSubmit={handleProductSubmit}
+      />
+      <ProfileImageUploadModal
+        isOpen={showProfileImageModal}
+        onClose={() => setShowProfileImageModal(false)}
+        onImageSave={handleProfileImageSave}
+      />
+    </div>
+  );
+};
+
+export default Dashboard;

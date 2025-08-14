@@ -58,6 +58,7 @@ def add_product(token):
         "originAddress": "Farm 123",
         "type": "Fruit",
         "quantity": "50",
+        "availableQuantity": "50",
         "description": "Freshly picked apples",
         "comment": "Available for immediate delivery"
     }

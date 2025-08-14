@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/authMiddleware');
 const upload = require('../middleware/upload');
-const Product = require('../models/Product');
+const Product = require('../models/Products');
 const User = require('../models/User');
 const { v4: uuidv4 } = require('uuid');
 
@@ -58,3 +58,4 @@ router.delete('/:id', auth, async (req,res) => {
 });
 
 module.exports = router;
+

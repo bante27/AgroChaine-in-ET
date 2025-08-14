@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
-import logoIconDarkTransparent from "../../assets/images/logo-icon-dark-transparent.png";
+import logoIconDarkTransparent from "../../assets/images/newlogo.png";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear(); // Get the current year dynamically

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User'); // ✅ correct
-const Product = require('../models/product'); // ✅ correct path
+const Product = require('../models/products'); // ✅ correct path
 
 /**
  * @route GET /api/dashboard

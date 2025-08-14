@@ -1,75 +1,102 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
-import { authAPI } from '../services/api/auth'
+import { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '../services/api/auth';
+import axios from 'axios';
 
-const AuthContext = createContext()
+const AuthContext = createContext();
 
 export const useAuth = () => {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error('useAuth must be used within an AuthProvider');
   }
-  return context
-}
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    checkAuthStatus()
-  }, [])
+    checkAuthStatus();
+  }, []);
 
   const checkAuthStatus = async () => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('token');
+      console.log('AuthContext: Checking auth status, token:', token);
       if (token) {
-        const userData = await authAPI.verifyToken(token)
-        setUser(userData)
-        setIsAuthenticated(true)
+        const response = await axios.get('http://localhost:5000/api/users/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log('AuthContext: Profile response:', response.data);
+        if (response.data && response.data.user) {
+          setUser(response.data.user);
+          setIsAuthenticated(true);
+        } else {
+          console.warn('AuthContext: No user data in profile response');
+          localStorage.removeItem('token');
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+      } else {
+        console.log('AuthContext: No token found');
+        setIsAuthenticated(false);
+        setUser(null);
       }
     } catch (error) {
-      localStorage.removeItem('token')
+      console.error('AuthContext: Error verifying token:', error);
+      localStorage.removeItem('token');
+      setIsAuthenticated(false);
+      setUser(null);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const login = async (credentials) => {
+  const login = async (token, userData) => {
     try {
-      const response = await authAPI.login(credentials)
-      const { user, token } = response.data
-      
-      localStorage.setItem('token', token)
-      setUser(user)
-      setIsAuthenticated(true)
-      
-      return { success: true, user }
+      console.log('AuthContext: Login attempt with token:', token);
+      localStorage.setItem('token', token);
+      setUser(userData);
+      setIsAuthenticated(true);
+      setLoading(false);
+      return { success: true, user: userData };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Login failed' 
-      }
+      console.error('AuthContext: Login error:', error);
+      localStorage.removeItem('token');
+      setIsAuthenticated(false);
+      setUser(null);
+      setLoading(false);
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Login failed',
+      };
     }
-  }
+  };
 
   const register = async (userData) => {
     try {
-      const response = await authAPI.register(userData)
-      return { success: true, data: response.data }
+      console.log('AuthContext: Register attempt with data:', userData);
+      const response = await authAPI.register(userData);
+      console.log('AuthContext: Register response:', response.data);
+      return { success: true, data: response.data };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Registration failed' 
-      }
+      console.error('AuthContext: Registration error:', error);
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Registration failed',
+      };
     }
-  }
+  };
 
   const logout = () => {
-    localStorage.removeItem('token')
-    setUser(null)
-    setIsAuthenticated(false)
-  }
+    console.log('AuthContext: Logging out');
+    localStorage.removeItem('token');
+    setUser(null);
+    setIsAuthenticated(false);
+    setLoading(false);
+  };
 
   const value = {
     user,
@@ -77,12 +104,9 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
-    logout
-  }
+    logout,
+    setUser,
+  };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  )
-}
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};

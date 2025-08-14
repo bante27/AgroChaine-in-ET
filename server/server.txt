@@ -1,36 +1,38 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const path = require('path');
 const connectDB = require('./config/db');
-const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/userRoutes');
+const productRoutes = require('./routes/productRoutes');
+const errorHandler = require('./middleware/errorHandler');
+const rateLimiter = require('./middleware/rateLimiter');
+const transactionRoutes = require('./routes/transactionRoutes');
 
 const app = express();
+connectDB();
 
-// Middleware
+app.use(cors());
+app.use(helmet());
+app.use(morgan('combined'));
+app.use(rateLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: 'http://localhost:5174', // Specific origin for frontend
-  credentials: true, // Allow cookies if needed
-}));
 
-// Connect to MongoDB with error handling
-const startServer = async () => {
-  try {
-    await connectDB();
-    console.log('MongoDB connected to agrochain_ethiopia');
-  } catch (error) {
-    console.error('Failed to connect to MongoDB:', error.message);
-    process.exit(1);
-  }
+// Serve uploads statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/transactions', transactionRoutes);
 
-  // Routes
-  app.use('/api/auth', authRoutes);
+// Routes
+app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
 
-  // Start Server
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-};
+// Error handling middleware (last)
+app.use(errorHandler);
 
-startServer();
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

@@ -138,22 +138,39 @@ router.post('/profile-pic', auth, profilePicUpload.single('profilePic'), async (
     res.status(500).json({ success: false, error: 'Error uploading profile picture' });
   }
 });
-
 // Upload government ID for verification
-router.post('/verify-id', auth, govIdUpload.single('govId'), async (req, res) => {
+router.post('/verify-id', auth, govIdUpload.fields([
+  { name: 'govIdFront', maxCount: 1 },
+  { name: 'govIdBack', maxCount: 1 }
+]), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ success: false, error: 'No file uploaded' });
+    if (!req.files || !req.files.govIdFront || !req.files.govIdBack) {
+      return res.status(400).json({ success: false, error: 'Both front and back images are required' });
+    }
 
-    await User.findOneAndUpdate(
-      { userId: req.user.userId },
-      { governmentIdPic: `/uploads/govIds/${req.file.filename}`, verified: false }
-    );
+    const user = await User.findById(req.user.userId); // ✅ using _id
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
 
-    res.json({ success: true, message: 'Government ID uploaded, pending verification' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, error: 'Error uploading government ID' });
+    user.govIdFront = `/uploads/govIds/${req.files.govIdFront[0].filename}`;
+    user.govIdBack = `/uploads/govIds/${req.files.govIdBack[0].filename}`;
+    user.govIdStatus = 'pending';
+    user.verified = false;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Gov ID uploaded successfully, pending review',
+      govIdFront: user.govIdFront,
+      govIdBack: user.govIdBack
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server error' });
   }
 });
+
 
 module.exports = router;
