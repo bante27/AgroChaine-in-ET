@@ -14,7 +14,7 @@ const ProductSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 soldQuantity: { type: Number, default: 0 },
-availableQuantity: { type: Number, required: true }, // initially equal to quantity
+
 
 });
 

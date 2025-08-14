@@ -10,6 +10,8 @@ const productRoutes = require('./routes/productRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const rateLimiter = require('./middleware/rateLimiter');
 const transactionRoutes = require('./routes/transactionRoutes');
+const chatRoutes = require('./routes/chatRoutes');
+
 
 const app = express();
 connectDB();
@@ -28,8 +30,8 @@ app.use('/api/transactions', transactionRoutes);
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
-
-// Error handling middleware (last)
+app.use(express.json());
+app.use('/api/chat', chatRoutes); 
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
