@@ -50,35 +50,31 @@ const Contact = () => {
     }
   }
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!validateForm()) return
+    setIsSubmitting(true)
 
-  if (!validateForm()) return;
+   try {
+  const res = await fetch("http://localhost:5000/api/contact", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(formData),
+  });
 
-  setIsSubmitting(true);
+  const data = await res.json();
 
-  try {
-    const res = await fetch("http://localhost:5000/api/contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      toast.success(data.message);
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    } else {
-      toast.error(data.error || "Failed to send message");
-    }
-  } catch (error) {
-    toast.error("Network error. Please try again.");
-  } finally {
-    setIsSubmitting(false);
+  if (res.ok) {
+    toast.success(data.message);
+    setFormData({ name: '', email: '', subject: '', message: '' });
+  } else {
+    toast.error(data.error || "Failed to send message");
   }
-};
+} catch (error) {
+  toast.error("Network error. Please try again.");
+}
 
+  }
 
   const contactInfo = [
     {
