@@ -1,4 +1,5 @@
 // controllers/chatController.js
+//live chat controller
 
 exports.chatBotResponse = (req, res) => {
     const { message } = req.body;

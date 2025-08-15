@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
+import LiveChat from '../components/LiveChat';
+
 import {
   Mail,
   Phone,
@@ -269,6 +271,8 @@ const Contact = () => {
             </div>
           </div>
         </section>
+        {/* Live Chat Component */}
+        <LiveChat />
       </div>
     </div>
   )

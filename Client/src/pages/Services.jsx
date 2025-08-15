@@ -16,6 +16,8 @@ import {
 } from 'lucide-react'
 import Card from '../components/common/Card'
 import Button from '../components/common/Button'
+import LiveChat from '../components/LiveChat';
+
 
 // Import your images from assets/images/
 import AgricultureHero from '../assets/images/About.jfif'
@@ -322,6 +324,8 @@ const Services = () => {
           </motion.div>
         </div>
       </section>
+      {/* Live Chat Component */}
+      <LiveChat />
     </div>
   )
 }

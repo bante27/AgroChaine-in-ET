@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 // Add AnimatePresence here
 import { motion, AnimatePresence } from 'framer-motion'; // Import motion and AnimatePresence for animations
 import { Shield, Users, Leaf, TrendingUp, CheckCircle, ArrowRight, Play, Star, Award, ChevronLeft, ChevronRight } from 'lucide-react';
+import LiveChat from '../components/LiveChat';
 
 // Import your videos from src/assets/
 import video2 from '../assets/crops1.mp4';
@@ -564,6 +565,8 @@ const Home = () => {
                     </motion.div>
                 </motion.div>
             </section>
+            {/* Live Chat Component */}
+            <LiveChat />
         </div>
     );
 };

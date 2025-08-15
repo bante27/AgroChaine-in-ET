@@ -14,6 +14,7 @@ import {
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input'; // Assuming you have this component, though not used directly in the provided snippet
+import LiveChat from '../components/LiveChat';
 
 const Marketplace = () => {
   const [viewMode, setViewMode] = useState('grid');
@@ -296,6 +297,8 @@ const Marketplace = () => {
           )}
         </div>
       </section>
+      {/* Live Chat Component */}
+      <LiveChat />
     </div>
   );
 };

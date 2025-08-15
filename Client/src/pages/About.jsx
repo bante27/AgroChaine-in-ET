@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Target, Award, Globe } from 'lucide-react';
 import Card from '../components/common/Card'; // Assuming Card is a styled component that accepts props
+import LiveChat from '../components/LiveChat';
+
 
 // Images
 import WestGojjamZon from '../assets/images/west gojjam zon.jfif'; // For Hero Section background
@@ -318,6 +320,8 @@ const About = () => {
           </div>
         </div>
       </section>
+      {/* Live Chat Component */}
+      <LiveChat />
     </div>
   );
 };

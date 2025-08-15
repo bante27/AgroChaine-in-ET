@@ -12,12 +12,14 @@ import { parsePhoneNumber } from 'libphonenumber-js';
 import logoIconDarkTransparent from '../assets/images/newlogo.png';
 import bgImage from '../assets/images/bg-login.jfif';
 import axios from 'axios';
+import LiveChat from '../components/LiveChat';
+
 
 const GooglePasswordPrompt = ({ email, onSave, onNever }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       onNever();
-    }, 10); // Changed back to 10000ms for better UX
+    }, 0.5); // Changed back to 10000ms for better UX
     return () => clearTimeout(timer);
   }, [onNever]);
 
@@ -600,6 +602,8 @@ const Login = () => {
           </Card>
         </motion.div>
       </motion.div>
+      
+      <LiveChat />
     </div>
   );
 };

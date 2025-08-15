@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import LiveChat from '../components/LiveChat';
+
 //govIdFront
 import {
   BarChart3,
@@ -360,6 +362,7 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
                 <option value="fruit" className="bg-gray-800">Fruit</option>
                 <option value="grain" className="bg-gray-800">Grain</option>
                 <option value="other" className="bg-gray-800">Other</option>
+                
               </select>
             </div>
             <div>
@@ -794,7 +797,7 @@ const Dashboard = () => {
       });
       setProducts([...products, response.data.product]);
       setShowProductModal(false);
-      setCurrentView('marketplace');
+      setCurrentView('Marketplace');
       toast.success('Product uploaded successfully');
     } catch (error) {
       toast.error(error.response?.data?.error || 'Product upload failed');
@@ -849,7 +852,7 @@ const Dashboard = () => {
     if (verificationStatus !== 'verified') {
       setShowVerificationModal(true);
     } else {
-      setCurrentView('marketplace');
+      setCurrentView('Marketplace');
     }
   };
 
@@ -888,14 +891,14 @@ const Dashboard = () => {
     );
   }
 
-  if (currentView === 'marketplace') {
+  if (currentView === 'Marketplace') {
     return <Marketplace token={localStorage.getItem('token')} onAddToCart={handleAddToCart} />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 relative">
       {/* Enhanced Profile Section */}
-      <div className="fixed right-4 top-4 z-50 w-full max-w-sm">
+      <div className="fixed right-0 top-18 z-50 w-sm max-w-sm">
         <motion.div
           className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-6 border border-white/20"
           initial={{ opacity: 0, x: 100 }}
@@ -1010,6 +1013,7 @@ const Dashboard = () => {
           </AnimatePresence>
         </motion.div>
       </div>
+{/* end of profile */}
 
       {/* Main Content */}
       <div className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto">
@@ -1206,6 +1210,9 @@ const Dashboard = () => {
         onClose={() => setShowProfileImageModal(false)}
         onImageSave={handleProfileImageSave}
       />
+
+      {/* Live Chat Component */}
+      <LiveChat />
     </div>
   );
 };

@@ -11,8 +11,9 @@ export default defineConfig({
     hmr: {
       overlay: false // Disable HMR overlay for errors
     },
-    port: 5174, // Change to your desired port
-    open: true, // Automatically open the browser
+    port: 5174,       // Desired port
+    strictPort: true, // Fail if port is in use instead of switching
+    open: true,       // Automatically open the browser
   },
   assetsInclude: ['**/*.jfif', '**/*.jpg', '**/*.jpeg', '**/*.png'], // Explicitly include image formats
   resolve: {
