@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import LiveChat from '../components/LiveChat';
+import Marketplace from './Marketplace'; // Import the new Marketplace component
 
-//govIdFront
+// Icons and other imports remain the same
 import {
   BarChart3,
   TrendingUp,
@@ -24,7 +25,7 @@ import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
-// Enhanced Card Component with better styling
+// Card and Button components remain unchanged
 const Card = ({ children, hover, className = '' }) => (
   <motion.div 
     className={`bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 ${
@@ -37,7 +38,6 @@ const Card = ({ children, hover, className = '' }) => (
   </motion.div>
 );
 
-// Enhanced Button Component
 const Button = ({ children, variant = 'default', size = 'default', className = '', ...props }) => {
   const baseStyles = 'font-semibold rounded-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-offset-2 transform hover:scale-105 active:scale-95';
   const variants = {
@@ -57,7 +57,8 @@ const Button = ({ children, variant = 'default', size = 'default', className = '
   );
 };
 
-// Enhanced Verification Modal
+
+//Verification Modal
 const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) => {
   const [govIdFront, setGovIdFront] = useState(null);
   const [govIdBack, setGovIdBack] = useState(null);
@@ -144,7 +145,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
     }
     setIsLoading(true);
     try {
-      // ✅ Send as FormData so backend multer can read files
+      //  Send as FormData so backend multer can read files
       const formData = new FormData();
       formData.append('govIdFront', govIdFront);
       formData.append('govIdBack', govIdBack);
@@ -273,7 +274,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
   );
 };
 
-// Enhanced Product Upload Modal
+// Product Upload Modal
 const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
   const [product, setProduct] = useState({
     title: '',
@@ -438,7 +439,7 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
   );
 };
 
-// Enhanced Profile Image Upload Modal
+// Profile Image Upload Modal
 const ProfileImageUploadModal = ({ isOpen, onClose, onImageSave }) => {
   const [profileImage, setProfileImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -518,121 +519,6 @@ const ProfileImageUploadModal = ({ isOpen, onClose, onImageSave }) => {
     </div>
   );
 };
-
-// Enhanced Marketplace Component
-const Marketplace = ({ token, onAddToCart }) => {
-  const [products, setProducts] = useState([]);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/products', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setProducts(response.data.items || []);
-      } catch (error) {
-        setError(error.response?.data?.error || 'Failed to load products');
-        toast.error(error.response?.data?.error || 'Failed to load products');
-      }
-    };
-    if (token) fetchProducts();
-  }, [token]);
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
-        <div className="text-center py-10 text-2xl text-red-400 bg-red-400/10 rounded-2xl p-8 border border-red-400/20">
-          {error}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Marketplace</h2>
-          <p className="text-xl text-gray-300">Discover fresh products from local farmers</p>
-        </motion.div>
-        
-        <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          {products.length === 0 ? (
-            <div className="col-span-full text-center py-20">
-              <Package className="h-20 w-20 text-gray-400 mx-auto mb-4" />
-              <p className="text-xl text-gray-400">No products available at the moment.</p>
-            </div>
-          ) : (
-            products.map((product, index) => (
-              <motion.div
-                key={product._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-              >
-                <Card hover className="h-full flex flex-col">
-                  <div className="relative overflow-hidden rounded-xl mb-4">
-                    {product.images && product.images.length > 0 ? (
-                      <img
-                        src={`http://localhost:5000${product.images[0]}`}
-                        alt={product.title}
-                        className="w-full h-48 object-cover transition-transform duration-300 hover:scale-110"
-                        onError={(e) => (e.target.src = 'https://via.placeholder.com/300')}
-                      />
-                    ) : (
-                      <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
-                        <Package className="h-16 w-16 text-gray-400" />
-                      </div>
-                    )}
-                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
-                      <span className="text-sm font-semibold text-gray-800 capitalize">{product.type}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1 space-y-3">
-                    <h3 className="text-xl font-bold text-gray-900">{product.title}</h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-2xl font-bold text-green-600">{product.price} ETB</span>
-                        <span className="text-sm text-gray-500">per kg</span>
-                      </div>
-                      <p className="text-sm text-gray-600 flex items-center">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                        {product.originAddress}
-                      </p>
-                      <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    onClick={() => onAddToCart(product)}
-                    className="mt-6 w-full flex items-center justify-center space-x-2"
-                    variant="success"
-                  >
-                    <ShoppingCart className="h-5 w-5" />
-                    <span>Add to Cart</span>
-                  </Button>
-                </Card>
-              </motion.div>
-            ))
-          )}
-        </motion.div>
-      </div>
-    </div>
-  );
-};
-
 // Main Dashboard Component
 const Dashboard = () => {
   const { user, isAuthenticated, loading, logout, setUser } = useAuth();
@@ -641,8 +527,10 @@ const Dashboard = () => {
   const [showProductModal, setShowProductModal] = useState(false);
   const [showProfileImageModal, setShowProfileImageModal] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState(user?.verified ? 'verified' : 'unverified');
-  const [currentView, setCurrentView] = useState('main');
+  const [currentView, setCurrentView] = useState('main'); // 'main' or 'Marketplace'
   const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState(''); // Added
+  const [selectedCategory, setSelectedCategory] = useState('all'); // Added
   const [cart, setCart] = useState([]);
   const [profileData, setProfileData] = useState({
     fullName: '',
@@ -690,21 +578,22 @@ const Dashboard = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:5000/api/products', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setProducts(response.data.items || []);
-      } catch (error) {
-        setError(error.response?.data?.error || 'Failed to load products');
-        toast.error(error.response?.data?.error || 'Failed to load products');
-      }
-    };
-    if (isAuthenticated && user) fetchProducts();
-  }, [isAuthenticated, user]);
+  const fetchProducts = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get('http://localhost:5000/api/products', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setProducts(response.data.products || []); // Changed from .items to .products
+  } catch (error) {
+    setError(error.response?.data?.error || 'Failed to load products');
+    toast.error(error.response?.data?.error || 'Failed to load products');
+  }
+};
+
+useEffect(() => {
+  if (isAuthenticated && user) fetchProducts();
+}, [isAuthenticated, user]);
 
   const stats = [
     {
@@ -789,20 +678,22 @@ const Dashboard = () => {
     }
   };
 
-  const handleProductSubmit = async (productData) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:5000/api/products', productData, {
-        headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
-      });
-      setProducts([...products, response.data.product]);
-      setShowProductModal(false);
-      setCurrentView('Marketplace');
-      toast.success('Product uploaded successfully');
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Product upload failed');
-    }
-  };
+  // Handle product submission
+const handleProductSubmit = async (productData) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.post('http://localhost:5000/api/products', productData, {
+      headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
+    });
+    setProducts((prevProducts) => [...prevProducts, response.data.product]); // Local update
+    setShowProductModal(false);
+    setCurrentView('Marketplace');
+    toast.success('Product uploaded successfully');
+    await fetchProducts(); // Sync with server
+  } catch (error) {
+    toast.error(error.response?.data?.error || 'Product upload failed');
+  }
+};
 
   const handleProfileImageSave = async (imageFile) => {
     try {
@@ -847,20 +738,20 @@ const Dashboard = () => {
       toast.error(error.response?.data?.error || 'Failed to update profile');
     }
   };
-
+//verification modal
   const handleBuyClick = () => {
-    if (verificationStatus !== 'verified') {
+    if (verificationStatus == 'verified') {
       setShowVerificationModal(true);
     } else {
-      setCurrentView('Marketplace');
+      setCurrentView('Marketplace'); // Navigate to Marketplace for buying
     }
   };
 
   const handleSellClick = () => {
-    if (verificationStatus !== 'verified') {
+    if (verificationStatus == 'verified') {
       setShowVerificationModal(true);
     } else {
-      setShowProductModal(true);
+      setShowProductModal(true); // Open ProductUploadModal for selling
     }
   };
 
@@ -871,7 +762,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-white/90 via-blue-800 to-slate-900 flex items-center justify-center">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -883,7 +774,7 @@ const Dashboard = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-white/90 via-blue-800 to-slate-900 flex items-center justify-center">
         <div className="text-center py-10 text-2xl text-red-400 bg-red-400/10 rounded-2xl p-8 border border-red-400/20">
           {error}
         </div>
@@ -891,12 +782,8 @@ const Dashboard = () => {
     );
   }
 
-  if (currentView === 'Marketplace') {
-    return <Marketplace token={localStorage.getItem('token')} onAddToCart={handleAddToCart} />;
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 relative">
+    <div className="min-h-screen bg-gradient-to-br from-white/90 via-blue-800 to-slate-900 relative">
       {/* Enhanced Profile Section */}
       <div className="fixed right-0 top-18 z-50 w-sm max-w-sm">
         <motion.div
@@ -1013,185 +900,195 @@ const Dashboard = () => {
           </AnimatePresence>
         </motion.div>
       </div>
-{/* end of profile */}
 
       {/* Main Content */}
-      <div className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto">
-        {/* Welcome Section */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ duration: 0.8 }} 
-          className="mb-12 text-center"
-        >
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Welcome back, {user?.fullName || 'User'}!
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-300">Your agricultural marketplace awaits discovery</p>
-        </motion.div>
+    {currentView === 'Marketplace' ? (
+        <Marketplace
+          products={products}
+          token={localStorage.getItem('token')}
+          onAddToCart={handleAddToCart}
+          searchTerm={searchTerm}
+          selectedCategory={selectedCategory}
+        />
+      ): 
+      (
+        <div className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto">
+          {/* Welcome Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.8 }} 
+            className="mb-12 text-center"
+          >
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Welcome back, {user?.fullName || 'User'}!
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-300">Your agricultural marketplace awaits discovery</p>
+          </motion.div>
 
-        {/* Action Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="mb-12 flex flex-col sm:flex-row gap-6 justify-center"
-        >
-          <Button onClick={handleBuyClick} size="large" className="flex items-center justify-center space-x-3 min-w-[200px]">
-            <ShoppingCart className="h-6 w-6" />
-            <span>Buy Products</span>
-          </Button>
-          <Button onClick={handleSellClick} variant="success" size="large" className="flex items-center justify-center space-x-3 min-w-[200px]">
-            <Upload className="h-6 w-6" />
-            <span>Sell Products</span>
-          </Button>
-        </motion.div>
+          {/* Action Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="mb-12 flex flex-col sm:flex-row gap-6 justify-center"
+          >
+            <Button onClick={handleBuyClick} size="large" className="flex items-center justify-center space-x-3 min-w-[200px]">
+              <ShoppingCart className="h-6 w-6" />
+              <span>Buy Products</span>
+            </Button>
+            <Button onClick={handleSellClick} variant="success" size="large" className="flex items-center justify-center space-x-3 min-w-[200px]">
+              <Upload className="h-6 w-6" />
+              <span>Sell Products</span>
+            </Button>
+          </motion.div>
 
-        {/* Stats Grid */}
-        <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
-          {stats.map((stat, index) => (
+          {/* Stats Grid */}
+          <motion.div 
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            {stats.map((stat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 + 0.5 }}
+              >
+                <Card hover className="text-center">
+                  <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${
+                    stat.color === 'blue' ? 'from-blue-500 to-blue-600' :
+                    stat.color === 'green' ? 'from-green-500 to-green-600' :
+                    stat.color === 'purple' ? 'from-purple-500 to-purple-600' :
+                    'from-yellow-500 to-yellow-600'
+                  } mb-4 shadow-lg`}>
+                    <stat.icon className="h-8 w-8 text-white" />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-600 mb-2">{stat.title}</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</p>
+                  <div className={`flex items-center justify-center text-sm ${
+                    stat.trend === 'up' ? 'text-green-600' : 
+                    stat.trend === 'down' ? 'text-red-600' : 'text-gray-600'
+                  }`}>
+                    {stat.trend === 'up' && <ArrowUpRight className="h-4 w-4 mr-1" />}
+                    {stat.change}
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Recent Activity */}
             <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 + 0.5 }}
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="lg:col-span-2"
             >
-              <Card hover className="text-center">
-                <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${
-                  stat.color === 'blue' ? 'from-blue-500 to-blue-600' :
-                  stat.color === 'green' ? 'from-green-500 to-green-600' :
-                  stat.color === 'purple' ? 'from-purple-500 to-purple-600' :
-                  'from-yellow-500 to-yellow-600'
-                } mb-4 shadow-lg`}>
-                  <stat.icon className="h-8 w-8 text-white" />
+              <Card>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Recent Activity</h2>
+                  <Button variant="outline" size="small">
+                    View All
+                  </Button>
                 </div>
-                <p className="text-sm font-semibold text-gray-600 mb-2">{stat.title}</p>
-                <p className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</p>
-                <div className={`flex items-center justify-center text-sm ${
-                  stat.trend === 'up' ? 'text-green-600' : 
-                  stat.trend === 'down' ? 'text-red-600' : 'text-gray-600'
-                }`}>
-                  {stat.trend === 'up' && <ArrowUpRight className="h-4 w-4 mr-1" />}
-                  {stat.change}
+                <div className="space-y-4">
+                  {recentActivities.map((activity, index) => (
+                    <motion.div
+                      key={activity.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                      className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-gray-100 hover:to-gray-200 transition-all duration-300 border border-gray-200"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg">
+                          <Activity className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">{activity.description}</p>
+                          <p className="text-sm text-gray-500">{activity.time}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {activity.amount && <p className="font-bold text-gray-900">{activity.amount}</p>}
+                        <span
+                          className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                            activity.status === 'completed'
+                              ? 'bg-green-100 text-green-800 border border-green-200'
+                              : activity.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                              : 'bg-blue-100 text-blue-800 border border-blue-200'
+                          }`}
+                        >
+                          {activity.status}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
               </Card>
             </motion.div>
-          ))}
-        </motion.div>
 
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Recent Activity */}
+            {/* Quick Actions */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+            >
+              <Card>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+                <div className="space-y-4">
+                  {quickActions.map((action, index) => (
+                    <motion.button
+                      key={index}
+                      onClick={action.action}
+                      className="w-full text-left p-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-blue-50 hover:to-blue-100 rounded-xl transition-all duration-300 border border-gray-200 hover:border-blue-300 group"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <h3 className="font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">{action.title}</h3>
+                      <p className="text-sm text-gray-600 group-hover:text-blue-600 transition-colors">{action.description}</p>
+                    </motion.button>
+                  ))}
+                </div>
+              </Card>
+            </motion.div>
+          </div>
+
+          {/* Sales Overview */}
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="lg:col-span-2"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.0 }}
+            className="mt-12"
           >
             <Card>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Recent Activity</h2>
-                <Button variant="outline" size="small">
-                  View All
-                </Button>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+                <h2 className="text-2xl font-bold text-gray-900">Sales Overview</h2>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="small">7 Days</Button>
+                  <Button variant="outline" size="small">30 Days</Button>
+                  <Button size="small">90 Days</Button>
+                </div>
               </div>
-              <div className="space-y-4">
-                {recentActivities.map((activity, index) => (
-                  <motion.div
-                    key={activity.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-gray-100 hover:to-gray-200 transition-all duration-300 border border-gray-200"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg">
-                        <Activity className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{activity.description}</p>
-                        <p className="text-sm text-gray-500">{activity.time}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      {activity.amount && <p className="font-bold text-gray-900">{activity.amount}</p>}
-                      <span
-                        className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                          activity.status === 'completed'
-                            ? 'bg-green-100 text-green-800 border border-green-200'
-                            : activity.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                            : 'bg-blue-100 text-blue-800 border border-blue-200'
-                        }`}
-                      >
-                        {activity.status}
-                      </span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </Card>
-          </motion.div>
-
-          {/* Quick Actions */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-          >
-            <Card>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-              <div className="space-y-4">
-                {quickActions.map((action, index) => (
-                  <motion.button
-                    key={index}
-                    onClick={action.action}
-                    className="w-full text-left p-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-blue-50 hover:to-blue-100 rounded-xl transition-all duration-300 border border-gray-200 hover:border-blue-300 group"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <h3 className="font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">{action.title}</h3>
-                    <p className="text-sm text-gray-600 group-hover:text-blue-600 transition-colors">{action.description}</p>
-                  </motion.button>
-                ))}
+              <div className="h-80 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center border border-gray-200">
+                <div className="text-center">
+                  <div className="inline-flex p-6 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mb-4 shadow-lg">
+                    <TrendingUp className="h-12 w-12 text-white" />
+                  </div>
+                  <p className="text-xl text-gray-600 font-semibold">Sales Analytics Coming Soon</p>
+                  <p className="text-gray-500 mt-2">Advanced charts and insights will be available here</p>
+                </div>
               </div>
             </Card>
           </motion.div>
         </div>
-
-        {/* Sales Overview */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.0 }}
-          className="mt-12"
-        >
-          <Card>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-              <h2 className="text-2xl font-bold text-gray-900">Sales Overview</h2>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="small">7 Days</Button>
-                <Button variant="outline" size="small">30 Days</Button>
-                <Button size="small">90 Days</Button>
-              </div>
-            </div>
-            <div className="h-80 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center border border-gray-200">
-              <div className="text-center">
-                <div className="inline-flex p-6 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mb-4 shadow-lg">
-                  <TrendingUp className="h-12 w-12 text-white" />
-                </div>
-                <p className="text-xl text-gray-600 font-semibold">Sales Analytics Coming Soon</p>
-                <p className="text-gray-500 mt-2">Advanced charts and insights will be available here</p>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-      </div>
+      )}
 
       {/* Modals */}
       <VerificationModal

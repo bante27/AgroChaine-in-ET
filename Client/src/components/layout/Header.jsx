@@ -65,10 +65,7 @@ const Header = () => {
               >
                 <option value="en">EN</option>
                 <option value="am">አማ</option>
-                <option value="om">OM</option>
-                <option value="ti">ትግ</option>
-                <option value="ar">عربي</option>
-                <option value="es">ES</option>
+                
               </select>
             </div>
             {isAuthenticated ? (
@@ -111,7 +108,7 @@ const Header = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={toggleMenu}
-            className="md:hidden p-2 rounded-lg hover:bg-white/20 bg-white/10 text-black"
+            className="md:hidden p-2 rounded-lg hover:bg-white/20 bg-white/10 text-blue-500 hover:text-gray-950 transition-colors duration-300"
             aria-label="Toggle mobile menu"
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -138,10 +135,7 @@ const Header = () => {
                 >
                   <option value="en">English</option>
                   <option value="am">አማርኛ</option>
-                  <option value="om">Afan Oromo</option>
-                  <option value="ti">ትግርኛ</option>
-                  <option value="ar">العربية</option>
-                  <option value="es">Español</option>
+                 
                 </select>
               </div>
             </div>
@@ -150,7 +144,7 @@ const Header = () => {
                             <div className="space-y-2">
                               <Link
                                 to="/dashboard"
-                                className="block px-4 py-2 text-black hover:bg-blue-500/20 rounded-lg transition-colors duration-300"
+                                className="block px-4 py-2 text-gray-200 hover:text-blue-600 bg-gradient-to-r from-gray-950 to-blue-950 rounded-lg transition-colors duration-300"
                                 onClick={() => setIsMenuOpen(false)}
                               >
                                 Dashboard
@@ -160,7 +154,7 @@ const Header = () => {
                                   logout();
                                   setIsMenuOpen(false);
                                 }}
-                                className="block w-full text-left px-4 py-2 text-black hover:bg-blue-500/20 rounded-lg transition-colors duration-300"
+                                className="block w-full text-left px-4 py-2 text-gray-200  hover:text-blue-600 rounded-lg transition-colors duration-300"
                               >
                                 Logout
                               </button>

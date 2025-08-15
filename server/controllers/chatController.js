@@ -9,6 +9,7 @@ exports.chatBotResponse = (req, res) => {
     }
 
     // Simple logic or replace with AI later
+    
     let response = "I didn't understand that.";
 
     const lower = message.toLowerCase();
