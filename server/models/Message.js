@@ -5,6 +5,14 @@ const messageSchema = new mongoose.Schema({
   email: { type: String, required: true, lowercase: true, trim: true },
   subject: { type: String, required: true, trim: true },
   message: { type: String, required: true, trim: true },
+  attachments: [
+    {
+      filename: String,
+      path: String,
+      mimetype: String,
+      size: Number
+    }
+  ],
   createdAt: { type: Date, default: Date.now }
 });
 
