@@ -14,10 +14,8 @@ import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import LiveChat from '../components/LiveChat';
 
-const Marketplace = ({ products: initialProducts = [], onAddToCart }) => {
+const Marketplace = ({ products: initialProducts = [], token, onAddToCart, searchTerm, setSearchTerm, selectedCategory, setSelectedCategory }) => {
   const [viewMode, setViewMode] = useState('grid');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [displayedProducts, setDisplayedProducts] = useState(initialProducts);
 
@@ -28,46 +26,43 @@ const Marketplace = ({ products: initialProducts = [], onAddToCart }) => {
     { value: 'grain', label: 'Grains' },
     { value: 'other', label: 'Other' },
   ];
-useEffect(() => {
-  console.log('Initial Products:', initialProducts);
-  let filteredProducts = [...(initialProducts || [])];
 
-  if (selectedCategory !== 'all') {
-    filteredProducts = filteredProducts.filter(
-      (product) => product.type === selectedCategory
-    );
-  }
+  useEffect(() => {
+    let filteredProducts = [...(initialProducts || [])];
 
-  if (searchTerm) {
-    filteredProducts = filteredProducts.filter(
-      (product) =>
-        product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (product.originAddress &&
-          product.originAddress.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-  }
-
-  filteredProducts.sort((a, b) => {
-    switch (sortBy) {
-      case 'price-low':
-        return parseFloat(a.price) - parseFloat(b.price);
-      case 'price-high':
-        return parseFloat(b.price) - parseFloat(a.price);
-      case 'newest':
-        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-      case 'rating':
-        return (b.rating || 0) - (a.rating || 0);
-      default:
-        return 0;
+    if (selectedCategory !== 'all') {
+      filteredProducts = filteredProducts.filter((product) => product.type === selectedCategory);
     }
-  });
 
-  console.log('Filtered Products:', filteredProducts);
-  setDisplayedProducts(filteredProducts);
-}, [selectedCategory, searchTerm, sortBy, initialProducts]);
+    if (searchTerm) {
+      filteredProducts = filteredProducts.filter(
+        (product) =>
+          product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (product.originAddress && product.originAddress.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (product.seller && product.seller.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    filteredProducts.sort((a, b) => {
+      switch (sortBy) {
+        case 'price-low':
+          return parseFloat(a.price) - parseFloat(b.price);
+        case 'price-high':
+          return parseFloat(b.price) - parseFloat(a.price);
+        case 'newest':
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        case 'rating':
+          return (b.rating || 0) - (a.rating || 0);
+        default:
+          return 0;
+      }
+    });
+
+    setDisplayedProducts(filteredProducts);
+  }, [selectedCategory, searchTerm, sortBy, initialProducts]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white/90 via-blue-800 to-slate-900">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="hero-gradient section-padding text-white">
         <div className="max-w-7xl mx-auto px-4">
@@ -77,7 +72,7 @@ useEffect(() => {
             transition={{ duration: 0.8 }}
             className="text-center max-w-4xl mx-auto"
           >
-            <h1 className="text-5xl font-bold mb-6">vital Marketplace</h1>
+            <h1 className="text-5xl font-bold mb-6">Vital Marketplace</h1>
             <p className="text-xl text-gray-300 leading-relaxed">
               Discover and sell fresh agricultural products
             </p>
@@ -98,7 +93,7 @@ useEffect(() => {
                   placeholder="Search products or locations..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white/5 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white/5 text-blue-950 placeholder-gray-950 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
@@ -108,7 +103,7 @@ useEffect(() => {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-4 py-2 border border-gray-300 rounded-lg bg-white/5 text-gray-950 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {categories.map((category) => (
                   <option key={category.value} value={category.value} className="bg-gray-800">
@@ -120,7 +115,7 @@ useEffect(() => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-4 py-2 border border-gray-300 rounded-lg bg-white/5 text-gray-950 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="newest" className="bg-gray-800">Newest First</option>
                 <option value="price-low" className="bg-gray-800">Price: Low to High</option>
@@ -151,7 +146,7 @@ useEffect(() => {
       <section className="section-padding">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-2xl font-bold text-gray-950">
               {displayedProducts.length} Products Found
             </h2>
           </div>
@@ -161,10 +156,10 @@ useEffect(() => {
               <div className="text-gray-400 mb-4">
                 <Search className="h-16 w-16 mx-auto" />
               </div>
-              <h3 className="text-lg font-medium text-gray-300 mb-2">
+              <h3 className="text-lg font-medium text-gray-600 mb-2">
                 No products found
               </h3>
-              <p className="text-gray-500">
+              <p className="text-gray-950">
                 Try adjusting your search or filter criteria.
               </p>
             </div>
@@ -176,7 +171,7 @@ useEffect(() => {
             }`}>
               {displayedProducts.map((product, index) => (
                 <motion.div
-                  key={product._id}
+                  key={product._id || index} // Fallback to index if _id is missing
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -194,6 +189,7 @@ useEffect(() => {
                           className={`w-full object-cover rounded-lg ${
                             viewMode === 'list' ? 'h-32' : 'h-48'
                           }`}
+                          onError={(e) => { e.target.src = 'https://via.placeholder.com/300'; }} // Fallback image on error
                         />
                         {product.verified && (
                           <div className="absolute top-2 left-2 bg-emerald-600 text-white px-2 py-1 rounded-full text-xs font-medium">
@@ -221,7 +217,7 @@ useEffect(() => {
 
                       <div className="flex items-center space-x-2 mb-2">
                         <MapPin className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">{product.originAddress}</span>
+                        <span className="text-sm text-gray-600">{product.originAddress || 'Unknown Location'}</span>
                       </div>
 
                       <p className="text-sm text-gray-600 mb-3">
@@ -231,7 +227,7 @@ useEffect(() => {
                       <div className="flex items-center justify-between">
                         <div>
                           <span className="text-2xl font-bold text-emerald-600">
-                            {product.price} ETB
+                            {product.price ? `${product.price} ETB` : 'N/A'}
                           </span>
                           <span className="text-gray-500 ml-1">
                             per kg
@@ -262,7 +258,7 @@ useEffect(() => {
           )}
         </div>
       </section>
-      {/* Live Chat Component */}
+
       <LiveChat />
     </div>
   );
