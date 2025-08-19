@@ -108,7 +108,7 @@ const Header = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={toggleMenu}
-            className="md:hidden p-2 rounded-lg hover:bg-white/20 bg-white/10 text-blue-500 hover:text-gray-950 transition-colors duration-300"
+            className="md:hidden p-7  rounded-lg  transition-colors duration-300"
             aria-label="Toggle mobile menu"
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}

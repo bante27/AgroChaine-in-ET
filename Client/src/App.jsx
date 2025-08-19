@@ -6,38 +6,41 @@ import About from './pages/About'
 import Services from './pages/Services'
 import Contact from './pages/Contact'
 import Login from './pages/Login'
-// import Register from './pages/Register' // This line is correctly commented out
+// import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Marketplace from './pages/Marketplace'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import Transport from './pages/Transport'
-
+import ForgotPassword from './pages/forgot-password'
 
 function App() {
   return (
-    <Layout>
-      <Routes>
+    <Routes>
+      {/* Wrap all main routes in Layout */}
+      <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/services" element={<Services />} />
         <Route path="/services/transport" element={<Transport />} />
-        {/* You can add more specific service routes here as you create more service pages */}
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
-        {/* REMOVED: <Route path="/register" element={<Register />} /> */}
-        <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/marketplace" element={<Marketplace />} /> 
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* Protected Routes */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } />
-        {/* Add a catch-all route for 404 Not Found if desired */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 404 fallback */}
         <Route path="*" element={<div>404 Not Found</div>} />
-      </Routes>
-    </Layout>
-    // </ThemeProvider>
+      </Route>
+    </Routes>
   )
 }
 
