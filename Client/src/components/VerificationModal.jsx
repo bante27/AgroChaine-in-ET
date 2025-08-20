@@ -1,52 +1,37 @@
-// Verification Modal with Camera Scanning for Both Front and Back
-import { useState, useRef, useEffect } from 'react';
+// src/components/VerificationModal.jsx
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
+import Button from './Button';
 import { Camera } from 'lucide-react';
-import { toast } from 'react-toastify';
-import axios from 'axios';
-import { Button } from '@/components/ui/button';
 
-const VerificationModal = ({ isOpen, onClose, verificationStatus, setVerificationStatus }) => {
+const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) => {
   const [govIdFront, setGovIdFront] = useState(null);
   const [govIdBack, setGovIdBack] = useState(null);
   const [name, setName] = useState('');
-
   const [isFrontCameraActive, setIsFrontCameraActive] = useState(false);
   const [isBackCameraActive, setIsBackCameraActive] = useState(false);
-
   const videoFrontRef = useRef(null);
   const canvasFrontRef = useRef(null);
-
   const videoBackRef = useRef(null);
   const canvasBackRef = useRef(null);
-
   const [isLoading, setIsLoading] = useState(false);
 
-  // FRONT camera lifecycle
   useEffect(() => {
     let stream;
     if (isFrontCameraActive) {
-      navigator.mediaDevices
-        .getUserMedia({ video: true })
-        .then((s) => {
-          stream = s;
-          if (videoFrontRef.current) videoFrontRef.current.srcObject = stream;
-        })
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then((s) => { stream = s; if (videoFrontRef.current) videoFrontRef.current.srcObject = stream; })
         .catch(() => toast.error('Failed to access camera'));
     }
     return () => stream && stream.getTracks().forEach((t) => t.stop());
   }, [isFrontCameraActive]);
 
-  // BACK camera lifecycle
   useEffect(() => {
     let stream;
     if (isBackCameraActive) {
-      navigator.mediaDevices
-        .getUserMedia({ video: true })
-        .then((s) => {
-          stream = s;
-          if (videoBackRef.current) videoBackRef.current.srcObject = stream;
-        })
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then((s) => { stream = s; if (videoBackRef.current) videoBackRef.current.srcObject = stream; })
         .catch(() => toast.error('Failed to access camera'));
     }
     return () => stream && stream.getTracks().forEach((t) => t.stop());
@@ -92,21 +77,7 @@ const VerificationModal = ({ isOpen, onClose, verificationStatus, setVerificatio
     }
     setIsLoading(true);
     try {
-      const formData = new FormData();
-      formData.append('govIdFront', govIdFront);
-      formData.append('govIdBack', govIdBack);
-      formData.append('name', name);
-
-      const token = localStorage.getItem('token'); // ✅ auth token
-
-      await axios.post('/verify-id', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      setVerificationStatus('pending');
+      await onVerify({ govIdFront, govIdBack, name });
       toast.success('Verification submitted, pending review');
       onClose();
     } catch (error) {
@@ -119,93 +90,98 @@ const VerificationModal = ({ isOpen, onClose, verificationStatus, setVerificatio
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
       <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4 }}
-        className="bg-gradient-to-r from-gray-950 to-blue-950 rounded-xl p-6 w-full max-w-md shadow-lg"
+        initial={{ opacity: 0, scale: 0.8, y: 50 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.8, y: 50 }}
+        transition={{ duration: 0.4, type: 'spring' }}
+        className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-8 w-full max-w-xs sm:max-w-lg shadow-2xl border border-white/10"
       >
-        <h2 className="text-2xl font-bold text-gray-200 mb-4">Verify Your Account</h2>
-
-        {verificationStatus === 'pending' && <p className="text-yellow-600 mb-4 font-medium">Verification pending...</p>}
-        {verificationStatus === 'verified' && <p className="text-green-600 mb-4 font-medium">Verified successfully!</p>}
-
+        <h2 className="text-xl sm:text-3xl font-bold text-white mb-4 sm:mb-6 text-center">Verify Your Account</h2>
+        {verificationStatus === 'pending' && <p className="text-yellow-400 mb-4 sm:mb-6 font-medium text-center bg-yellow-400/10 rounded-lg p-2 sm:p-3">Verification pending...</p>}
+        {verificationStatus === 'verified' && <p className="text-green-400 mb-4 sm:mb-6 font-medium text-center bg-green-400/10 rounded-lg p-2 sm:p-3">Verified successfully!</p>}
         {verificationStatus !== 'verified' && (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name */}
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-200">Full Name</label>
+              <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">Full Name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-xl border-0 bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 px-3 sm:px-4 py-2 sm:py-3 focus:ring-2 focus:ring-blue-500 focus:bg-white/20 transition-all"
+                placeholder="Enter your full name"
                 required
               />
             </div>
-
-            {/* FRONT ID */}
             <div>
-              <label className="block text-sm font-medium text-gray-200">National ID (Front)</label>
+              <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">National ID (Front)</label>
               {isFrontCameraActive ? (
-                <>
-                  <video ref={videoFrontRef} autoPlay className="w-full h-48 bg-gray-100 rounded-md" />
+                <div className="space-y-2 sm:space-y-4">
+                  <video ref={videoFrontRef} autoPlay className="w-full h-32 sm:h-48 bg-gray-800 rounded-xl object-cover" />
                   <canvas ref={canvasFrontRef} width="300" height="200" className="hidden" />
-                  <Button onClick={captureFrontImage} className="mt-2" disabled={isLoading}>
-                    Capture Front
+                  <Button onClick={captureFrontImage} className="w-full" disabled={isLoading}>
+                    <Camera className="h-4 sm:h-5 w-4 sm:w-5 mr-1 sm:mr-2" /> Capture Front
                   </Button>
-                </>
+                </div>
               ) : (
-                <>
+                <div className="space-y-2 sm:space-y-4">
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => setGovIdFront(e.target.files[0])}
-                    className="mt-1 w-full text-gray-600"
+                    className="w-full text-gray-300 bg-white/10 rounded-xl p-2 sm:p-3 file:mr-2 sm:file:mr-4 file:py-1 sm:file:py-2 file:px-2 sm:file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                     disabled={isLoading}
                   />
-                  <Button onClick={() => setIsFrontCameraActive(true)} className="mt-2 flex items-center space-x-2" disabled={isLoading}>
-                    <Camera className="h-4 w-4" />
-                    <span>Scan with Camera</span>
+                  <Button
+                    onClick={() => setIsFrontCameraActive(true)}
+                    variant="outline"
+                    className="w-full flex items-center justify-center space-x-1 sm:space-x-2"
+                    disabled={isLoading}
+                  >
+                    <Camera className="h-4 sm:h-5 w-4 sm:w-5" /> <span>Scan with Camera</span>
                   </Button>
-                </>
+                </div>
               )}
             </div>
-
-            {/* BACK ID */}
             <div>
-              <label className="block text-sm font-medium text-gray-200">National ID (Back)</label>
+              <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">National ID (Back)</label>
               {isBackCameraActive ? (
-                <>
-                  <video ref={videoBackRef} autoPlay className="w-full h-48 bg-gray-100 rounded-md" />
+                <div className="space-y-2 sm:space-y-4">
+                  <video ref={videoBackRef} autoPlay className="w-full h-32 sm:h-48 bg-gray-800 rounded-xl object-cover" />
                   <canvas ref={canvasBackRef} width="300" height="200" className="hidden" />
-                  <Button onClick={captureBackImage} className="mt-2" disabled={isLoading}>
-                    Capture Back
+                  <Button onClick={captureBackImage} className="w-full" disabled={isLoading}>
+                    <Camera className="h-4 sm:h-5 w-4 sm:w-5 mr-1 sm:mr-2" /> Capture Back
                   </Button>
-                </>
+                </div>
               ) : (
-                <>
+                <div className="space-y-2 sm:space-y-4">
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => setGovIdBack(e.target.files[0])}
-                    className="mt-1 w-full text-gray-600"
+                    className="w-full text-gray-300 bg-white/10 rounded-xl p-2 sm:p-3 file:mr-2 sm:file:mr-4 file:py-1 sm:file:py-2 file:px-2 sm:file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                     required
                     disabled={isLoading}
                   />
-                  <Button onClick={() => setIsBackCameraActive(true)} className="mt-2 flex items-center space-x-2" disabled={isLoading}>
-                    <Camera className="h-4 w-4" />
-                    <span>Scan with Camera</span>
+                  <Button
+                    onClick={() => setIsBackCameraActive(true)}
+                    variant="outline"
+                    className="w-full flex items-center justify-center space-x-1 sm:space-x-2"
+                    disabled={isLoading}
+                  >
+                    <Camera className="h-4 sm:h-5 w-4 sm:w-5" /> <span>Scan with Camera</span>
                   </Button>
-                </>
+                </div>
               )}
             </div>
-
-            {/* Actions */}
-            <div className="flex justify-end space-x-3">
-              <Button variant="outline" onClick={onClose} disabled={isLoading}>Cancel</Button>
-              <Button type="submit" disabled={isLoading}>{isLoading ? 'Submitting...' : 'Submit'}</Button>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-2 sm:pt-4">
+              <Button variant="outline" onClick={onClose} disabled={isLoading} className="flex-1">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading} className="flex-1">
+                {isLoading ? 'Submitting...' : 'Submit Verification'}
+              </Button>
             </div>
           </form>
         )}

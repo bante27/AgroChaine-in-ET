@@ -1,11 +1,12 @@
-const express = require('express');
+import express from 'express';
+import { body, validationResult } from 'express-validator';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import auth from '../middleware/auth.js';
+import User from '../models/User.js';
+import { profilePicUpload, govIdUpload } from '../middleware/upload.js';
+
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const auth = require('../middleware/auth');
-const User = require('../models/User');
-const { profilePicUpload, govIdUpload } = require('../middleware/upload');
 
 // Utility to generate random 10-digit userId
 const generateUserId = () => {
@@ -138,6 +139,7 @@ router.post('/profile-pic', auth, profilePicUpload.single('profilePic'), async (
     res.status(500).json({ success: false, error: 'Error uploading profile picture' });
   }
 });
+
 // Upload government ID for verification
 router.post('/verify-id', auth, govIdUpload.fields([
   { name: 'govIdFront', maxCount: 1 },
@@ -148,7 +150,7 @@ router.post('/verify-id', auth, govIdUpload.fields([
       return res.status(400).json({ success: false, error: 'Both front and back images are required' });
     }
 
-    const user = await User.findById(req.user.userId); // ✅ using _id
+    const user = await User.findById(req.user.userId);
     if (!user) {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
@@ -172,5 +174,4 @@ router.post('/verify-id', auth, govIdUpload.fields([
   }
 });
 
-
-module.exports = router;
+export default router;

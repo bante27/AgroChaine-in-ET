@@ -1,11 +1,9 @@
-
+// src/pages/Dashboard.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import LiveChat from '../components/LiveChat';
 import Marketplace from './Marketplace';
-
-// Icons
 import {
   BarChart3,
   TrendingUp,
@@ -24,465 +22,12 @@ import {
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import Card from '../components/Card';
+import Button from '../components/Button';
+import VerificationModal from '../components/VerificationModal';
+import ProductUploadModal from '../components/ProductUploadModal';
+import ProfileImageUploadModal from '../components/ProfileImageUploadModal';
 
-// Card and Button components
-const Card = ({ children, hover, className = '' }) => (
-  <motion.div
-    className={`bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-4 sm:p-6 ${
-      hover ? 'hover:shadow-2xl hover:scale-[1.02] transition-all duration-300' : ''
-    } ${className}`}
-    whileHover={hover ? { y: -4 } : {}}
-    transition={{ duration: 0.3 }}
-  >
-    {children}
-  </motion.div>
-);
-
-const Button = ({ children, variant = 'default', size = 'default', className = '', ...props }) => {
-  const baseStyles = 'font-semibold rounded-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-offset-2 transform hover:scale-105 active:scale-95';
-  const variants = {
-    default: 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 focus:ring-blue-500 shadow-lg hover:shadow-xl',
-    outline: 'bg-white/80 backdrop-blur-sm border-2 border-gray-200 text-gray-700 hover:bg-white hover:border-blue-300 focus:ring-blue-500 shadow-md hover:shadow-lg',
-    success: 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-blue-800 focus:ring-green-500 shadow-lg hover:shadow-xl',
-  };
-  const sizes = {
-    default: 'px-4 py-2 sm:px-6 sm:py-3 text-sm',
-    small: 'px-3 py-1 sm:px-4 sm:py-2 text-xs',
-    large: 'px-6 py-3 sm:px-8 sm:py-4 text-base',
-  };
-  return (
-    <button className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`} {...props}>
-      {children}
-    </button>
-  );
-};
-
-// Verification Modal
-const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) => {
-  const [govIdFront, setGovIdFront] = useState(null);
-  const [govIdBack, setGovIdBack] = useState(null);
-  const [name, setName] = useState('');
-  const [isFrontCameraActive, setIsFrontCameraActive] = useState(false);
-  const [isBackCameraActive, setIsBackCameraActive] = useState(false);
-  const videoFrontRef = useRef(null);
-  const canvasFrontRef = useRef(null);
-  const videoBackRef = useRef(null);
-  const canvasBackRef = useRef(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    let stream;
-    if (isFrontCameraActive) {
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then((s) => { stream = s; if (videoFrontRef.current) videoFrontRef.current.srcObject = stream; })
-        .catch(() => toast.error('Failed to access camera'));
-    }
-    return () => stream && stream.getTracks().forEach((t) => t.stop());
-  }, [isFrontCameraActive]);
-
-  useEffect(() => {
-    let stream;
-    if (isBackCameraActive) {
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then((s) => { stream = s; if (videoBackRef.current) videoBackRef.current.srcObject = stream; })
-        .catch(() => toast.error('Failed to access camera'));
-    }
-    return () => stream && stream.getTracks().forEach((t) => t.stop());
-  }, [isBackCameraActive]);
-
-  const dataURLtoFile = (dataUrl, filename) => {
-    const arr = dataUrl.split(',');
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) u8arr[n] = bstr.charCodeAt(n);
-    return new File([u8arr], filename, { type: mime });
-  };
-
-  const captureFrontImage = () => {
-    if (videoFrontRef.current && canvasFrontRef.current) {
-      const ctx = canvasFrontRef.current.getContext('2d');
-      ctx.drawImage(videoFrontRef.current, 0, 0, 300, 200);
-      const imageData = canvasFrontRef.current.toDataURL('image/jpeg');
-      setGovIdFront(dataURLtoFile(imageData, 'id_front.jpg'));
-      setIsFrontCameraActive(false);
-      toast.success('Front ID captured');
-    }
-  };
-
-  const captureBackImage = () => {
-    if (videoBackRef.current && canvasBackRef.current) {
-      const ctx = canvasBackRef.current.getContext('2d');
-      ctx.drawImage(videoBackRef.current, 0, 0, 300, 200);
-      const imageData = canvasBackRef.current.toDataURL('image/jpeg');
-      setGovIdBack(dataURLtoFile(imageData, 'id_back.jpg'));
-      setIsBackCameraActive(false);
-      toast.success('Back ID captured');
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!govIdFront || !govIdBack || !name) {
-      toast.error('Please provide name and both ID images');
-      return;
-    }
-    setIsLoading(true);
-    try {
-      await onVerify({ govIdFront, govIdBack, name });
-      toast.success('Verification submitted, pending review');
-      onClose();
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Verification failed');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8, y: 50 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.8, y: 50 }}
-        transition={{ duration: 0.4, type: 'spring' }}
-        className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-8 w-full max-w-xs sm:max-w-lg shadow-2xl border border-white/10"
-      >
-        <h2 className="text-xl sm:text-3xl font-bold text-white mb-4 sm:mb-6 text-center">Verify Your Account</h2>
-        {verificationStatus === 'pending' && <p className="text-yellow-400 mb-4 sm:mb-6 font-medium text-center bg-yellow-400/10 rounded-lg p-2 sm:p-3">Verification pending...</p>}
-        {verificationStatus === 'verified' && <p className="text-green-400 mb-4 sm:mb-6 font-medium text-center bg-green-400/10 rounded-lg p-2 sm:p-3">Verified successfully!</p>}
-        {verificationStatus !== 'verified' && (
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-            <div>
-              <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">Full Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl border-0 bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 px-3 sm:px-4 py-2 sm:py-3 focus:ring-2 focus:ring-blue-500 focus:bg-white/20 transition-all"
-                placeholder="Enter your full name"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">National ID (Front)</label>
-              {isFrontCameraActive ? (
-                <div className="space-y-2 sm:space-y-4">
-                  <video ref={videoFrontRef} autoPlay className="w-full h-32 sm:h-48 bg-gray-800 rounded-xl object-cover" />
-                  <canvas ref={canvasFrontRef} width="300" height="200" className="hidden" />
-                  <Button onClick={captureFrontImage} className="w-full" disabled={isLoading}>
-                    <Camera className="h-4 sm:h-5 w-4 sm:w-5 mr-1 sm:mr-2" /> Capture Front
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2 sm:space-y-4">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setGovIdFront(e.target.files[0])}
-                    className="w-full text-gray-300 bg-white/10 rounded-xl p-2 sm:p-3 file:mr-2 sm:file:mr-4 file:py-1 sm:file:py-2 file:px-2 sm:file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-                    disabled={isLoading}
-                  />
-                  <Button
-                    onClick={() => setIsFrontCameraActive(true)}
-                    variant="outline"
-                    className="w-full flex items-center justify-center space-x-1 sm:space-x-2"
-                    disabled={isLoading}
-                  >
-                    <Camera className="h-4 sm:h-5 w-4 sm:w-5" /> <span>Scan with Camera</span>
-                  </Button>
-                </div>
-              )}
-            </div>
-            <div>
-              <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">National ID (Back)</label>
-              {isBackCameraActive ? (
-                <div className="space-y-2 sm:space-y-4">
-                  <video ref={videoBackRef} autoPlay className="w-full h-32 sm:h-48 bg-gray-800 rounded-xl object-cover" />
-                  <canvas ref={canvasBackRef} width="300" height="200" className="hidden" />
-                  <Button onClick={captureBackImage} className="w-full" disabled={isLoading}>
-                    <Camera className="h-4 sm:h-5 w-4 sm:w-5 mr-1 sm:mr-2" /> Capture Back
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2 sm:space-y-4">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setGovIdBack(e.target.files[0])}
-                    className="w-full text-gray-300 bg-white/10 rounded-xl p-2 sm:p-3 file:mr-2 sm:file:mr-4 file:py-1 sm:file:py-2 file:px-2 sm:file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-                    required
-                    disabled={isLoading}
-                  />
-                  <Button
-                    onClick={() => setIsBackCameraActive(true)}
-                    variant="outline"
-                    className="w-full flex items-center justify-center space-x-1 sm:space-x-2"
-                    disabled={isLoading}
-                  >
-                    <Camera className="h-4 sm:h-5 w-4 sm:w-5" /> <span>Scan with Camera</span>
-                  </Button>
-                </div>
-              )}
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-2 sm:pt-4">
-              <Button variant="outline" onClick={onClose} disabled={isLoading} className="flex-1">
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading} className="flex-1">
-                {isLoading ? 'Submitting...' : 'Submit Verification'}
-              </Button>
-            </div>
-          </form>
-        )}
-      </motion.div>
-    </div>
-  );
-};
-
-// Product Upload Modal
-const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
-  const [product, setProduct] = useState({
-    title: '', price: '', originAddress: '', quantity: '', description: '', type: '', images: [],
-  });
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 6) {
-      toast.error('Maximum 6 images allowed');
-      return;
-    }
-    setProduct({ ...product, images: files });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!product.title || !product.price || !product.originAddress || !product.type || !product.quantity) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append('title', product.title);
-      formData.append('price', product.price);
-      formData.append('originAddress', product.originAddress);
-      formData.append('type', product.type);
-      formData.append('quantity', product.quantity);
-      if (product.description) formData.append('description', product.description);
-      product.images.forEach((image) => formData.append('images', image));
-      await onSubmit(formData);
-      setProduct({ title: '', price: '', originAddress: '', quantity: '', description: '', type: '', images: [] });
-      toast.success('Product uploaded successfully');
-      onClose();
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Product upload failed');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8, y: 50 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.8, y: 50 }}
-        transition={{ duration: 0.4, type: 'spring' }}
-        className="bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-8 w-full max-w-sm sm:max-w-2xl shadow-2xl border border-white/10 max-h-[80vh] sm:max-h-[90vh] overflow-y-auto"
-      >
-        <h2 className="text-xl sm:text-3xl font-bold text-white mb-4 sm:mb-6 text-center">Upload Product</h2>
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6" encType="multipart/form-data">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-            <div>
-              <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">Product Title</label>
-              <input
-                type="text"
-                value={product.title}
-                onChange={(e) => setProduct({ ...product, title: e.target.value })}
-                className="w-full rounded-xl border-0 bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 px-3 sm:px-4 py-2 sm:py-3 focus:ring-2 focus:ring-green-500 focus:bg-white/20 transition-all"
-                placeholder="Enter product title"
-                required
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">Type</label>
-              <select
-                value={product.type}
-                onChange={(e) => setProduct({ ...product, type: e.target.value })}
-                className="w-full rounded-xl border-0 bg-white/10 backdrop-blur-sm text-white px-3 sm:px-4 py-2 sm:py-3 focus:ring-2 focus:ring-green-500 focus:bg-white/20 transition-all"
-                required
-                disabled={isLoading}
-              >
-                <option value="" className="bg-gray-800">Select Type</option>
-                <option value="vegetable" className="bg-gray-800">Vegetable</option>
-                <option value="fruit" className="bg-gray-800">Fruit</option>
-                <option value="grain" className="bg-gray-800">Grain</option>
-                <option value="other" className="bg-gray-800">Other</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">Price (ETB)</label>
-              <input
-                type="number"
-                value={product.price}
-                onChange={(e) => setProduct({ ...product, price: e.target.value })}
-                className="w-full rounded-xl border-0 bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 px-3 sm:px-4 py-2 sm:py-3 focus:ring-2 focus:ring-green-500 focus:bg-white/20 transition-all"
-                placeholder="0.00"
-                required
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">Quantity (kg)</label>
-              <input
-                type="number"
-                value={product.quantity}
-                onChange={(e) => setProduct({ ...product, quantity: e.target.value })}
-                className="w-full rounded-xl border-0 bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 px-3 sm:px-4 py-2 sm:py-3 focus:ring-2 focus:ring-green-500 focus:bg-white/20 transition-all"
-                placeholder="0"
-                required
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">Origin Address</label>
-            <input
-              type="text"
-              value={product.originAddress}
-              onChange={(e) => setProduct({ ...product, originAddress: e.target.value })}
-              className="w-full rounded-xl border-0 bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 px-3 sm:px-4 py-2 sm:py-3 focus:ring-2 focus:ring-green-500 focus:bg-white/20 transition-all"
-              placeholder="Enter origin address"
-              required
-              disabled={isLoading}
-            />
-          </div>
-          <div>
-            <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">Images (up to 6)</label>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileChange}
-              className="w-full text-gray-300 bg-white/10 rounded-xl p-2 sm:p-3 file:mr-2 sm:file:mr-4 file:py-1 sm:file:py-2 file:px-2 sm:file:px-4 file:rounded-lg file:border-0 file:bg-green-600 file:text-white hover:file:bg-green-700"
-              disabled={isLoading}
-            />
-          </div>
-          <div>
-            <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">Description</label>
-            <textarea
-              value={product.description}
-              onChange={(e) => setProduct({ ...product, description: e.target.value })}
-              className="w-full rounded-xl border-0 bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 px-3 sm:px-4 py-2 sm:py-3 focus:ring-2 focus:ring-green-500 focus:bg-white/20 transition-all resize-none"
-              rows="3 sm:rows-4"
-              placeholder="Describe your product..."
-              disabled={isLoading}
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-2 sm:pt-4">
-            <Button variant="outline" onClick={onClose} disabled={isLoading} className="flex-1">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading} variant="success" className="flex-1">
-              {isLoading ? 'Uploading...' : 'Upload Product'}
-            </Button>
-          </div>
-        </form>
-      </motion.div>
-    </div>
-  );
-};
-
-// Profile Image Upload Modal
-const ProfileImageUploadModal = ({ isOpen, onClose, onImageSave }) => {
-  const [profileImage, setProfileImage] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const fileInputRef = useRef(null);
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setProfileImage(file);
-      toast.success('Image selected');
-    }
-  };
-
-  const handleSave = async () => {
-    if (profileImage) {
-      setIsLoading(true);
-      try {
-        await onImageSave(profileImage);
-        toast.success('Profile image updated');
-        onClose();
-      } catch (error) {
-        toast.error(error.response?.data?.error || 'Failed to update profile image');
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      toast.error('Please select an image');
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8, y: 50 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.8, y: 50 }}
-        transition={{ duration: 0.4, type: 'spring' }}
-        className="relative bg-gradient-to-br from-white to-gray-100 rounded-2xl sm:rounded-3xl p-4 sm:p-8 w-full max-w-xs sm:max-w-md shadow-2xl border border-gray-200"
-      >
-        <h2 className="text-xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">Update Profile Picture</h2>
-        <div className="flex flex-col items-center space-y-1">
-          <div className="relative w-16 sm:w-20 h-16 sm:h-20 rounded-full overflow-hidden border-2 sm:border-4 border-gray-200 group shadow-lg">
-            {profileImage ? (
-              <img src={URL.createObjectURL(profileImage)} alt="Profile Preview" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-400">
-                <User className="w-16 sm:w-20 h-16 sm:h-20" />
-              </div>
-            )}
-            <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer"
-              onClick={() => fileInputRef.current.click()}
-            >
-              <Camera className="w-8 sm:w-10 h-8 sm:h-10 text-white" />
-            </div>
-          </div>
-          <p className="text-xs sm:text-sm text-center">Click the camera icon to upload an image.</p>
-          <input
-            type="file"
-            ref={fileInputRef}
-            accept="image/*"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-        </div>
-        <div className="mt-4 sm:mt-8 flex flex-col sm:flex-row gap-2 sm:gap-4">
-          <Button variant="outline" onClick={onClose} disabled={isLoading} className="flex-1">
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={isLoading || !profileImage} className="flex-1">
-            {isLoading ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
-
-// Main Dashboard Component
 const Dashboard = () => {
   const { user, isAuthenticated, loading, logout, setUser } = useAuth();
   const navigate = useNavigate();
@@ -544,31 +89,21 @@ const Dashboard = () => {
     }
   }, [user]);
 
-  // Fetch products when authenticated
+  // Fetch products when authenticated - but since Marketplace fetches itself, optional for Dashboard main view
   useEffect(() => {
     if (isAuthenticated && user) fetchProducts();
   }, [isAuthenticated, user]);
 
-  // fetchProducts function
-const fetchProducts = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    let response;
-    if (token) {
-      // Fetch user's products if authenticated
-      response = await axios.get('http://localhost:5000/api/products', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-    } else {
-      // Fetch all public products if not authenticated
-      response = await axios.get('http://localhost:5000/api/products/public'); // Assume this endpoint exists
+  const fetchProducts = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:5000/api/products');
+      setProducts(response.data.products || []);
+    } catch (error) {
+      setError(error.response?.data?.error || 'Failed to load products');
+      toast.error(error.response?.data?.error || 'Failed to load products');
     }
-    setProducts(response.data.products || []);
-  } catch (error) {
-    setError(error.response?.data?.error || 'Failed to load products');
-    toast.error(error.response?.data?.error || 'Failed to load products');
-  }
-};
+  };
 
   const stats = [
     {
@@ -648,15 +183,6 @@ const fetchProducts = async () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Automatic logout on tab close or refresh
-  // useEffect(() => {
-  //   const handleBeforeUnload = () => {
-  //     logout();
-  //   };
-  //   window.addEventListener('beforeunload', handleBeforeUnload);
-  //   return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  // }, [logout]);
-
   const handleVerify = async (data) => {
     try {
       const token = localStorage.getItem('token');
@@ -693,10 +219,11 @@ const fetchProducts = async () => {
       const response = await axios.post('http://localhost:5000/api/products', productData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
-      setProducts((prevProducts) => [...prevProducts, response.data.product]);
+      // No need to setProducts here since Marketplace fetches independently
       setShowProductModal(false);
       setCurrentView('Marketplace');
       toast.success('Product uploaded successfully');
+      // Optional: refetch in Dashboard if using products elsewhere
       await fetchProducts();
     } catch (error) {
       toast.error(error.response?.data?.error || 'Product upload failed');
@@ -747,7 +274,7 @@ const fetchProducts = async () => {
   };
 
   const handleBuyClick = () => {
-    if (verificationStatus == 'verified') {
+    if (verificationStatus !== 'verified') {
       setShowVerificationModal(true);
     } else {
       setCurrentView('Marketplace');
@@ -891,18 +418,17 @@ const fetchProducts = async () => {
       </div>
 
       {currentView === 'Marketplace' ? 
-                (
-            <Marketplace
-              products={products} // Use the state from Dashboard
-              token={localStorage.getItem('token')}
-              onAddToCart={handleAddToCart}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-            />
-          ) : (
-                  <div className="p-2 sm:p-4 md:p-8 lg:p-12 max-w-7xl mx-auto">
+        (
+          <Marketplace
+            token={localStorage.getItem('token')}
+            onAddToCart={handleAddToCart}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+          />
+        ) : (
+        <div className="p-2 sm:p-4 md:p-8 lg:p-12 max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1092,6 +618,7 @@ const fetchProducts = async () => {
 
       <VerificationModal
         isOpen={showVerificationModal}
+
         onClose={() => setShowVerificationModal(false)}
         onVerify={handleVerify}
         verificationStatus={verificationStatus}

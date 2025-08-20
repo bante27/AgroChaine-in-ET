@@ -1,6 +1,6 @@
 // src/pages/Marketplace.jsx
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'; // Added AnimatePresence import
 import {
   Search,
   Grid,
@@ -10,6 +10,7 @@ import {
   Eye,
   ShoppingCart,
   Heart,
+  X,
 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -23,6 +24,8 @@ const Marketplace = ({ token, onAddToCart, searchTerm, setSearchTerm, selectedCa
   const [displayedProducts, setDisplayedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const categories = [
     { value: 'all', label: 'All Products' },
@@ -68,7 +71,7 @@ const Marketplace = ({ token, onAddToCart, searchTerm, setSearchTerm, selectedCa
       setDisplayedProducts(products);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load products');
-      toast.error(setError);
+      toast.error(err.response?.data?.error || 'Failed to load products'); // Fixed toast.error argument
     } finally {
       setLoading(false);
     }
@@ -93,6 +96,16 @@ const Marketplace = ({ token, onAddToCart, searchTerm, setSearchTerm, selectedCa
     });
     setDisplayedProducts(sortedProducts);
   }, [sortBy]);
+
+  const openModal = (product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
+  };
 
   if (loading) {
     return (
@@ -274,7 +287,7 @@ const Marketplace = ({ token, onAddToCart, searchTerm, setSearchTerm, selectedCa
                       </div>
 
                       <p className="text-sm text-gray-600 mb-3">
-                        by {product.seller || 'Unknown Seller'}
+                        by {product.owner?.fullName || product.owner?.username || 'Unknown Seller'}
                       </p>
 
                       <div className="flex items-center justify-between">
@@ -288,18 +301,18 @@ const Marketplace = ({ token, onAddToCart, searchTerm, setSearchTerm, selectedCa
                         </div>
 
                         <div className="flex space-x-2">
-                          <Button variant="outline" size="small">
+                          <Button variant="outline" size="small" onClick={() => openModal(product)}>
                             <Eye className="h-4 w-4 mr-1" />
                             View
                           </Button>
                           <Button
                             size="small"
                             onClick={() => onAddToCart(product)}
-                            disabled={!product.inStock}
+                            disabled={product.quantity <= 0}
                             className="disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <ShoppingCart className="h-4 w-4 mr-1" />
-                            {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                            {product.quantity > 0 ? 'Add to Cart' : 'Out of Stock'}
                           </Button>
                         </div>
                       </div>
@@ -311,6 +324,78 @@ const Marketplace = ({ token, onAddToCart, searchTerm, setSearchTerm, selectedCa
           )}
         </div>
       </section>
+
+      {/* Product Detail Modal */}
+      <AnimatePresence>
+        {isModalOpen && selectedProduct && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={closeModal}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button onClick={closeModal} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+                <X className="h-6 w-6" />
+              </button>
+              <h2 className="text-2xl font-bold mb-4">{selectedProduct.title}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <img
+                    src={
+                      selectedProduct.images && selectedProduct.images.length > 0
+                        ? `http://localhost:5000${selectedProduct.images[0]}`
+                        : 'https://via.placeholder.com/300'
+                    }
+                    alt={selectedProduct.title}
+                    className="w-full h-64 object-cover rounded-lg mb-4"
+                  />
+                  <div className="flex overflow-x-auto gap-2">
+                    {selectedProduct.images.slice(1).map((img, i) => (
+                      <img
+                        key={i}
+                        src={`http://localhost:5000${img}`}
+                        alt={`${selectedProduct.title} image ${i + 2}`}
+                        className="w-20 h-20 object-cover rounded"
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p><strong>Product ID:</strong> {selectedProduct.productId || 'N/A'}</p>
+                  <p><strong>Price:</strong> {selectedProduct.price ? `${selectedProduct.price} ETB` : 'N/A'} per kg</p>
+                  <p><strong>Quantity:</strong> {selectedProduct.quantity || 'N/A'} kg</p>
+                  <p><strong>Type:</strong> {selectedProduct.type || 'N/A'}</p>
+                  <p><strong>Origin Address:</strong> {selectedProduct.originAddress || 'Unknown'}</p>
+                  <p><strong>Seller:</strong> {selectedProduct.owner?.fullName || selectedProduct.owner?.username || 'Unknown'}</p>
+                  <p><strong>Seller ID:</strong> {selectedProduct.owner?.userId10 || selectedProduct.owner?.userId || 'N/A'}</p>
+                  <p><strong>Description:</strong> {selectedProduct.description || 'No description available'}</p>
+                  <p><strong>Comment:</strong> {selectedProduct.comment || 'No comment'}</p>
+                  <div className="flex items-center space-x-2">
+                    <Star className="h-5 w-5 text-yellow-400 fill-current" />
+                    <span>{selectedProduct.rating || '0'} ({selectedProduct.reviews || '0'} reviews)</span>
+                  </div>
+                  <Button
+                    onClick={() => onAddToCart(selectedProduct)}
+                    disabled={selectedProduct.quantity <= 0}
+                    className="w-full mt-4"
+                  >
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    {selectedProduct.quantity > 0 ? 'Add to Cart' : 'Out of Stock'}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <LiveChat />
     </div>

@@ -1,4 +1,3 @@
-// server.js
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
@@ -25,7 +24,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Middleware
-app.use(cors({ origin: "http://localhost:5174", credentials: true }));
+app.use(cors({ origin: ["http://localhost:5174", "http://localhost:5175"], credentials: true }));
 app.use(helmet());
 app.use(morgan("combined"));
 app.use(rateLimiter);
@@ -37,7 +36,7 @@ app.use(
   "/uploads",
   express.static(path.join(__dirname, "uploads"), {
     setHeaders: (res) => {
-      res.setHeader("Access-Control-Allow-Origin", "http://localhost:5174");
+      res.setHeader("Access-Control-Allow-Origin", ["http://localhost:5174", "http://localhost:5175"]);
       res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     },
   })
@@ -55,4 +54,3 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
- 
