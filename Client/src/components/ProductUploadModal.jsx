@@ -85,7 +85,9 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
                 <option value="vegetable" className="bg-gray-800">Vegetable</option>
                 <option value="fruit" className="bg-gray-800">Fruit</option>
                 <option value="grain" className="bg-gray-800">Grain</option>
+                <option value="dairy" className="bg-gray-800">Dairy</option>
                 <option value="other" className="bg-gray-800">Other</option>
+
               </select>
             </div>
             <div>
