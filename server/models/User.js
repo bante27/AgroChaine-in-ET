@@ -1,4 +1,5 @@
-const mongoose = require('mongoose');
+// models/User.js
+import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
   userId: { type: String, unique: true, required: true },  // 10-digit public ID
@@ -26,4 +27,4 @@ const UserSchema = new mongoose.Schema({
   otpExpires: { type: Date, default: null },     // OTP expiration
 });
 
-module.exports = mongoose.model('User', UserSchema);
+export default mongoose.model("User", UserSchema);

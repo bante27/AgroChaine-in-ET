@@ -1,4 +1,5 @@
-const mongoose = require('mongoose');
+// models/Product.js
+import mongoose from "mongoose";
 
 const ProductSchema = new mongoose.Schema({
   productId: { type: String, unique: true, required: true },  // custom unique product id
@@ -11,11 +12,10 @@ const ProductSchema = new mongoose.Schema({
   comment: { type: String },
   images: [String],  // array of image paths
   ownerUserId: { type: String, required: true }, // link to User.userId
+  soldQuantity: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-soldQuantity: { type: Number, default: 0 },
-
-
 });
 
-module.exports = mongoose.model('Product', ProductSchema)
+// ✅ ES Module export
+export default mongoose.model("Product", ProductSchema);

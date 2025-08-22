@@ -1,21 +1,31 @@
-const express = require('express');
+// routes/transactionRoutes.js
+import express from "express";
+import auth from "../middleware/auth.js";
+import Transaction from "../models/Transaction.js";
+import Product from "../models/Product.js";
+import User from "../models/User.js";
+
 const router = express.Router();
-const auth = require('../middleware/auth');
-const Transaction = require('../models/Transaction');
-const Product = require('../models/Product');
-const User = require('../models/User');
 
 // Create a purchase (buy a product)
-router.post('/buy', auth, async (req, res) => {
+router.post("/buy", auth, async (req, res) => {
   try {
     const { productId, quantity } = req.body;
-    if (!productId || !quantity) return res.status(400).json({ success: false, error: 'Product ID and quantity required' });
+    if (!productId || !quantity)
+      return res
+        .status(400)
+        .json({ success: false, error: "Product ID and quantity required" });
 
     const product = await Product.findOne({ productId });
-    if (!product) return res.status(404).json({ success: false, error: 'Product not found' });
+    if (!product)
+      return res
+        .status(404)
+        .json({ success: false, error: "Product not found" });
 
     if (product.availableQuantity < quantity) {
-      return res.status(400).json({ success: false, error: 'Insufficient quantity available' });
+      return res
+        .status(400)
+        .json({ success: false, error: "Insufficient quantity available" });
     }
 
     // Calculate total price
@@ -28,7 +38,7 @@ router.post('/buy', auth, async (req, res) => {
       productId,
       quantity,
       totalPrice,
-      status: 'completed',
+      status: "completed",
     });
 
     await transaction.save();
@@ -48,15 +58,17 @@ router.post('/buy', auth, async (req, res) => {
       { $addToSet: { soldProducts: product._id, closeCustomers: req.user.userId } }
     );
 
-    res.json({ success: true, message: 'Purchase successful', transaction });
+    res.json({ success: true, message: "Purchase successful", transaction });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: 'Server error creating transaction' });
+    res
+      .status(500)
+      .json({ success: false, error: "Server error creating transaction" });
   }
 });
 
 // Get transaction history for user (buyer and seller)
-router.get('/history', auth, async (req, res) => {
+router.get("/history", auth, async (req, res) => {
   try {
     const userId = req.user.userId;
     const transactions = await Transaction.find({
@@ -66,8 +78,10 @@ router.get('/history', auth, async (req, res) => {
     res.json({ success: true, transactions });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: 'Server error fetching transactions' });
+    res
+      .status(500)
+      .json({ success: false, error: "Server error fetching transactions" });
   }
 });
 
-module.exports = router;
+export default router;

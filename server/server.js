@@ -1,3 +1,4 @@
+// server.js
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
@@ -6,6 +7,7 @@ import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 
+// Import ES Module versions of all files
 import connectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
@@ -17,26 +19,36 @@ import rateLimiter from "./middleware/rateLimiter.js";
 
 dotenv.config();
 const app = express();
+
+// Connect to MongoDB
 connectDB();
 
-// For __dirname in ES modules
+// For __dirname in ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Middleware
-app.use(cors({ origin: ["http://localhost:5174", "http://localhost:5175"], credentials: true }));
+app.use(
+  cors({
+    origin: ["http://localhost:5174", "http://localhost:5175"],
+    credentials: true,
+  })
+);
 app.use(helmet());
 app.use(morgan("combined"));
 app.use(rateLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploads statically
+// Serve uploads folder statically
 app.use(
   "/uploads",
   express.static(path.join(__dirname, "uploads"), {
     setHeaders: (res) => {
-      res.setHeader("Access-Control-Allow-Origin", ["http://localhost:5174", "http://localhost:5175"]);
+      res.setHeader(
+        "Access-Control-Allow-Origin",
+        "http://localhost:5174" // can be one origin or a function
+      );
       res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     },
   })
@@ -52,5 +64,6 @@ app.use("/api/contact", contactRoutes);
 // Error handler
 app.use(errorHandler);
 
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

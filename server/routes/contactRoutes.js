@@ -4,7 +4,8 @@ import { contactUpload } from "../middleware/upload.js";
 
 const router = express.Router();
 
-// Use contactUpload for files + voice
+// Route: POST /api/chat
 router.post("/", contactUpload, handleContactForm);
 
+// 👇 This makes it a default export, so you can import it in server.js
 export default router;

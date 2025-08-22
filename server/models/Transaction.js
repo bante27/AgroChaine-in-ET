@@ -1,4 +1,5 @@
-const mongoose = require('mongoose');
+// models/Transaction.js
+import mongoose from "mongoose";
 
 const TransactionSchema = new mongoose.Schema({
   buyerUserId: { type: String, required: true },
@@ -10,4 +11,4 @@ const TransactionSchema = new mongoose.Schema({
   status: { type: String, enum: ['pending', 'completed', 'cancelled'], default: 'pending' },
 });
 
-module.exports = mongoose.model('Transaction', TransactionSchema);
+export default mongoose.model("Transaction", TransactionSchema);
