@@ -14,75 +14,56 @@ import bgImage from '../assets/images/bg-login.jfif';
 import axios from 'axios';
 import LiveChat from '../components/LiveChat';
 
+// OTP Input component
+const OTPInput = ({ email, otp, onVerify, onResend }) => {
+  const [inputOtp, setInputOtp] = useState('');
+  const [timer, setTimer] = useState(300); // 5 minutes
 
-const GooglePasswordPrompt = ({ email, onSave, onNever }) => {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onNever();
-    }, 0.5); // Changed back to 10000ms for better UX
-    return () => clearTimeout(timer);
-  }, [onNever]);
+    setInputOtp(otp || ''); // Pre-fill OTP if provided
+    const interval = setInterval(() => setTimer(prev => (prev > 0 ? prev - 1 : 0)), 1000);
+    return () => clearInterval(interval);
+  }, [otp]);
+
+  const handleVerify = () => {
+    if (!inputOtp || inputOtp.length !== 6) return toast.error('Enter a valid 6-digit OTP');
+    onVerify(inputOtp);
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      transition={{ duration: 0.2 }}
-      className="fixed bottom-4 right-4 w-80 bg-white rounded-lg shadow-lg z-50 border border-gray-200 overflow-hidden"
-    >
-      <div className="p-4">
-        <div className="flex items-center mb-3">
-          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-blue-500"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-          <div>
-            <h3 className="font-medium text-gray-900">AgroChain</h3>
-            <p className="text-sm text-gray-500">Save password?</p>
-          </div>
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${bgImage})` }}>
+      <Card className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl rounded-2xl p-8 max-w-lg w-full">
+        <div className="text-center">
+          <h2 className="text-4xl font-extrabold text-white">Verify Your Email Account</h2>
+          <p className="text-gray-300 text-lg mt-2">Enter the OTP sent to {email}</p>
         </div>
-        <div className="mb-4">
-          <div className="mb-2">
-            <label className="block text-xs font-medium text-gray-500 mb-1">Email</label>
-            <div className="p-2 bg-gray-50 rounded text-sm text-gray-700">{email}</div>
+        <form className="space-y-6 mt-8">
+          <Input
+            label="OTP Code"
+            value={inputOtp}
+            onChange={e => setInputOtp(e.target.value)}
+            placeholder="6-digit OTP"
+            className="text-lg py-3 bg-white/5 border-white/20 text-white placeholder-gray-400"
+          />
+          <div className="flex justify-between items-center text-gray-300 text-sm">
+            <span>{timer > 0 ? `Expires in ${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}` : 'OTP expired'}</span>
+            <button type="button" disabled={timer > 0} onClick={onResend} className="text-blue-400 hover:underline disabled:text-gray-400">
+              Resend
+            </button>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Password</label>
-            <div className="p-2 bg-gray-50 rounded text-sm text-gray-700">••••••••</div>
-          </div>
-        </div>
-        <div className="flex justify-between items-center">
-          <button
-            onClick={onNever}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded"
+          <Button
+            type="button"
+            onClick={handleVerify}
+            loading={false}
+            className="w-full group bg-gradient-to-r from-emerald-600 to-teal-600 hover:text-pink-950 text-white transition-all duration-300 transform hover:scale-105"
+            size="large"
           >
-            Never
-          </button>
-          <button
-            onClick={onSave}
-            className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded"
-          >
-            Save
-          </button>
-        </div>
-        <div className="mt-3 pt-3 border-t border-gray-200">
-          <p className="text-xs text-gray-500">
-            You can use saved passwords on any device. They're saved to Google Password Manager for {email}.
-          </p>
-        </div>
-      </div>
-    </motion.div>
+            Verify OTP
+            <ArrowRight className="ml-3 h-2 w-4 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </form>
+      </Card>
+    </div>
   );
 };
 
@@ -90,7 +71,9 @@ const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showSavePrompt, setShowSavePrompt] = useState(false);
+  const [showOTP, setShowOTP] = useState(false);
+  const [otpEmail, setOtpEmail] = useState('');
+  const [initialOtp, setInitialOtp] = useState('');
   const [formData, setFormData] = useState({
     email: localStorage.getItem('rememberedEmail') || '',
     password: '',
@@ -102,28 +85,21 @@ const Login = () => {
   });
   const [error, setError] = useState(null);
   const [passwordStrength, setPasswordStrength] = useState('');
-  const [rememberMe, setRememberMe] = useState(!!localStorage.getItem('rememberedEmail'));
 
-  const { login, user, isAuthenticated, loading } = useAuth();
+  const { login, logout, user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/dashboard';
 
   useEffect(() => {
-    console.log('Login: Current auth state:', { user, isAuthenticated, loading });
     if (isAuthenticated && user && !loading) {
-      console.log('Login: Navigating to', from);
       navigate(from, { replace: true });
     }
   }, [user, isAuthenticated, loading, navigate, from]);
 
   const isValidEmail = (email) => /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email.trim());
   const isValidPassword = (password) =>
-    password.length >= 8 &&
-    /[A-Z]/.test(password) &&
-    /[a-z]/.test(password) &&
-    /[0-9]/.test(password) &&
-    /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
+    password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password) && /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
   const isValidFullName = (fullName) => {
     const nameRegex = /^[a-zA-Z\s-]{2,50}$/;
     const hasMultipleWords = fullName.trim().split(/\s+/).length >= 2;
@@ -146,15 +122,6 @@ const Login = () => {
       setPasswordStrength('');
     }
   }, [formData.password, isLogin]);
-
-  useEffect(() => {
-    if (rememberMe) {
-      setFormData((prev) => ({
-        ...prev,
-        email: localStorage.getItem('rememberedEmail') || prev.email,
-      }));
-    }
-  }, [rememberMe]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -183,20 +150,38 @@ const Login = () => {
       agreeToTerms: false,
     });
     setError(null);
-    setShowSavePrompt(false);
   };
 
-  const handleSaveCredentials = (save) => {
-    console.log('Login: handleSaveCredentials, save:', save);
-    if (save) {
-      localStorage.setItem('rememberedEmail', formData.email);
-      toast.success('Credentials saved');
-    } else {
-      localStorage.removeItem('rememberedEmail');
-      toast.success('Credentials not saved');
+  const handleVerifyOTP = async (otp) => {
+    try {
+      const res = await axios.post('http://localhost:5000/api/users/verify-otp', {
+        email: otpEmail,
+        otp,
+      });
+      if (res.data.success) {
+        await login(res.data.token);
+        toast.success('OTP verified! Redirecting to dashboard...');
+        navigate(from, { replace: true });
+      } else {
+        toast.error(res.data.error);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'OTP verification failed');
     }
-    setShowSavePrompt(false);
-    navigate(from, { replace: true });
+  };
+
+  const handleResendOTP = async () => {
+    try {
+      const res = await axios.post('http://localhost:5000/api/users/register', { email: otpEmail }); // Re-trigger registration for new OTP
+      if (res.data.success) {
+        setInitialOtp(res.data.otp);
+        toast.success('OTP resent successfully.');
+      } else {
+        toast.error(res.data.error);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to resend OTP');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -217,35 +202,22 @@ const Login = () => {
       }
 
       try {
-        console.log('Login: Sending login request:', { email: formData.email });
         const response = await axios.post('http://localhost:5000/api/users/login', {
           email: formData.email,
           password: formData.password,
         });
-        console.log('Login: Response:', response.data);
         if (response.data.success && response.data.token) {
-          await login(response.data.token); // Ensure login completes
-          console.log('Login: AuthContext login called with token:', response.data.token);
+          await login(response.data.token);
           toast.success('Login successful!');
-          if (rememberMe) {
-            localStorage.setItem('rememberedEmail', formData.email);
-            navigate(from, { replace: true });
-          } else {
-            localStorage.removeItem('rememberedEmail');
-            setShowSavePrompt(true);
-            setIsLoading(false); // Allow prompt to handle navigation
-          }
+          navigate(from, { replace: true });
         } else {
           toast.error(response.data.error || 'Login failed. Please check your credentials.');
-          setIsLoading(false);
         }
       } catch (error) {
-        console.error('Login: Error:', error);
         toast.error(error.response?.data?.error || 'An unexpected error occurred during login.');
-        setIsLoading(false);
       }
     } else {
-      const { fullName, email, password, confirmPassword, phone, address, agreeToTerms } = formData;
+      const { fullName, email, password, phone, address, agreeToTerms } = formData;
 
       if (!fullName || !email || !password || !phone || !address) {
         toast.error('All fields are required.');
@@ -263,12 +235,6 @@ const Login = () => {
         toast.error(
           'Password must be at least 8 characters long and include an uppercase letter, lowercase letter, number, and special character.'
         );
-        setIsLoading(false);
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        toast.error('Passwords do not match.');
         setIsLoading(false);
         return;
       }
@@ -298,7 +264,6 @@ const Login = () => {
       }
 
       try {
-        console.log('Login: Sending register request:', { fullName, email, phone, address, agreeToTerms });
         const response = await axios.post('http://localhost:5000/api/users/register', {
           fullName,
           email,
@@ -307,31 +272,25 @@ const Login = () => {
           address,
           agreeToTerms,
         });
-        console.log('Login: Register response:', response.data);
         if (response.data.success) {
-          toast.success('Registration successful! Please log in.');
-          setFormData({
-            email: email, // Retain email for login form
-            password: '',
-            confirmPassword: '',
-            fullName: '',
-            phone: '',
-            address: '',
-            agreeToTerms: false,
-          });
-          setIsLogin(true); // Switch to login form
-          setShowSavePrompt(true); // Show save prompt for registration
-          setIsLoading(false);
+          setOtpEmail(email);
+          setInitialOtp(response.data.otp); // Use OTP from response
+          setShowOTP(true);
         } else {
           toast.error(response.data.error || 'Registration failed.');
-          setIsLoading(false);
         }
       } catch (error) {
-        console.error('Login: Registration error:', error);
         toast.error(error.response?.data?.error || 'Registration failed. Please try again.');
-        setIsLoading(false);
       }
     }
+    setIsLoading(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    localStorage.removeItem('rememberedEmail');
+    navigate('/login', { replace: true });
+    toast.success('Logged out successfully!');
   };
 
   const renderBasicInfo = () => (
@@ -455,20 +414,13 @@ const Login = () => {
     </div>
   );
 
+  if (showOTP) return <OTPInput email={otpEmail} otp={initialOtp} onVerify={handleVerifyOTP} onResend={handleResendOTP} />;
+
   return (
     <div
       className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
-      style={{
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${bgImage})`,
-      }}
+      style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${bgImage})` }}
     >
-      {showSavePrompt && (
-        <GooglePasswordPrompt
-          email={formData.email}
-          onSave={() => handleSaveCredentials(true)}
-          onNever={() => handleSaveCredentials(false)}
-        />
-      )}
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -540,19 +492,16 @@ const Login = () => {
                         name="remember-me"
                         type="checkbox"
                         className="h-5 w-5 text-emerald-400 focus:ring-emerald-500 border-gray-300 rounded"
-                        checked={rememberMe}
-                        onChange={() => setRememberMe(!rememberMe)}
+                        checked={formData.rememberMe || false}
+                        onChange={e => setFormData(prev => ({ ...prev, rememberMe: e.target.checked }))}
                       />
                       <label htmlFor="remember-me" className="ml-3 block text-base text-gray-950">
                         Remember me
                       </label>
                     </div>
-                    {/* <Link to="/ForgotPassword" className="text-base text-gray-950 hover:text-pink-400">
-                      Forgot password?
-                    </Link> */}
-                    <Link to="/forgot-password"  className="text-base text-gray-950 hover:text-pink-400" >
-                    Forgot Password?</Link>
-
+                    <Link to="/forgot-password" className="text-base text-gray-950 hover:text-pink-400">
+                      Forgot Password?
+                    </Link>
                   </div>
                   <Button
                     type="submit"
@@ -601,11 +550,19 @@ const Login = () => {
                   {isLogin ? 'Create an account' : 'Sign in to existing account'}
                 </Button>
               </div>
+              {isAuthenticated && (
+                <Button
+                  variant="outline"
+                  onClick={handleLogout}
+                  className="w-full mt-4 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 transform hover:scale-105"
+                >
+                  Logout
+                </Button>
+              )}
             </div>
           </Card>
         </motion.div>
       </motion.div>
-      
       <LiveChat />
     </div>
   );

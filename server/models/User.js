@@ -20,6 +20,10 @@ const UserSchema = new mongoose.Schema({
   boughtProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   soldProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   customerRating: { type: Number, default: 0 }, // average rating
+
+  // ===== OTP Fields =====
+  otp: { type: String, default: null },          // one-time password
+  otpExpires: { type: Date, default: null },     // OTP expiration
 });
 
 module.exports = mongoose.model('User', UserSchema);
