@@ -6,7 +6,7 @@ import LiveChat from '../components/LiveChat';
 
 
 // Images
-import WestGojjamZon from '../assets/images/west gojjam zon.jfif'; // For Hero Section background
+import AppleTree from '../assets/images/AppleTree.jfif'; // For Hero Section background
 import TeffImage from '../assets/images/teff.jfif';
 import EthiopiaAmharaGojjamTeff from '../assets/images/ethiopia-amhara-gojjam-teff.jfif';
 import ForProduction from '../assets/images/for-production.jfif';
@@ -94,10 +94,10 @@ const About = () => {
       {/* Hero Section */}
       <section
         className="relative section-padding text-white bg-cover bg-center overflow-hidden"
-        style={{ backgroundImage: `url(${WestGojjamZon})` }}
+        style={{ backgroundImage: `url(${AppleTree})` }}
       >
         {/* Modern Overlay with Gradient and Subtle Pattern */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-gray-950 opacity-90"></div>
+        <div className="absolute inset-0  opacity-90"></div>
         <div className="absolute inset-0 bg-pattern-dots opacity-10" style={{ backgroundImage: 'radial-gradient(#ffffff20 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
 
         <div className="container-max relative z-10 py-24 sm:py-32 lg:py-40">
@@ -108,9 +108,9 @@ const About = () => {
             className="text-center max-w-5xl mx-auto"
           >
             <h1 className="text-6xl font- mb-8 drop-shadow-lg leading-tight">
-              About AgroChain Ethiopia: <span className="text-emerald-300">Empowering Agricultural Connections</span>
+              About AgroChain Ethiopia: <span className="text-gray-400">Empowering Agricultural Connections</span>
             </h1>
-            <p className="text-xl sm:text-2xl text-gray-100 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-xl sm:text-2xl text-emerald-400 leading-relaxed max-w-3xl mx-auto">
               We're dedicated to transforming Ethiopia's agricultural landscape by building a **secure, transparent, and efficient supply chain**. Our innovative platform connects **farmers directly to markets**, 
               ensures **fair prices**, and provides **end-to-end traceability** for all agricultural products, benefiting everyone from producer to consumer.
             </p>
