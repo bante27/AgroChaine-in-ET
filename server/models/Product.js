@@ -1,5 +1,11 @@
-// models/Product.js
 import mongoose from "mongoose";
+
+const ReviewSchema = new mongoose.Schema({
+  comment: { type: String, required: true },
+  userId: { type: String },  // optional: track who made the comment
+  userName: { type: String },  // optional: store user name
+  createdAt: { type: Date, default: Date.now },
+});
 
 const ProductSchema = new mongoose.Schema({
   productId: { type: String, unique: true, required: true },  // custom unique product id
@@ -16,7 +22,10 @@ const ProductSchema = new mongoose.Schema({
   ownerName: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
+
+  // ✅ New Fields
+  reviews: [ReviewSchema],         // Array of review comments
+  likesCount: { type: Number, default: 0 },  // Total number of likes
 });
 
-// ✅ ES Module export
 export default mongoose.model("Product", ProductSchema);

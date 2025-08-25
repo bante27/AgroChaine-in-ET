@@ -336,4 +336,37 @@ router.post(
   }
 );
 
+
+
+router.get("/:userId", async (req, res) => {
+  try {
+    const user = await User.findOne({ userId: req.params.userId })
+      .populate("boughtProducts", "productId title images price")
+      .populate("soldProducts", "productId title images price");
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    // Only return public profile fields
+    const publicProfile = {
+      userId: user.userId,
+      fullName: user.fullName,
+      username: user.username || null,
+      profilePic: user.profilePic || null,
+      location: user.location || null,
+      rank: user.rank,
+      customerRating: user.customerRating,
+      registrationDate: user.registrationDate,
+      boughtProducts: user.boughtProducts || [],
+      soldProducts: user.soldProducts || [],
+    };
+
+    res.json({ success: true, user: publicProfile });
+  } catch (error) {
+    console.error("Error fetching public profile:", error);
+    res.status(500).json({ success: false, error: "Server error fetching user profile" });
+  }
+});
+
 export default router;

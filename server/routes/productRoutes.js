@@ -29,7 +29,7 @@ router.post("/", auth, productImageUpload.array("images", 5), async (req, res) =
       comment,
       images,
       ownerUserId: req.user.userId,
-      ownerName:req.user.fullName
+      ownerName: req.user.fullName,
     });
 
     await newProduct.save();
@@ -81,5 +81,76 @@ router.get("/:productId", async (req, res) => {
   }
 });
 
-// ✅ ES Module export
+// --------------- Add a review to a product ----------------
+router.post("/:productId/review", auth, async (req, res) => {
+  try {
+    const { comment } = req.body;
+
+    if (!comment) {
+      return res.status(400).json({ success: false, error: "Review comment is required" });
+    }
+
+    const product = await Product.findOne({ productId: req.params.productId });
+    if (!product) {
+      return res.status(404).json({ success: false, error: "Product not found" });
+    }
+
+    const review = {
+      comment,
+      userId: req.user.userId,
+      userName: req.user.fullName,
+      createdAt: new Date(),
+    };
+
+    product.reviews.push(review);
+    product.updatedAt = new Date();
+    await product.save();
+
+    res.status(201).json({ success: true, message: "Review added", product });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: "Server error adding review" });
+  }
+});
+
+// --------------- Like a product ----------------
+router.post("/:productId/like", auth, async (req, res) => {
+  try {
+    const product = await Product.findOne({ productId: req.params.productId });
+    if (!product) {
+      return res.status(404).json({ success: false, error: "Product not found" });
+    }
+
+    product.likesCount += 1;
+    product.updatedAt = new Date();
+    await product.save();
+
+    res.json({ success: true, message: "Product liked", likesCount: product.likesCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: "Server error liking product" });
+  }
+});
+
+// --------------- Unlike a product (optional) ----------------
+router.post("/:productId/unlike", auth, async (req, res) => {
+  try {
+    const product = await Product.findOne({ productId: req.params.productId });
+    if (!product) {
+      return res.status(404).json({ success: false, error: "Product not found" });
+    }
+
+    if (product.likesCount > 0) {
+      product.likesCount -= 1;
+      product.updatedAt = new Date();
+      await product.save();
+    }
+
+    res.json({ success: true, message: "Product unliked", likesCount: product.likesCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: "Server error unliking product" });
+  }
+});
+
 export default router;
