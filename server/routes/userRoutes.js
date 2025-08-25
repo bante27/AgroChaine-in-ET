@@ -337,34 +337,21 @@ router.post(
 );
 
 
-
 router.get("/:userId", async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.params.userId })
-      .populate("boughtProducts", "productId title images price")
-      .populate("soldProducts", "productId title images price");
+      .select("-password -email -otp -otpExpires -governmentIdPic") // exclude sensitive/private info
+      .populate("postedProducts", "productId title price images createdAt")
+      .populate("soldProducts", "productId title price images createdAt")
+      .populate("boughtProducts", "productId title price images createdAt");
 
     if (!user) {
       return res.status(404).json({ success: false, error: "User not found" });
     }
 
-    // Only return public profile fields
-    const publicProfile = {
-      userId: user.userId,
-      fullName: user.fullName,
-      username: user.username || null,
-      profilePic: user.profilePic || null,
-      location: user.location || null,
-      rank: user.rank,
-      customerRating: user.customerRating,
-      registrationDate: user.registrationDate,
-      boughtProducts: user.boughtProducts || [],
-      soldProducts: user.soldProducts || [],
-    };
-
-    res.json({ success: true, user: publicProfile });
+    res.json({ success: true, user });
   } catch (error) {
-    console.error("Error fetching public profile:", error);
+    console.error("Error fetching user profile:", error);
     res.status(500).json({ success: false, error: "Server error fetching user profile" });
   }
 });
