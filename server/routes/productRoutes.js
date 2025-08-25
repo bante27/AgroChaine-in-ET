@@ -29,6 +29,7 @@ router.post("/", auth, productImageUpload.array("images", 5), async (req, res) =
       comment,
       images,
       ownerUserId: req.user.userId,
+      ownerName:req.user.fullName
     });
 
     await newProduct.save();
