@@ -17,6 +17,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
   const canvasBackRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Camera for front
   useEffect(() => {
     let stream;
     if (isFrontCameraActive) {
@@ -27,6 +28,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
     return () => stream && stream.getTracks().forEach((t) => t.stop());
   }, [isFrontCameraActive]);
 
+  // Camera for back
   useEffect(() => {
     let stream;
     if (isBackCameraActive) {
@@ -37,6 +39,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
     return () => stream && stream.getTracks().forEach((t) => t.stop());
   }, [isBackCameraActive]);
 
+  // Convert DataURL to File
   const dataURLtoFile = (dataUrl, filename) => {
     const arr = dataUrl.split(',');
     const mime = arr[0].match(/:(.*?);/)[1];
@@ -47,6 +50,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
     return new File([u8arr], filename, { type: mime });
   };
 
+  // Capture Front ID
   const captureFrontImage = () => {
     if (videoFrontRef.current && canvasFrontRef.current) {
       const ctx = canvasFrontRef.current.getContext('2d');
@@ -58,6 +62,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
     }
   };
 
+  // Capture Back ID
   const captureBackImage = () => {
     if (videoBackRef.current && canvasBackRef.current) {
       const ctx = canvasBackRef.current.getContext('2d');
@@ -69,6 +74,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
     }
   };
 
+  // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!govIdFront || !govIdBack || !name) {
@@ -90,92 +96,117 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2">
       <motion.div
         initial={{ opacity: 0, scale: 0.8, y: 50 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.8, y: 50 }}
         transition={{ duration: 0.4, type: 'spring' }}
-        className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-8 w-full max-w-xs sm:max-w-lg shadow-2xl border border-white/10"
+        className="bg-white dark:bg-gray-900 rounded-2xl p-4 w-full max-w-sm shadow-2xl border border-gray-200 dark:border-gray-700"
       >
-        <h2 className="text-xl sm:text-3xl font-bold text-white mb-4 sm:mb-6 text-center">Verify Your Account</h2>
-        {verificationStatus === 'pending' && <p className="text-yellow-400 mb-4 sm:mb-6 font-medium text-center bg-yellow-400/10 rounded-lg p-2 sm:p-3">Verification pending...</p>}
-        {verificationStatus === 'verified' && <p className="text-green-400 mb-4 sm:mb-6 font-medium text-center bg-green-400/10 rounded-lg p-2 sm:p-3">Verified successfully!</p>}
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">
+          Verify Your Account
+        </h2>
+
+        {verificationStatus === 'pending' && (
+          <p className="text-yellow-600 dark:text-yellow-400 mb-4 font-medium text-center bg-yellow-100 dark:bg-yellow-900/40 rounded-lg p-2">
+            Verification pending...
+          </p>
+        )}
+        {verificationStatus === 'verified' && (
+          <p className="text-green-600 dark:text-green-400 mb-4 font-medium text-center bg-green-100 dark:bg-green-900/40 rounded-lg p-2">
+            Verified successfully!
+          </p>
+        )}
+
         {verificationStatus !== 'verified' && (
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Full Name */}
             <div>
-              <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">Full Name</label>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Full Name
+              </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl border-0 bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 px-3 sm:px-4 py-2 sm:py-3 focus:ring-2 focus:ring-blue-500 focus:bg-white/20 transition-all"
+                className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 px-3 py-2 focus:ring-2 focus:ring-blue-500 transition-all"
                 placeholder="Enter your full name"
                 required
               />
             </div>
+
+            {/* National ID (Front) */}
             <div>
-              <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">National ID (Front)</label>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                National ID (Front)
+              </label>
               {isFrontCameraActive ? (
-                <div className="space-y-2 sm:space-y-4">
-                  <video ref={videoFrontRef} autoPlay className="w-full h-32 sm:h-48 bg-gray-800 rounded-xl object-cover" />
+                <div className="space-y-2">
+                  <video ref={videoFrontRef} autoPlay className="w-full h-32 bg-gray-200 dark:bg-gray-800 rounded-xl object-cover" />
                   <canvas ref={canvasFrontRef} width="300" height="200" className="hidden" />
                   <Button onClick={captureFrontImage} className="w-full" disabled={isLoading}>
-                    <Camera className="h-4 sm:h-5 w-4 sm:w-5 mr-1 sm:mr-2" /> Capture Front
+                    <Camera className="h-4 w-4 mr-1" /> Capture Front
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-2 sm:space-y-4">
+                <div className="space-y-2">
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => setGovIdFront(e.target.files[0])}
-                    className="w-full text-gray-300 bg-white/10 rounded-xl p-2 sm:p-3 file:mr-2 sm:file:mr-4 file:py-1 sm:file:py-2 file:px-2 sm:file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                    className="w-full text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl p-2 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                     disabled={isLoading}
                   />
                   <Button
                     onClick={() => setIsFrontCameraActive(true)}
                     variant="outline"
-                    className="w-full flex items-center justify-center space-x-1 sm:space-x-2"
+                    className="w-full flex items-center justify-center space-x-1"
                     disabled={isLoading}
                   >
-                    <Camera className="h-4 sm:h-5 w-4 sm:w-5" /> <span>Scan with Camera</span>
+                    <Camera className="h-4 w-4" /> <span>Scan with Camera</span>
                   </Button>
                 </div>
               )}
             </div>
+
+            {/* National ID (Back) */}
             <div>
-              <label className="block text-xs sm:text-sm font-semibold text-gray-200 mb-1 sm:mb-2">National ID (Back)</label>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                National ID (Back)
+              </label>
               {isBackCameraActive ? (
-                <div className="space-y-2 sm:space-y-4">
-                  <video ref={videoBackRef} autoPlay className="w-full h-32 sm:h-48 bg-gray-800 rounded-xl object-cover" />
+                <div className="space-y-2">
+                  <video ref={videoBackRef} autoPlay className="w-full h-32 bg-gray-200 dark:bg-gray-800 rounded-xl object-cover" />
                   <canvas ref={canvasBackRef} width="300" height="200" className="hidden" />
                   <Button onClick={captureBackImage} className="w-full" disabled={isLoading}>
-                    <Camera className="h-4 sm:h-5 w-4 sm:w-5 mr-1 sm:mr-2" /> Capture Back
+                    <Camera className="h-4 w-4 mr-1" /> Capture Back
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-2 sm:space-y-4">
+                <div className="space-y-2">
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => setGovIdBack(e.target.files[0])}
-                    className="w-full text-gray-300 bg-white/10 rounded-xl p-2 sm:p-3 file:mr-2 sm:file:mr-4 file:py-1 sm:file:py-2 file:px-2 sm:file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                    className="w-full text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl p-2 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                     required
                     disabled={isLoading}
                   />
                   <Button
                     onClick={() => setIsBackCameraActive(true)}
                     variant="outline"
-                    className="w-full flex items-center justify-center space-x-1 sm:space-x-2"
+                    className="w-full flex items-center justify-center space-x-1"
                     disabled={isLoading}
                   >
-                    <Camera className="h-4 sm:h-5 w-4 sm:w-5" /> <span>Scan with Camera</span>
+                    <Camera className="h-4 w-4" /> <span>Scan with Camera</span>
                   </Button>
                 </div>
               )}
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-2 sm:pt-4">
+
+            {/* Actions */}
+            <div className="flex flex-col gap-2 pt-2">
               <Button variant="outline" onClick={onClose} disabled={isLoading} className="flex-1">
                 Cancel
               </Button>

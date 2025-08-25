@@ -155,7 +155,7 @@ const Services = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="hero-gradient section-padding text-white">
+      <section className="bg-gradient-to-r from-green-500 to-blue-600 section-padding text-white">
         <div className="container-max">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

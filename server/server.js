@@ -15,7 +15,6 @@ import transactionRoutes from "./routes/transactionRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
-import rateLimiter from "./middleware/rateLimiter.js";
 
 dotenv.config();
 const app = express();
@@ -36,7 +35,6 @@ app.use(
 );
 app.use(helmet());
 app.use(morgan("combined"));
-app.use(rateLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

@@ -1,6 +1,6 @@
 // components/LiveChat.jsx
 import React, { useEffect, useRef, useState } from 'react';
-import { Send } from 'lucide-react';
+import { Send, MessageCircle } from 'lucide-react';
 import Draggable from 'react-draggable';
 import { Resizable } from 're-resizable';
 
@@ -59,9 +59,9 @@ export default function LiveChat() {
         {!isOpen && (
           <button
             onClick={() => setIsOpen(true)}
-            className="bg-emerald-600 text-white px-4 py-2 rounded-full shadow-lg hover:bg-emerald-700"
+            className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
           >
-            Live Chat
+            <MessageCircle className="w-6 h-6" />
           </button>
         )}
 
@@ -72,18 +72,18 @@ export default function LiveChat() {
             enable={{ top: true, right: true, bottom: true, left: true,
                       topRight: true, bottomRight: true, bottomLeft: true, topLeft: true }}
           >
-            <div className="w-full h-full bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden">
+            <div className="w-full h-full bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden border border-gray-200">
               {/* Header */}
-              <div className="bg-emerald-600 text-white px-3 py-2 flex items-center justify-between cursor-move">
-                <span className="font-semibold">AgroChain Assistant</span>
-                <button onClick={() => setIsOpen(false)}>✖</button>
+              <div className="bg-blue-600 text-white px-4 py-3 flex items-center justify-between cursor-move">
+                <span className="font-semibold text-lg">AgroChain Assistant</span>
+                <button onClick={() => setIsOpen(false)} className="text-xl leading-none">✖</button>
               </div>
 
               {/* Messages */}
-              <div ref={listRef} className="flex-1 p-3 overflow-y-auto space-y-2 bg-gray-50">
+              <div ref={listRef} className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50">
                 {messages.map((m, i) => (
-                  <div key={i} className={`max-w-[85%] px-3 py-2 rounded-lg text-sm ${
-                    m.sender === 'user' ? 'ml-auto bg-emerald-100' : 'mr-auto bg-white border'
+                  <div key={i} className={`max-w-[85%] px-4 py-3 rounded-xl text-sm leading-relaxed ${
+                    m.sender === 'user' ? 'ml-auto bg-teal-100 text-gray-800' : 'mr-auto bg-white border border-gray-200 text-gray-700'
                   }`}>{m.text}</div>
                 ))}
                 {!messages.length && <div className="text-center text-gray-500 text-sm mt-8">
@@ -92,18 +92,18 @@ export default function LiveChat() {
               </div>
 
               {/* Input */}
-              <div className="p-2 border-t bg-white flex gap-2">
+              <div className="p-3 border-t bg-white flex gap-2 items-center">
                 <textarea
                   rows={1}
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Type your message…"
-                  className="flex-1 resize-none border rounded-md px-2 py-2 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="flex-1 resize-none border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
                 />
                 <button
                   onClick={sendMessage}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 rounded-md flex items-center gap-1"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
                 >
                   <Send className="w-4 h-4" /> Send
                 </button>
