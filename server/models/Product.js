@@ -11,8 +11,9 @@ const ProductSchema = new mongoose.Schema({
   description: { type: String },
   comment: { type: String },
   images: [String],  // array of image paths
-  ownerUserId: { type: String, required: true }, // link to User.userId
+  ownerUserId: { type: String, required: true },
   soldQuantity: { type: Number, default: 0 },
+  ownerName: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
