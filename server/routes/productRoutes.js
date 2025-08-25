@@ -1,7 +1,7 @@
-// routes/productRoutes.js
 import express from "express";
 import auth from "../middleware/auth.js";
 import Product from "../models/Product.js";
+import User from "../models/User.js";          // <-- imported User model
 import { productImageUpload } from "../middleware/upload.js";
 
 const router = express.Router();
@@ -33,6 +33,13 @@ router.post("/", auth, productImageUpload.array("images", 5), async (req, res) =
     });
 
     await newProduct.save();
+
+    // Add this new product ID to the user's postedProducts array
+    await User.findOneAndUpdate(
+      { userId: req.user.userId },
+      { $push: { postedProducts: newProduct._id } }
+    );
+
     res.status(201).json({ success: true, product: newProduct });
   } catch (error) {
     console.error(error);

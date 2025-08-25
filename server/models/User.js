@@ -20,6 +20,7 @@ const UserSchema = new mongoose.Schema({
   closeCustomers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   boughtProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   soldProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+  postedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   customerRating: { type: Number, default: 0 }, // average rating
 
   // ===== OTP Fields =====
