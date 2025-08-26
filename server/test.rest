@@ -1,0 +1,165 @@
+# Base URL - adjust port if different
+@baseUrl = http://localhost:5000/api/users
+
+# Base URL for products
+#@baseUrl = http://localhost:5000/api/products
+
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0NzE4NTgyOTA0IiwiZnVsbE5hbWUiOiJKb2huIERvZSIsImlhdCI6MTc1NjE5ODMzMSwiZXhwIjoxNzU2ODAzMTMxfQ.Me_4r5W5riBDzhKTlOISMR2ak0Xf4k1AK2kZHEJVyaE
+### Register a new user
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "fullName": "John Doe",
+  "email": "john.doe@example.com",
+  "password": "StrongPass123",
+  "phone": "1234567890",
+  "address": "123 Main St"
+}
+
+### Verify OTP sent to email
+POST {{baseUrl}}/verify-otp
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "otp": "123456"
+}
+
+### Login
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "StrongPass123"
+}
+
+### Get user profile (requires Bearer token)
+GET {{baseUrl}}/profile
+Authorization: Bearer {{token}}
+
+### Update user profile (username, location) (requires Bearer token)
+PATCH {{baseUrl}}/profile
+Content-Type: application/json
+Authorization: Bearer {{token}
+
+{
+  "username": "johnnyd",
+  "location": "New York"
+}
+
+### Upload profile picture (requires Bearer token)
+POST {{baseUrl}}/profile-pic
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data
+
+--boundary
+Content-Disposition: form-data; name="profilePic"; filename="profile.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/profile.jpg
+--boundary--
+
+### Upload government ID (requires Bearer token)
+POST {{baseUrl}}/verify-id
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data
+
+--boundary
+Content-Disposition: form-data; name="govIdFront"; filename="front.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/front.jpg
+--boundary
+Content-Disposition: form-data; name="govIdBack"; filename="back.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/back.jpg
+--boundary--
+
+### Get public user profile by userId
+GET {{baseUrl}}/{{userId}}
+
+
+### Add a new product (authenticated, with image upload)
+POST {{baseUrl}}
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data
+
+--boundary
+Content-Disposition: form-data; name="title"
+
+Fresh Apples
+--boundary
+Content-Disposition: form-data; name="price"
+
+12.50
+--boundary
+Content-Disposition: form-data; name="originAddress"
+
+123 Orchard Road
+--boundary
+Content-Disposition: form-data; name="type"
+
+Fruit
+--boundary
+Content-Disposition: form-data; name="quantity"
+
+50
+--boundary
+Content-Disposition: form-data; name="description"
+
+Crisp, fresh apples picked today.
+--boundary
+Content-Disposition: form-data; name="comment"
+
+Best for pies!
+--boundary
+Content-Disposition: form-data; name="images"; filename="apple1.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/apple1.jpg
+--boundary
+Content-Disposition: form-data; name="images"; filename="apple2.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/apple2.jpg
+--boundary--
+
+### Get all products with optional search and pagination
+GET {{baseUrl}}?page=1&limit=10&search=apple&type=Fruit
+
+### Get single product by productId
+GET {{baseUrl}}/1234567890
+
+### Add a review to a product (authenticated)
+POST {{baseUrl}}/1234567890/review
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "comment": "These apples are delicious and fresh!"
+}
+
+### Like a product (authenticated)
+POST {{baseUrl}}/1234567890/like
+Authorization: Bearer {{token}}
+
+### Unlike a product (authenticated)
+POST {{baseUrl}}/1234567890/unlike
+Authorization: Bearer {{token}}
+
+
+# Base URL for transactions
+
+### Create a purchase (buy a product)
+POST {{baseUrl}}/buy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "productId": "1234567890",
+  "quantity": 2,
+  "deliveryAddress": "456 Buyer Street, Cityville"
+}

@@ -384,5 +384,15 @@ router.post("/:userId/rate", auth, async (req, res) => {
   }
 });
 
+// routes/adminDevTools.js (for dev only)
+router.post("/make-admin/:userId", auth, async (req, res) => {
+  const user = await User.findOne({ userId: req.params.userId });
+  if (!user) return res.status(404).json({ success: false, error: "User not found" });
+
+  user.isAdmin = true;
+  await user.save();
+
+  res.json({ success: true, message: "User promoted to admin", user });
+});
 
 export default router;
