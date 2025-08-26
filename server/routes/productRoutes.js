@@ -1,7 +1,7 @@
 import express from "express";
 import auth from "../middleware/auth.js";
 import Product from "../models/Product.js";
-import User from "../models/User.js";          // <-- imported User model
+import User from "../models/User.js";
 import { productImageUpload } from "../middleware/upload.js";
 
 const router = express.Router();
@@ -15,6 +15,10 @@ router.post("/", auth, productImageUpload.array("images", 5), async (req, res) =
   try {
     const { title, price, originAddress, type, quantity, description, comment } = req.body;
 
+    if (!title || !price || !originAddress || !type || !quantity) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
     const images = req.files ? req.files.map(f => `/uploads/productImages/${f.filename}`) : [];
     const productId = generateProductId();
 
@@ -24,7 +28,8 @@ router.post("/", auth, productImageUpload.array("images", 5), async (req, res) =
       price,
       originAddress,
       type,
-      quantity,
+      initialQuantity: quantity,
+      quantityAvailable: quantity,
       description,
       comment,
       images,
@@ -119,6 +124,7 @@ router.post("/:productId/review", auth, async (req, res) => {
     res.status(500).json({ success: false, error: "Server error adding review" });
   }
 });
+
 // --------------- Like a product ----------------
 router.post("/:productId/like", auth, async (req, res) => {
   try {
@@ -131,7 +137,7 @@ router.post("/:productId/like", auth, async (req, res) => {
     product.updatedAt = new Date();
     await product.save();
 
-    // Update user's savedProducts
+    // Add product to user's saved list
     await User.findOneAndUpdate(
       { userId: req.user.userId },
       { $addToSet: { savedProducts: product._id } }
@@ -158,7 +164,7 @@ router.post("/:productId/unlike", auth, async (req, res) => {
       await product.save();
     }
 
-    // Remove from user's savedProducts
+    // Remove product from saved list
     await User.findOneAndUpdate(
       { userId: req.user.userId },
       { $pull: { savedProducts: product._id } }

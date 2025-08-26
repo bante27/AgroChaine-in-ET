@@ -22,6 +22,9 @@ const UserSchema = new mongoose.Schema({
   soldProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   postedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   customerRating: { type: Number, default: 0 }, // average rating
+  isAdmin: { type: Boolean, default: false },
+isRestricted: { type: Boolean, default: false }, // to restrict usage
+
 
   // ===== Balance and Escrow Fields =====
   balance: { type: Number, default: 0 },             // total available balance
