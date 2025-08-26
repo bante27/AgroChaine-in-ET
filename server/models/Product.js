@@ -1,11 +1,10 @@
-// models/Product.js
 import mongoose from "mongoose";
 
 // Subdocument schema for reviews
 const ReviewSchema = new mongoose.Schema({
   comment: { type: String, required: true },
   rating: { type: Number, min: 1, max: 5 },               // Optional rating field
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Reference to user
+  userId: { type: String },                               // Use public string ID
   userName: { type: String },
   createdAt: { type: Date, default: Date.now },
 });
@@ -27,7 +26,7 @@ const ProductSchema = new mongoose.Schema({
   soldQuantity: { type: Number, default: 0 },
 
   // Ownership
-  ownerUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  ownerUserId: { type: String, required: true },           // Now using public userId (string)
   ownerName: { type: String, required: true },
 
   // Reviews
@@ -36,7 +35,7 @@ const ProductSchema = new mongoose.Schema({
 
   // Likes
   likesCount: { type: Number, default: 0 },
-  likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  likedBy: [{ type: String }],                             // Use public userId strings
 
   // Optional Comment Field
   comment: { type: String },

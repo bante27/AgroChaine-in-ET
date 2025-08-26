@@ -3,7 +3,6 @@
 
 # Base URL for products
 @baseUrl = http://localhost:5000/api/products
-@token =  # <-- Paste your JWT token here after login
 
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0NzE4NTgyOTA0IiwiZnVsbE5hbWUiOiJKb2huIERvZSIsImlhdCI6MTc1NjE5ODMzMSwiZXhwIjoxNzU2ODAzMTMxfQ.Me_4r5W5riBDzhKTlOISMR2ak0Xf4k1AK2kZHEJVyaE
 ### Register a new user
@@ -117,15 +116,15 @@ Content-Disposition: form-data; name="comment"
 
 Best for pies!
 --boundary
-Content-Disposition: form-data; name="images"; filename="apple.jpg"
+Content-Disposition: form-data; name="images"; filename="apple1.jpg"
 Content-Type: image/jpeg
 
-< apple.jpg
+< ./path/to/apple1.jpg
 --boundary
-Content-Disposition: form-data; name="images"; filename="apple.jpg"
+Content-Disposition: form-data; name="images"; filename="apple2.jpg"
 Content-Type: image/jpeg
 
-< apple.jpg
+< ./path/to/apple2.jpg
 --boundary--
 
 ### Get all products with optional search and pagination
