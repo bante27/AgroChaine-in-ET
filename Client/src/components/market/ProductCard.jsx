@@ -16,11 +16,11 @@ const ProductCard = ({ product, viewMode, onClick, onAddToCart, onBuyNow }) => {
             src={
               product.images && product.images.length > 0
                 ? `http://localhost:5000${product.images[0]}`
-                : 'https://via.placeholder.com/300'
+                : ''
             }
             alt={product.title}
             className={`w-full object-cover rounded-lg ${viewMode === 'list' ? 'h-32 md:h-48' : 'h-48'}`}
-            onError={(e) => { e.target.src = 'https://via.placeholder.com/300'; }}
+            onError={(e) => { e.target.src = ''; }}
           />
           {product.verified && (
             <div className="absolute top-2 left-2 bg-emerald-600 text-white px-2 py-1 rounded-full text-xs font-medium">

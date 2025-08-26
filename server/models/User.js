@@ -15,7 +15,7 @@ const UserSchema = new mongoose.Schema({
   verified: { type: Boolean, default: false },  // gov id verified
   registrationDate: { type: Date, default: Date.now },
   rank: { type: Number, default: 0 },  // can be used for reputation
-  transactionHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }],  // optional
+  transactionHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }],
   savedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   closeCustomers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   boughtProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
@@ -23,9 +23,13 @@ const UserSchema = new mongoose.Schema({
   postedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   customerRating: { type: Number, default: 0 }, // average rating
 
+  // ===== Balance and Escrow Fields =====
+  balance: { type: Number, default: 0 },             // total available balance
+  pendingBalance: { type: Number, default: 0 },      // amount on hold during transactions
+
   // ===== OTP Fields =====
-  otp: { type: String, default: null },          // one-time password
-  otpExpires: { type: Date, default: null },     // OTP expiration
+  otp: { type: String, default: null },              // one-time password
+  otpExpires: { type: Date, default: null },         // OTP expiration
 });
 
 export default mongoose.model("User", UserSchema);
