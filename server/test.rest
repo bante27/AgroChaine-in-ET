@@ -1,6 +1,11 @@
 # Base URL - adjust port if different
 @baseUrl = http://localhost:5000/api/users
 
+# Base URL for products
+@baseUrl = http://localhost:5000/api/products
+@token =  # <-- Paste your JWT token here after login
+
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0NzE4NTgyOTA0IiwiZnVsbE5hbWUiOiJKb2huIERvZSIsImlhdCI6MTc1NjE5ODMzMSwiZXhwIjoxNzU2ODAzMTMxfQ.Me_4r5W5riBDzhKTlOISMR2ak0Xf4k1AK2kZHEJVyaE
 ### Register a new user
 POST {{baseUrl}}/register
 Content-Type: application/json
@@ -78,10 +83,6 @@ Content-Type: image/jpeg
 GET {{baseUrl}}/{{userId}}
 
 
-# Base URL for products
-@baseUrl = http://localhost:5000/api/products
-@token =  # <-- Paste your JWT token here after login
-
 ### Add a new product (authenticated, with image upload)
 POST {{baseUrl}}
 Authorization: Bearer {{token}}
@@ -116,15 +117,15 @@ Content-Disposition: form-data; name="comment"
 
 Best for pies!
 --boundary
-Content-Disposition: form-data; name="images"; filename="apple1.jpg"
+Content-Disposition: form-data; name="images"; filename="apple.jpg"
 Content-Type: image/jpeg
 
-< ./path/to/apple1.jpg
+< apple.jpg
 --boundary
-Content-Disposition: form-data; name="images"; filename="apple2.jpg"
+Content-Disposition: form-data; name="images"; filename="apple.jpg"
 Content-Type: image/jpeg
 
-< ./path/to/apple2.jpg
+< apple.jpg
 --boundary--
 
 ### Get all products with optional search and pagination
@@ -152,8 +153,6 @@ Authorization: Bearer {{token}}
 
 
 # Base URL for transactions
-@baseUrl = http://localhost:5000/api/transactions
-@token =  # <-- Paste your JWT token here after login
 
 ### Create a purchase (buy a product)
 POST {{baseUrl}}/buy
