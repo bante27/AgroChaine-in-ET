@@ -1,4 +1,3 @@
-// routes/transactionRoutes.js
 import express from "express";
 import auth from "../middleware/auth.js";
 import Transaction from "../models/Transaction.js";
@@ -84,11 +83,25 @@ router.post("/buy", auth, async (req, res) => {
     // Update user relationships
     await User.updateOne(
       { userId: buyerUserId },
-      { $addToSet: { boughtProducts: product._id, closeCustomers: product.ownerUserId } }
+      { 
+        $addToSet: { 
+          boughtProducts: product._id, 
+          closeCustomers: product.ownerUserId,
+          transactionHistory: transaction._id,
+        },
+        $inc: { rank: 0.5 }
+      }
     );
     await User.updateOne(
       { userId: product.ownerUserId },
-      { $addToSet: { soldProducts: product._id, closeCustomers: buyerUserId } }
+      { 
+        $addToSet: { 
+          soldProducts: product._id, 
+          closeCustomers: buyerUserId,
+          transactionHistory: transaction._id,
+        },
+        $inc: { rank: 0.5 }
+      }
     );
 
     res.json({

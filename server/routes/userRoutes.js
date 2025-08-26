@@ -356,4 +356,33 @@ router.get("/:userId", async (req, res) => {
   }
 });
 
+router.post("/:userId/rate", auth, async (req, res) => {
+  try {
+    const { rating } = req.body;
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ success: false, error: "Rating must be between 1 and 5" });
+    }
+
+    const user = await User.findOne({ userId: req.params.userId });
+    if (!user) return res.status(404).json({ success: false, error: "User not found" });
+
+    // Simple average rating update
+    if (!user.customerRating || user.customerRating === 0) {
+      user.customerRating = rating;
+      user.rank += 0.5; // increase rank for rating received
+    } else {
+      // For simplicity, assuming customerRating is average and rank updates by 0.5 per rating
+      user.customerRating = (user.customerRating + rating) / 2;
+      user.rank += 0.5;
+    }
+
+    await user.save();
+    res.json({ success: true, message: "User rated successfully", user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: "Server error rating user" });
+  }
+});
+
+
 export default router;

@@ -119,7 +119,6 @@ router.post("/:productId/review", auth, async (req, res) => {
     res.status(500).json({ success: false, error: "Server error adding review" });
   }
 });
-
 // --------------- Like a product ----------------
 router.post("/:productId/like", auth, async (req, res) => {
   try {
@@ -132,6 +131,12 @@ router.post("/:productId/like", auth, async (req, res) => {
     product.updatedAt = new Date();
     await product.save();
 
+    // Update user's savedProducts
+    await User.findOneAndUpdate(
+      { userId: req.user.userId },
+      { $addToSet: { savedProducts: product._id } }
+    );
+
     res.json({ success: true, message: "Product liked", likesCount: product.likesCount });
   } catch (error) {
     console.error(error);
@@ -139,7 +144,7 @@ router.post("/:productId/like", auth, async (req, res) => {
   }
 });
 
-// --------------- Unlike a product (optional) ----------------
+// --------------- Unlike a product ----------------
 router.post("/:productId/unlike", auth, async (req, res) => {
   try {
     const product = await Product.findOne({ productId: req.params.productId });
@@ -152,6 +157,12 @@ router.post("/:productId/unlike", auth, async (req, res) => {
       product.updatedAt = new Date();
       await product.save();
     }
+
+    // Remove from user's savedProducts
+    await User.findOneAndUpdate(
+      { userId: req.user.userId },
+      { $pull: { savedProducts: product._id } }
+    );
 
     res.json({ success: true, message: "Product unliked", likesCount: product.likesCount });
   } catch (error) {

@@ -27,6 +27,8 @@ platformFeeBuyer: { type: Number },       // 5% of totalPrice
 platformFeeSeller: { type: Number },      // 5% of totalPrice
 netSellerAmount: { type: Number },        // totalPrice - sellerFee
 serviceFeePercent: { type: Number, default: 5 },
+productId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Product' },
+
                        // optional cancellation notes
 });
 
