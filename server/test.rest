@@ -2,7 +2,7 @@
 @baseUrl = http://localhost:5000/api/users
 
 # Base URL for products
-@baseUrl = http://localhost:5000/api/products
+#@baseUrl = http://localhost:5000/api/products
 
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0NzE4NTgyOTA0IiwiZnVsbE5hbWUiOiJKb2huIERvZSIsImlhdCI6MTc1NjE5ODMzMSwiZXhwIjoxNzU2ODAzMTMxfQ.Me_4r5W5riBDzhKTlOISMR2ak0Xf4k1AK2kZHEJVyaE
 ### Register a new user
