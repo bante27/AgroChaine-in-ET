@@ -1,7 +1,7 @@
 // routes/adminRoutes.js
 import express from "express";
 import auth from "../middleware/auth.js";
-import admin from "../middleware/admin.js";
+import admin from "../middleware/adminMiddleware.js";
 import User from "../models/User.js";
 import Product from "../models/Product.js";
 import Transaction from "../models/Transaction.js";

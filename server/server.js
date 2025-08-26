@@ -15,7 +15,7 @@ import transactionRoutes from "./routes/transactionRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
-import adminRoutes from "./routes/adminRoutes.js";
+import adminRoutes from "./routes/admin.js";
 
 dotenv.config();
 const app = express();
