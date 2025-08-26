@@ -137,15 +137,6 @@ const ProductModal = ({
 
               {/* Seller Info */}
               <div className="mt-4 p-3 bg-gray-50 rounded-lg shadow-sm flex items-center gap-3">
-                <img
-                  src={
-                    product.seller?.profilePic
-                      ? `http://localhost:5000${product.seller.profilePic}`
-                      : "https://via.placeholder.com/40"
-                  }
-                  alt={product.seller?.fullName || "Seller"}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
                 <div>
                   <Link
                     to={`/seller/${product.ownerUserId}`}
@@ -182,15 +173,15 @@ const ProductModal = ({
               <Button
                 onClick={() => onAddToCart(product)}
                 disabled={product.quantity <= 0}
-                className="w-full mt-4"
+                className="w-full mt-1"
               >
                 <ShoppingCart className="h-4 w-4 mr-2" />
-                {product.quantity > 0 ? "Add to Cart" : "Out of Stock"}
+                {product.quantity > 0 ? "Add to Cart" : "Add to Cart"}
               </Button>
               <Button
                 onClick={() => onBuyNow(product)}
                 disabled={product.quantity <= 0}
-                className="w-full mt-2 bg-green-600 hover:bg-green-700"
+                className="w-full mt-1 bg-zinc-500 hover:bg-rose-400"
               >
                 Buy Now
               </Button>

@@ -174,7 +174,7 @@ const ProductCard = ({ product, viewMode, onClick, onAddToCart, onBuyNow }) => {
                 }
               }}
             >
-              <ShoppingCart className="h-3 w-3" /> {product.quantity > 0 ? 'Add' : 'Out'}
+              <ShoppingCart className="h-3 w-3" /> {product.quantity > 0 ? 'Add' : 'Add to Cart'}
             </Button>
 
             <Button
