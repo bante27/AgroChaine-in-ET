@@ -29,6 +29,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const pendingUsers = new Map(); 
+
 transporter.verify((err, success) => {
   if (err) console.error('Nodemailer error:', err);
   else console.log('Nodemailer ready');
@@ -394,6 +396,43 @@ router.post("/:userId/rate", auth, async (req, res) => {
     res.status(500).json({ success: false, error: "Server error rating user" });
   }
 });
+//Balance 
+router.post(
+  '/add-balance',
+  auth,
+  [body('amount').isFloat({ gt: 0 }).withMessage('Amount must be greater than 0')],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .json({ success: false, error: errors.array()[0].msg });
+    }
+
+    try {
+      const { amount } = req.body;
+      const user = await User.findOne({ userId: req.user.userId });
+
+      if (!user) {
+        return res.status(404).json({ success: false, error: 'User not found' });
+      }
+
+      user.balance += parseFloat(amount);
+      await user.save();
+
+      res.json({
+        success: true,
+        message: 'Balance added successfully',
+        balance: user.balance,
+      });
+    } catch (err) {
+      console.error('Error adding balance:', err);
+      res
+        .status(500)
+        .json({ success: false, error: 'Server error adding balance' });
+    }
+  }
+);
 
 // routes/adminDevTools.js (for dev only)
 router.post("/make-admin/:userId", auth, async (req, res) => {
