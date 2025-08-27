@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import HeroSection from '../components/market/HeroSection';
 import FiltersSection from '../components/market/FiltersSection';
 import ProductsDisplay from '../components/market/ProductsDisplay';
@@ -10,6 +10,20 @@ import LiveChat from '../components/LiveChat';
 import CheckoutModal from '../components/market/CheckoutModal';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: 30 },
+  transition: { duration: 0.5, ease: 'easeOut' },
+};
+
+const modalBackdrop = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.3 },
+};
 
 const Marketplace = () => {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -68,11 +82,20 @@ const Marketplace = () => {
 
       let sorted = [...products];
       switch (sortBy) {
-        case 'price-low': sorted.sort((a, b) => (a.price || 0) - (b.price || 0)); break;
-        case 'price-high': sorted.sort((a, b) => (b.price || 0) - (a.price || 0)); break;
-        case 'newest': sorted.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)); break;
-        case 'rating': sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0)); break;
-        default: sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
+        case 'price-low':
+          sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
+          break;
+        case 'price-high':
+          sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
+          break;
+        case 'newest':
+          sorted.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+          break;
+        case 'rating':
+          sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+          break;
+        default:
+          sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
       }
 
       setDisplayedProducts(sorted);
@@ -85,20 +108,34 @@ const Marketplace = () => {
     }
   };
 
-  useEffect(() => { fetchProducts(); }, [searchTerm, selectedCategory, page, token, sortBy]);
+  useEffect(() => {
+    fetchProducts();
+  }, [searchTerm, selectedCategory, page, token, sortBy]);
 
   const handleSearchChange = (e) => setInputValue(e.target.value);
-  const handleSearchSubmit = () => { setSearchTerm(inputValue.trim()); setPage(1); };
-  const handleKeyPress = (e) => { if (e.key === 'Enter') handleSearchSubmit(); };
-  const handleCategoryChange = (e) => { setSelectedCategory(e.target.value); setPage(1); };
+  const handleSearchSubmit = () => {
+    setSearchTerm(inputValue.trim());
+    setPage(1);
+  };
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') handleSearchSubmit();
+  };
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+    setPage(1);
+  };
   const handleSortChange = (e) => setSortBy(e.target.value);
-  const openModal = (product) => { setSelectedProduct(product); setComments([]); setIsModalOpen(true); };
+  const openModal = (product) => {
+    setSelectedProduct(product);
+    setComments([]);
+    setIsModalOpen(true);
+  };
   const closeModal = () => setIsModalOpen(false);
 
   const handleAddToCart = (product) => {
-    const exist = cartItems.find(i => i._id === product._id);
+    const exist = cartItems.find((i) => i._id === product._id);
     const updated = exist
-      ? cartItems.map(i => i._id === product._id ? { ...i, quantity: i.quantity + 1 } : i)
+      ? cartItems.map((i) => (i._id === product._id ? { ...i, quantity: i.quantity + 1 } : i))
       : [...cartItems, { ...product, quantity: 1 }];
     setCartItems(updated);
     setIsCartOpen(true);
@@ -111,89 +148,232 @@ const Marketplace = () => {
   };
 
   const updateCartQuantity = (id, qty) => {
-    if (qty <= 0) setCartItems(cartItems.filter(i => i._id !== id));
-    else setCartItems(cartItems.map(i => i._id === id ? { ...i, quantity: qty } : i));
+    if (qty <= 0) setCartItems(cartItems.filter((i) => i._id !== id));
+    else setCartItems(cartItems.map((i) => (i._id === id ? { ...i, quantity: qty } : i)));
   };
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full" />
-    </div>
-  );
-
-  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <HeroSection />
-      <FiltersSection
-        inputValue={inputValue}
-        onSearchChange={handleSearchChange}
-        onSearchSubmit={handleSearchSubmit}
-        onKeyPress={handleKeyPress}
-        categories={categories}
-        selectedCategory={selectedCategory}
-        onCategoryChange={handleCategoryChange}
-        sortBy={sortBy}
-        onSortChange={handleSortChange}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        searchInputRef={searchInputRef}
-      />
-
-      <div className="flex-1 px-2 sm:px-6 lg:px-12 my-4">
-        <ProductsDisplay
-          products={displayedProducts}
-          viewMode={viewMode}
-          page={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          onProductClick={openModal}
-          onAddToCart={handleAddToCart}
-          onBuyNow={handleBuyNow}
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-emerald-700 to-teal-800">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1 }}
+          className="w-10 h-10 border-4 border-emerald-400 border-t-transparent rounded-full"
         />
       </div>
+    );
 
-      <ProductModal
-        isOpen={isModalOpen}
-        product={selectedProduct}
-        comments={comments}
-        newComment={newComment}
-        onCommentChange={(e) => setNewComment(e.target.value)}
-        onAddComment={() => {
-          if (newComment.trim()) { setComments([...comments, { user: 'You', text: newComment }]); setNewComment(''); }
-        }}
-        onClose={closeModal}
-        onAddToCart={handleAddToCart}
-        onBuyNow={handleBuyNow}
-      />
+  if (error)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-400 bg-gradient-to-tr from-emerald-700 to-teal-800 font-semibold">
+        {error}
+      </div>
+    );
 
-      <CartSidebar
-        isCartOpen={isCartOpen}
-        setIsCartOpen={setIsCartOpen}
-        cartItems={cartItems}
-        removeFromCart={(id) => setCartItems(cartItems.filter((i) => i._id !== id))}
-        updateQuantity={updateCartQuantity}
-        shippingFee={shippingFee}
-        onCheckout={() => setIsCheckoutOpen(true)}
-      />
+  return (
+    <div
+      className="min-h-screen flex flex-col bg-gradient-to-tr from-emerald-700 to-teal-800 text-white"
+      style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}
+    >
+      {/* Main content wrapper with subtle glass background */}
+      <motion.div
+        className="flex-1 overflow-y-auto"
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        variants={fadeInUp}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 backdrop-blur-md bg-white/10 rounded-3xl shadow-lg">
+          <HeroSection />
 
-      <CheckoutModal
-        isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
-        cartItems={cartItems}
-        shippingFee={shippingFee}
-        token={token}
-        onPlaceOrder={() => { setCartItems([]); setIsCheckoutOpen(false); }}
-        onLogin={() => setIsAuthModalOpen(true)}
-      />
+          <FiltersSection
+            inputValue={inputValue}
+            onSearchChange={handleSearchChange}
+            onSearchSubmit={handleSearchSubmit}
+            onKeyPress={handleKeyPress}
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onCategoryChange={handleCategoryChange}
+            sortBy={sortBy}
+            onSortChange={handleSortChange}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            searchInputRef={searchInputRef}
+          />
 
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        cartItems={cartItems}
-        shippingFee={shippingFee}
-      />
+          <div className="mt-6">
+            <ProductsDisplay
+              products={displayedProducts}
+              viewMode={viewMode}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              onProductClick={openModal}
+              onAddToCart={handleAddToCart}
+              onBuyNow={handleBuyNow}
+            />
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Modals & Sidebars with backdrop and animations */}
+      <AnimatePresence>
+        {isModalOpen && selectedProduct && (
+          <>
+            <motion.div
+              key="product-backdrop"
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+              variants={modalBackdrop}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={closeModal}
+            />
+            <motion.div
+              key="product-modal"
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              variants={fadeInUp}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-xl max-w-4xl w-full p-6 text-white">
+                <ProductModal
+                  isOpen={isModalOpen}
+                  product={selectedProduct}
+                  comments={comments}
+                  newComment={newComment}
+                  onCommentChange={(e) => setNewComment(e.target.value)}
+                  onAddComment={() => {
+                    if (newComment.trim()) {
+                      setComments([...comments, { user: 'You', text: newComment }]);
+                      setNewComment('');
+                    }
+                  }}
+                  onClose={closeModal}
+                  onAddToCart={handleAddToCart}
+                  onBuyNow={handleBuyNow}
+                />
+              </div>
+            </motion.div>
+          </>
+        )}
+
+        {isCartOpen && (
+          <>
+            <motion.div
+              key="cart-backdrop"
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+              variants={modalBackdrop}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={() => setIsCartOpen(false)}
+            />
+            <motion.div
+              key="cart-sidebar"
+              className="fixed top-0 right-0 h-full z-50 bg-white/10 backdrop-blur-lg shadow-xl w-full max-w-md p-6 text-white flex flex-col"
+              variants={{
+                initial: { x: '100%' },
+                animate: { x: 0 },
+                exit: { x: '100%' },
+                transition: { duration: 0.4, ease: 'easeOut' },
+              }}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <CartSidebar
+                isCartOpen={isCartOpen}
+                setIsCartOpen={setIsCartOpen}
+                cartItems={cartItems}
+                removeFromCart={(id) => setCartItems(cartItems.filter((i) => i._id !== id))}
+                updateQuantity={updateCartQuantity}
+                shippingFee={shippingFee}
+                onCheckout={() => {
+                  setIsCartOpen(false);
+                  setIsCheckoutOpen(true);
+                }}
+              />
+            </motion.div>
+          </>
+        )}
+
+        {isCheckoutOpen && (
+          <>
+            <motion.div
+              key="checkout-backdrop"
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+              variants={modalBackdrop}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={() => setIsCheckoutOpen(false)}
+            />
+            <motion.div
+              key="checkout-modal"
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              variants={fadeInUp}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-xl max-w-3xl w-full p-6 text-white">
+                <CheckoutModal
+                  isOpen={isCheckoutOpen}
+                  onClose={() => setIsCheckoutOpen(false)}
+                  cartItems={cartItems}
+                  shippingFee={shippingFee}
+                  token={token}
+                  onPlaceOrder={() => {
+                    setCartItems([]);
+                    setIsCheckoutOpen(false);
+                  }}
+                  onLogin={() => {
+                    setIsCheckoutOpen(false);
+                    setIsAuthModalOpen(true);
+                  }}
+                />
+              </div>
+            </motion.div>
+          </>
+        )}
+
+        {isAuthModalOpen && (
+          <>
+            <motion.div
+              key="auth-backdrop"
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+              variants={modalBackdrop}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={() => setIsAuthModalOpen(false)}
+            />
+            <motion.div
+              key="auth-modal"
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              variants={fadeInUp}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-xl max-w-md w-full p-6 text-white">
+                <AuthModal
+                  isOpen={isAuthModalOpen}
+                  onClose={() => setIsAuthModalOpen(false)}
+                  cartItems={cartItems}
+                  shippingFee={shippingFee}
+                />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <LiveChat />
     </div>

@@ -1,0 +1,815 @@
+openapi: 3.0.3
+info:
+  title: Marketplace API
+  version: 1.0.0
+  description: API documentation for the marketplace platform.
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Users
+    description: User registration, authentication, and profile management
+  - name: Products
+    description: Product creation, retrieval, reviews, and likes
+  - name: Transactions
+    description: Purchase transactions and management
+
+paths:
+  ######################
+  # USERS
+  ######################
+  /api/users/register:
+    post:
+      tags: [Users]
+      summary: Register a new user (Step 1 - send OTP)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Validation or email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/verify-otp:
+    post:
+      tags: [Users]
+      summary: Verify OTP and complete registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+      responses:
+        '201':
+          description: Registration completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid or expired OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/login:
+    post:
+      tags: [Users]
+      summary: Login a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/profile:
+    get:
+      tags: [Users]
+      summary: Get the logged-in user's profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags: [Users]
+      summary: Update the logged-in user's profile (username, location)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  /api/users/profile-pic:
+    post:
+      tags: [Users]
+      summary: Upload user profile picture
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profilePic:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Profile picture updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfilePicResponse'
+
+  /api/users/verify-id:
+    post:
+      tags: [Users]
+      summary: Upload government ID images (front and back)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                govIdFront:
+                  type: string
+                  format: binary
+                govIdBack:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: ID uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GovIdResponse'
+
+  /api/users/{userId}:
+    get:
+      tags: [Users]
+      summary: Get a public profile by userId
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: The user's public ID
+      responses:
+        '200':
+          description: Public profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/{userId}/rate:
+    post:
+      tags: [Users]
+      summary: Rate a user (1–5)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RateUserRequest'
+      responses:
+        '200':
+          description: User rated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  /api/users/add-balance:
+    post:
+      tags: [Users]
+      summary: Add balance to logged-in user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddBalanceRequest'
+      responses:
+        '200':
+          description: Balance added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+
+  /api/users/make-admin/{userId}:
+    post:
+      tags: [Users]
+      summary: Promote a user to admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User promoted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  ######################
+  # PRODUCTS
+  ######################
+  /api/products:
+    post:
+      tags: [Products]
+      summary: Add a new product
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [title, price, originAddress, type, quantity]
+              properties:
+                title: { type: string }
+                price: { type: number }
+                originAddress: { type: string }
+                type: { type: string }
+                quantity: { type: integer }
+                description: { type: string }
+                comment: { type: string }
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+
+    get:
+      tags: [Products]
+      summary: Get all products (with pagination & filters)
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: type
+          schema: { type: string }
+      responses:
+        '200':
+          description: Products list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+
+  /api/products/{productId}:
+    get:
+      tags: [Products]
+      summary: Get a single product
+      parameters:
+        - in: path
+          name: productId
+          schema: { type: string }
+          required: true
+      responses:
+        '200':
+          description: Product retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+
+  /api/products/{productId}/review:
+    post:
+      tags: [Products]
+      summary: Add a review to a product
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: productId
+          schema: { type: string }
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+      responses:
+        '201':
+          description: Review added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+
+  /api/products/{productId}/like:
+    post:
+      tags: [Products]
+      summary: Like a product
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: productId
+          schema: { type: string }
+          required: true
+      responses:
+        '200':
+          description: Product liked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikeResponse'
+
+  /api/products/{productId}/unlike:
+    post:
+      tags: [Products]
+      summary: Unlike a product
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: productId
+          schema: { type: string }
+          required: true
+      responses:
+        '200':
+          description: Product unliked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikeResponse'
+
+  ######################
+  # TRANSACTIONS
+  ######################
+  /api/transactions/buy:
+    post:
+      tags: [Transactions]
+      summary: Create a purchase transaction
+      security: 
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productId, quantity, deliveryAddress]
+              properties:
+                productId:
+                  type: string
+                  description: Public product ID
+                quantity:
+                  type: integer
+                  minimum: 1
+                deliveryAddress:
+                  type: string
+      responses:
+        "200":
+          description: Purchase created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+        "400": { description: Validation error }
+        "404": { description: Product, buyer, or seller not found }
+        "500": { description: Server error }
+
+  /api/transactions/{transactionId}/confirm:
+    post:
+      tags: [Transactions]
+      summary: Buyer confirms delivery
+      security: 
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: transactionId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Delivery confirmed and escrow released
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+        "400": { description: Cannot confirm }
+        "404": { description: Transaction not found }
+
+  /api/transactions/{transactionId}/cancel:
+    post:
+      tags: [Transactions]
+      summary: Cancel a transaction
+      security: 
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: transactionId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  example: "Product damaged"
+      responses:
+        "200": { description: Transaction cancelled }
+        "400": { description: Cannot cancel transaction }
+        "404": { description: Transaction not found }
+
+  /api/transactions/{transactionId}/ship:
+    post:
+      tags: [Transactions]
+      summary: Seller marks product as shipped
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: transactionId
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Transaction updated to shipped }
+        "400": { description: Cannot update transaction }
+        "404": { description: Transaction not found }
+
+  /api/transactions/{transactionId}/deliver:
+    post:
+      tags: [Transactions]
+      summary: Seller marks product as delivered
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: transactionId
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Transaction updated to delivered }
+        "400": { description: Cannot update transaction }
+        "404": { description: Transaction not found }
+
+  /api/transactions/{transactionId}/release:
+    post:
+      tags: [Transactions]
+      summary: Release escrow funds to seller (admin/system only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: transactionId
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Funds released }
+        "400": { description: Cannot release funds }
+        "404": { description: Transaction not found }
+
+  /api/transactions/my:
+    get:
+      tags: [Transactions]
+      summary: List my transactions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of user transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+
+  /api/transactions/{transactionId}:
+    get:
+      tags: [Transactions]
+      summary: Get transaction details
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: transactionId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Transaction details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        "404": { description: Transaction not found }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ######################
+    # USERS
+    ######################
+    RegisterRequest:
+      type: object
+      required: [fullName, email, password, phone, address]
+      properties:
+        fullName: { type: string }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        phone: { type: string }
+        address: { type: string }
+
+    VerifyOtpRequest:
+      type: object
+      required: [email, otp]
+      properties:
+        email: { type: string, format: email }
+        otp: { type: string, minLength: 6, maxLength: 6 }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        username: { type: string }
+        location: { type: string }
+
+    RateUserRequest:
+      type: object
+      required: [rating]
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+
+    AddBalanceRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+          minimum: 0.01
+
+    User:
+      type: object
+      properties:
+        userId: { type: string }
+        fullName: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        address: { type: string }
+        username: { type: string }
+        location: { type: string }
+        profilePic: { type: string }
+        govIdFront: { type: string }
+        govIdBack: { type: string }
+        verified: { type: boolean }
+        registrationDate: { type: string, format: date-time }
+        rank: { type: number }
+        customerRating: { type: number }
+        balance: { type: number }
+        isAdmin: { type: boolean }
+        isRestricted: { type: boolean }
+
+    AuthResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        token: { type: string }
+        user:
+          $ref: '#/components/schemas/User'
+
+    UserResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        user:
+          $ref: '#/components/schemas/User'
+
+    SuccessMessage:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+
+    ErrorResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        error: { type: string }
+
+    ProfilePicResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        profilePic: { type: string }
+
+    GovIdResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        govIdFront: { type: string }
+        govIdBack: { type: string }
+
+    BalanceResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        balance: { type: number }
+
+    ######################
+    # PRODUCTS
+    ######################
+    Product:
+      type: object
+      properties:
+        productId: { type: string }
+        title: { type: string }
+        description: { type: string }
+        price: { type: number }
+        type: { type: string }
+        originAddress: { type: string }
+        images:
+          type: array
+          items: { type: string }
+        initialQuantity: { type: integer }
+        quantityAvailable: { type: integer }
+        soldQuantity: { type: integer }
+        ownerUserId: { type: string }
+        ownerName: { type: string }
+        likesCount: { type: integer }
+        averageRating: { type: number }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+
+    Review:
+      type: object
+      properties:
+        comment: { type: string }
+        rating: { type: integer }
+        userId: { type: string }
+        userName: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    ProductResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        product:
+          $ref: '#/components/schemas/Product'
+
+    ProductListResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        page: { type: integer }
+        pages: { type: integer }
+        total: { type: integer }
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+
+    ReviewRequest:
+      type: object
+      required: [comment]
+      properties:
+        comment: { type: string }
+        rating: { type: integer }
+
+    LikeResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        likesCount: { type: integer }
+
+    ######################
+    # TRANSACTIONS
+    ######################
+    Transaction:
+      type: object
+      properties:
+        _id: { type: string }
+        buyerUserId: { type: string }
+        sellerUserId: { type: string }
+        productId: { type: string }
+        quantity: { type: integer }
+        totalPrice: { type: number }
+        status: 
+          type: string
+          enum: [pending, shipped, delivered, completed, cancelled]
+        paymentHeld: { type: boolean }
+        platformFeeBuyer: { type: number }
+        platformFeeSeller: { type: number }
+        netSellerAmount: { type: number }
+        deliveryAddress: { type: string }
+        date: { type: string, format: date-time }
+        buyerConfirmed: { type: boolean }
+        cancelledReason: { type: string }
+
+    TransactionResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        transaction: { $ref: "#/components/schemas/Transaction" }

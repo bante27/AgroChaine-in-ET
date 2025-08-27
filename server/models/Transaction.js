@@ -3,8 +3,7 @@ import mongoose from "mongoose";
 
 const TransactionSchema = new mongoose.Schema({
   buyerUserId: { type: String, required: true },               // User.userId of buyer
-  sellerUserId: { type: String, required: true },              // User.userId of seller
-  productId: { type: String, required: true },                 // Product._id or custom product ID
+  sellerUserId: { type: String, required: true },              // User.userId of seller               // Product._id or custom product ID
   quantity: { type: Number, required: true },
   totalPrice: { type: Number, required: true },
 
