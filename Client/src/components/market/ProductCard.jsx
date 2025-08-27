@@ -7,13 +7,13 @@ const ProductCard = ({ product, viewMode, onClick, onAddToCart, onBuyNow }) => {
   return (
     <Card
       hover
-      className={`h-full flex flex-col transition-transform duration-300 ease-in-out transform hover:scale-105 hover:shadow-2xl
-        bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900
-        border border-gray-700 rounded-xl
+      className={`h-full flex flex-col transition-transform duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg
+        bg-white
+        border border-gray-200 rounded-xl
         ${viewMode === 'list' ? 'md:flex-row' : ''}
       `}
       style={{
-        boxShadow: '4px 4px 12px rgba(0,0,0,0.8), inset 0 0 8px rgba(255,255,255,0.05)',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
       }}
     >
       {/* Image */}
@@ -21,8 +21,9 @@ const ProductCard = ({ product, viewMode, onClick, onAddToCart, onBuyNow }) => {
         <div
           className="relative w-full overflow-hidden"
           style={{
-            boxShadow: 'inset 0 0 10px rgba(255,255,255,0.1)',
-            filter: 'grayscale(100%) contrast(120%) brightness(90%)',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            borderRadius: '0.5rem',
           }}
         >
           <img
@@ -37,19 +38,18 @@ const ProductCard = ({ product, viewMode, onClick, onAddToCart, onBuyNow }) => {
             onError={(e) => {
               e.target.src = 'https://via.placeholder.com/300/000000/ffffff?text=No+Image';
             }}
-            style={{ boxShadow: '0 0 14px rgba(255,255,255,0.1)' }}
+            style={{ boxShadow: 'inset 0 0 4px rgba(0,0,0,0.1)' }}
           />
           {product.verified && (
             <div
               className="absolute top-2 left-2 text-xs font-semibold tracking-wider uppercase"
               style={{
-                backgroundColor: 'rgba(255,255,255,0.15)',
+                backgroundColor: '#4CAF50',
                 color: 'white',
                 padding: '0.25rem 0.6rem',
                 borderRadius: '9999px',
-                boxShadow: '0 0 8px rgba(255,255,255,0.25)',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                 userSelect: 'none',
-                backdropFilter: 'blur(4px)',
               }}
             >
               Verified
@@ -62,7 +62,7 @@ const ProductCard = ({ product, viewMode, onClick, onAddToCart, onBuyNow }) => {
       <div
         className={`flex-1 mt-4 ${viewMode === 'list' ? 'md:ml-6 md:mt-0' : ''} flex flex-col justify-between`}
         style={{
-          color: '#e0e0e0',
+          color: '#333',
           fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
         }}
       >
@@ -71,31 +71,31 @@ const ProductCard = ({ product, viewMode, onClick, onAddToCart, onBuyNow }) => {
           <div className="flex items-start justify-between mb-2">
             <h3
               className="text-lg font-semibold line-clamp-2"
-              style={{ color: 'white' }}
+              style={{ color: '#1a202c' }}
             >
               {product.title}
             </h3>
             <div className="flex items-center space-x-1 select-none">
               <Star
-                className="h-4 w-4 text-gray-300 fill-current"
-                style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.5))' }}
+                className="h-4 w-4 text-yellow-400 fill-current"
+                style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.2))' }}
               />
-              <span className="text-sm text-gray-400">
+              <span className="text-sm text-gray-600">
                 {product.rating || '0'} ({product.reviews?.length || 0})
               </span>
             </div>
           </div>
 
           {/* Location */}
-          <div className="flex items-center space-x-2 mb-2 text-sm text-gray-400 select-none">
+          <div className="flex items-center space-x-2 mb-2 text-sm text-gray-600 select-none">
             <MapPin className="h-4 w-4 text-gray-500" />
             <span>{product.originAddress || 'Unknown Location'}</span>
           </div>
 
           {/* Seller */}
-          <p className="text-sm mb-3" style={{ color: '#a0a0a0' }}>
+          <p className="text-sm mb-3" style={{ color: '#718096' }}>
             by{' '}
-            <span className="font-medium" style={{ color: '#d0d0d0' }}>
+            <span className="font-medium" style={{ color: '#4a5568' }}>
               {product.ownerName || 'Unknown Seller'}
             </span>
           </p>
@@ -106,108 +106,108 @@ const ProductCard = ({ product, viewMode, onClick, onAddToCart, onBuyNow }) => {
           <div>
             <span
               className="text-2xl font-bold"
-              style={{ color: 'white' }}
+              style={{ color: '#2d3748' }}
             >
               {product.price ? `${product.price} ETB` : 'N/A'}
             </span>
-            <span className="text-gray-400 ml-1 text-sm select-none">per kg</span>
+            <span className="text-gray-600 ml-1 text-sm select-none">per kg</span>
           </div>
 
           <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
             <Button
               variant="outline"
-              size="xs"
+              size="small"
               onClick={onClick}
-              className="flex items-center gap-1 px-2 py-1 text-sm sm:text-xs transition-colors duration-300 ease-in-out border-gray-400 text-gray-300 bg-transparent hover:bg-gray-700 hover:text-white"
+              className="flex items-center gap-1 px-4 py-2 text-sm transition-all duration-300 ease-in-out border-gray-300 text-gray-700 bg-white hover:bg-blue-100 hover:text-blue-700"
               style={{
-                borderRadius: '0.5rem',
+                borderRadius: '0.75rem',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
                 userSelect: 'none',
-                boxShadow: '0 0 8px rgba(255,255,255,0.1)',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#2d2d2d';
-                e.currentTarget.style.color = 'white';
-                e.currentTarget.style.boxShadow = '0 0 10px rgba(255,255,255,0.3)';
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = '#d1d5db';
-                e.currentTarget.style.boxShadow = '0 0 8px rgba(255,255,255,0.1)';
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
               }}
             >
-              <Eye className="h-3 w-3" /> View
+              <Eye className="h-4 w-4" /> View
             </Button>
 
             <Button
-              size="xs"
+              size="small"
               onClick={() => onAddToCart(product)}
               disabled={product.quantity <= 0}
-              className={`flex items-center gap-1 px-2 py-1 text-sm sm:text-xs transition-colors duration-300 ease-in-out ${
+              className={`flex items-center gap-1 px-4 py-2 text-sm transition-all duration-300 ease-in-out ${
                 product.quantity <= 0
                   ? 'opacity-50 cursor-not-allowed'
                   : 'cursor-pointer'
               }`}
               style={{
                 background: product.quantity > 0
-                  ? 'rgba(255, 255, 255, 0.1)'
-                  : 'rgba(50, 50, 50, 0.3)',
-                color: product.quantity > 0 ? '#f0f0f0' : '#555',
-                borderRadius: '0.5rem',
+                  ? 'linear-gradient(45deg, #4a90e2, #50e3c2)'
+                  : '#e2e8f0',
+                color: product.quantity > 0 ? 'white' : '#4a5568',
+                borderRadius: '0.75rem',
                 boxShadow: product.quantity > 0
-                  ? '0 0 10px rgba(255,255,255,0.2)'
-                  : 'inset 2px 2px 4px rgba(0,0,0,0.5)',
+                  ? '0 4px 12px rgba(74,144,226,0.2)'
+                  : '0 2px 4px rgba(0,0,0,0.1)',
+                border: '1px solid rgba(0,0,0,0.1)',
                 userSelect: 'none',
-                border: '1px solid rgba(255,255,255,0.15)',
               }}
               onMouseEnter={(e) => {
                 if (product.quantity > 0) {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
-                  e.currentTarget.style.boxShadow = '0 0 15px rgba(255,255,255,0.35)';
-                  e.currentTarget.style.color = '#fff';
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 6px 15px rgba(74,144,226,0.3)';
+                  e.currentTarget.style.background = 'linear-gradient(45deg, #357abd, #2ecc71)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (product.quantity > 0) {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                  e.currentTarget.style.boxShadow = '0 0 10px rgba(255,255,255,0.2)';
-                  e.currentTarget.style.color = '#f0f0f0';
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,144,226,0.2)';
+                  e.currentTarget.style.background = 'linear-gradient(45deg, #4a90e2, #50e3c2)';
                 }
               }}
             >
-              <ShoppingCart className="h-3 w-3" /> {product.quantity > 0 ? 'Add' : 'Add to Cart'}
+              <ShoppingCart className="h-4 w-4" /> {product.quantity > 0 ? 'Add' : 'Add to Cart'}
             </Button>
 
             <Button
-              size="xs"
+              size="small"
               onClick={() => onBuyNow(product)}
               disabled={product.quantity <= 0}
-              className={`flex items-center gap-1 px-2 py-1 text-sm sm:text-xs transition-colors duration-300 ease-in-out ${
+              className={`flex items-center gap-1 px-4 py-2 text-sm transition-all duration-300 ease-in-out ${
                 product.quantity <= 0
                   ? 'opacity-50 cursor-not-allowed'
                   : 'cursor-pointer'
               }`}
               style={{
                 background: product.quantity > 0
-                  ? 'linear-gradient(90deg, #444, #222)'
-                  : 'rgba(70, 70, 70, 0.6)',
-                color: 'white',
-                borderRadius: '0.5rem',
+                  ? 'linear-gradient(45deg, #e74c3c, #e67e22)'
+                  : '#e2e8f0',
+                color: product.quantity > 0 ? 'white' : '#4a5568',
+                borderRadius: '0.75rem',
                 boxShadow: product.quantity > 0
-                  ? '0 0 15px rgba(255,255,255,0.3)'
-                  : 'inset 2px 2px 5px rgba(0,0,0,0.7)',
+                  ? '0 4px 12px rgba(231,76,60,0.2)'
+                  : '0 2px 4px rgba(0,0,0,0.1)',
+                border: '1px solid rgba(0,0,0,0.1)',
                 userSelect: 'none',
-                border: '1px solid rgba(255,255,255,0.15)',
               }}
               onMouseEnter={(e) => {
                 if (product.quantity > 0) {
-                  e.currentTarget.style.background = 'linear-gradient(90deg, #555, #333)';
-                  e.currentTarget.style.boxShadow = '0 0 20px rgba(255,255,255,0.5)';
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 6px 15px rgba(231,76,60,0.3)';
+                  e.currentTarget.style.background = 'linear-gradient(45deg, #c0392b, #d35400)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (product.quantity > 0) {
-                  e.currentTarget.style.background = 'linear-gradient(90deg, #444, #222)';
-                  e.currentTarget.style.boxShadow = '0 0 15px rgba(255,255,255,0.3)';
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(231,76,60,0.2)';
+                  e.currentTarget.style.background = 'linear-gradient(45deg, #e74c3c, #e67e22)';
                 }
               }}
             >
