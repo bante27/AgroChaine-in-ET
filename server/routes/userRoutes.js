@@ -226,20 +226,26 @@ router.post(
   }
 );
 
-// -------------------- User Profile --------------------
+// -------------------- User Profile (populated) --------------------
 router.get('/profile', auth, async (req, res) => {
   try {
-    const user = await User.findOne({ userId: req.user.userId }).select(
-      '-password -_id -__v'
-    );
-    if (!user)
+    const user = await User.findOne({ userId: req.user.userId })
+      .select('-password -_id -__v -otp -otpExpires') // keep email for self, hide secrets
+      .populate('postedProducts', 'productId title price images createdAt')
+      .populate('soldProducts', 'productId title price images createdAt')
+      .populate('boughtProducts', 'productId title price images createdAt')
+      .populate('savedProducts', 'productId title price images createdAt')
+      .populate('transactionHistory') // full Transaction docs
+      .populate('closeCustomers', 'userId fullName profilePic rank customerRating');
+
+    if (!user) {
       return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
     res.json({ success: true, user });
   } catch (err) {
     console.error(err);
-    res
-      .status(500)
-      .json({ success: false, error: 'Server error fetching profile' });
+    res.status(500).json({ success: false, error: 'Server error fetching profile' });
   }
 });
 
@@ -349,14 +355,16 @@ router.post(
   }
 );
 
-
 router.get("/:userId", async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.params.userId })
       .select("-password -email -otp -otpExpires -governmentIdPic") // exclude sensitive/private info
       .populate("postedProducts", "productId title price images createdAt")
       .populate("soldProducts", "productId title price images createdAt")
-      .populate("boughtProducts", "productId title price images createdAt");
+      .populate("boughtProducts", "productId title price images createdAt")
+      .populate("savedProducts", "productId title price images createdAt")
+      .populate("transactionHistory") // keep the full Transaction doc
+      .populate("closeCustomers", "userId fullName profilePic rank customerRating");
 
     if (!user) {
       return res.status(404).json({ success: false, error: "User not found" });
@@ -368,6 +376,7 @@ router.get("/:userId", async (req, res) => {
     res.status(500).json({ success: false, error: "Server error fetching user profile" });
   }
 });
+
 
 router.post("/:userId/rate", auth, async (req, res) => {
   try {

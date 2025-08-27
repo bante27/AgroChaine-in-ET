@@ -81,28 +81,29 @@ router.post("/buy", auth, async (req, res) => {
     await transaction.save();
 
     // Update user relationships
-    await User.updateOne(
-      { userId: buyerUserId },
-      { 
-        $addToSet: { 
-          boughtProducts: product._id, 
-          closeCustomers: product.ownerUserId,
-          transactionHistory: transaction._id,
-        },
-        $inc: { rank: 0.5 }
-      }
-    );
-    await User.updateOne(
-      { userId: product.ownerUserId },
-      { 
-        $addToSet: { 
-          soldProducts: product._id, 
-          closeCustomers: buyerUserId,
-          transactionHistory: transaction._id,
-        },
-        $inc: { rank: 0.5 }
-      }
-    );
+await User.updateOne(
+  { userId: buyerUserId },
+  { 
+    $addToSet: { 
+      boughtProducts: product._id, 
+      closeCustomers: seller._id,          // use seller._id
+      transactionHistory: transaction._id,
+    },
+    $inc: { rank: 0.5 }
+  }
+);
+
+await User.updateOne(
+  { userId: product.ownerUserId },
+  { 
+    $addToSet: { 
+      soldProducts: product._id, 
+      closeCustomers: buyer._id,          // use buyer._id
+      transactionHistory: transaction._id,
+    },
+    $inc: { rank: 0.5 }
+  }
+);
 
     res.json({
       success: true,

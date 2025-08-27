@@ -1,4 +1,4 @@
-// routes/adminRoutes.js
+
 import express from "express";
 import auth from "../middleware/auth.js";
 import admin from "../middleware/adminMiddleware.js";
@@ -8,7 +8,6 @@ import Transaction from "../models/Transaction.js";
 
 const router = express.Router();
 
-// 🧑‍💼 Get all users
 router.get("/users", auth, admin, async (req, res) => {
   const users = await User.find({}, "-password -otp");
   res.json({ success: true, users });
