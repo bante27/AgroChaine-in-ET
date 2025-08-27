@@ -27,7 +27,7 @@ const Header = () => {
       initial={{ opacity: 0, y: -50 }}
       animate={controls}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="sticky top-0 z-50 bg-gradient-to-r from-emerald-700 to-lime-600 text-gray-200 hover:text-blue-600 shadow"
+      className="sticky top-0 z-50 bg-gradient-to-b from-sky-50 to-sky-800 text-gray-200 hover:text-blue-600 shadow"
   >
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
