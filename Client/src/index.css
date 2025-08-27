@@ -6,12 +6,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Reset and global box-sizing */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* Body base */
 body {
   font-family: 'Inter', sans-serif;
   line-height: 1.6;
@@ -30,10 +32,12 @@ body {
 
 /* Shadows */
 .card-shadow {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+              0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 .card-shadow-lg {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 
+              0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 /* Text effects */
@@ -41,25 +45,34 @@ body {
   background: linear-gradient(135deg, #10b981, #059669);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
+          background-clip: text;
 }
 
 /* Buttons */
 .btn-primary {
-  @apply bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105;
+  @apply bg-emerald-600 hover:bg-emerald-700 text-white 
+         font-semibold py-3 px-6 rounded-lg 
+         transition-all duration-200 transform hover:scale-105;
 }
 .btn-secondary {
-  @apply bg-white hover:bg-gray-50 text-emerald-600 border-2 border-emerald-600 font-semibold py-3 px-6 rounded-lg transition-all duration-200;
+  @apply bg-white hover:bg-gray-50 text-emerald-600 
+         border-2 border-emerald-600 font-semibold 
+         py-3 px-6 rounded-lg transition-all duration-200;
 }
 
 /* Inputs */
 .input-field {
-  @apply w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 bg-white shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors;
+  @apply w-full px-4 py-3 border border-gray-300 
+         rounded-lg text-gray-900 bg-white shadow-sm 
+         placeholder-gray-500 focus:outline-none focus:ring-2 
+         focus:ring-emerald-500 focus:border-emerald-500 
+         transition-colors;
 }
 
 /* Navbar */
 .navbar-link {
-  @apply text-gray-700 hover:text-emerald-600 font-medium transition-colors duration-200;
+  @apply text-gray-700 hover:text-emerald-600 
+         font-medium transition-colors duration-200;
 }
 
 /* Layout utilities */
@@ -110,6 +123,7 @@ body {
   background-position: center;
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   .hero-section { background-attachment: scroll; }
   .text-5xl { font-size: 2.5rem; }

@@ -78,20 +78,19 @@ router.post(
       const hashedPassword = await bcrypt.hash(password, 10);
       const otp = generateOtp();
       const otpHash = await bcrypt.hash(otp, 10);
-      const otpExpires = Date.now() + 5 * 60 * 1000; // 5 minutes
+      const otpExpires = Date.now() + 5 * 60 * 1000;
 
-      const newUser = new User({
-        userId,
+      // Store in temporary memory
+      pendingUsers.set(email, {
         fullName,
         email,
         password: hashedPassword,
         phone,
         address,
+        userId,
         otp: otpHash,
         otpExpires,
-        verified: false,
       });
-      await newUser.save();
 
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
@@ -100,9 +99,10 @@ router.post(
         text: `Your OTP is ${otp}. It expires in 5 minutes.`,
       });
 
-      res
-        .status(201)
-        .json({ success: true, message: 'User registered. OTP sent to email.' });
+      res.status(200).json({
+        success: true,
+        message: 'OTP sent to email. Please verify to complete registration.',
+      });
     } catch (err) {
       console.error(err);
       res
@@ -111,6 +111,7 @@ router.post(
     }
   }
 );
+
 
 // -------------------- Verify OTP --------------------
 router.post(
@@ -128,40 +129,50 @@ router.post(
 
     try {
       const { email, otp } = req.body;
-      const user = await User.findOne({ email });
-      if (!user)
-        return res.status(404).json({ success: false, error: 'User not found' });
-
-      if (!user.otp || Date.now() > user.otpExpires) {
+      const pending = pendingUsers.get(email);
+      if (!pending)
         return res
           .status(400)
-          .json({ success: false, error: 'OTP expired or not generated' });
+          .json({ success: false, error: 'No OTP request found for this email' });
+
+      if (Date.now() > pending.otpExpires) {
+        pendingUsers.delete(email);
+        return res.status(400).json({ success: false, error: 'OTP expired' });
       }
 
-      const isValidOtp = await bcrypt.compare(otp, user.otp);
+      const isValidOtp = await bcrypt.compare(otp, pending.otp);
       if (!isValidOtp)
         return res.status(400).json({ success: false, error: 'Invalid OTP' });
 
-      // user.verified = true;
-      user.otp = null;
-      user.otpExpires = null;
-      await user.save();
+      // Save the user to DB now
+      const newUser = new User({
+        userId: pending.userId,
+        fullName: pending.fullName,
+        email: pending.email,
+        password: pending.password,
+        phone: pending.phone,
+        address: pending.address,
+        verified: true,
+      });
+      await newUser.save();
+      pendingUsers.delete(email);
 
       const token = jwt.sign(
-        { userId: user.userId, fullName: user.fullName },
+        { userId: newUser.userId, fullName: newUser.fullName },
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
       );
 
-      res.json({
+      res.status(201).json({
         success: true,
+        message: 'Registration complete',
         token,
         user: {
-          userId: user.userId,
-          fullName: user.fullName,
-          email: user.email,
-          phone: user.phone,
-          address: user.address,
+          userId: newUser.userId,
+          fullName: newUser.fullName,
+          email: newUser.email,
+          phone: newUser.phone,
+          address: newUser.address,
         },
       });
     } catch (err) {
