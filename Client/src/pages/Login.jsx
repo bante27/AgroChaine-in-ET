@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -17,10 +18,10 @@ import LiveChat from '../components/LiveChat';
 // OTP Input component
 const OTPInput = ({ email, otp, onVerify, onResend }) => {
   const [inputOtp, setInputOtp] = useState('');
-  const [timer, setTimer] = useState(300);
+  const [timer, setTimer] = useState(300); // 5 minutes
 
   useEffect(() => {
-    setInputOtp(otp || '');
+    setInputOtp(otp || ''); // Pre-fill OTP if provided
     const interval = setInterval(() => setTimer(prev => (prev > 0 ? prev - 1 : 0)), 1000);
     return () => clearInterval(interval);
   }, [otp]);
@@ -31,23 +32,23 @@ const OTPInput = ({ email, otp, onVerify, onResend }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center" style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${bgImage})` }}>
-      <Card className="bg-white/15 backdrop-blur-sm border border-white/30 shadow-lg p-4 w-80 rounded-lg">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${bgImage})` }}>
+      <Card className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl rounded-2xl p-8 max-w-lg w-full">
         <div className="text-center">
-          <h2 className="text-xl font-bold text-white">Verify Your Email</h2>
-          <p className="text-gray-200 text-xs mt-1">Enter OTP sent to {email}</p>
+          <h2 className="text-4xl font-extrabold text-white">Verify Your Email Account</h2>
+          <p className="text-gray-300 text-lg mt-2">Enter the OTP sent to {email}</p>
         </div>
-        <form className="space-y-3 mt-3">
+        <form className="space-y-6 mt-8">
           <Input
             label="OTP Code"
             value={inputOtp}
             onChange={e => setInputOtp(e.target.value)}
             placeholder="6-digit OTP"
-            className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
+            className="text-lg py-3 bg-white/5 border-white/20 text-white placeholder-gray-400"
           />
-          <div className="flex justify-between text-gray-200 text-xs">
-            <span>{timer > 0 ? `Expires: ${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}` : 'Expired'}</span>
-            <button type="button" disabled={timer > 0} onClick={onResend} className="text-teal-400 hover:underline disabled:text-gray-500">
+          <div className="flex justify-between items-center text-gray-300 text-sm">
+            <span>{timer > 0 ? `Expires in ${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}` : 'OTP expired'}</span>
+            <button type="button" disabled={timer > 0} onClick={onResend} className="text-blue-400 hover:underline disabled:text-gray-400">
               Resend
             </button>
           </div>
@@ -55,10 +56,11 @@ const OTPInput = ({ email, otp, onVerify, onResend }) => {
             type="button"
             onClick={handleVerify}
             loading={false}
-            className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded text-sm py-1"
+            className="w-full group bg-gradient-to-r from-emerald-600 to-teal-600 hover:text-pink-950 text-white transition-all duration-300 transform hover:scale-105"
+            size="large"
           >
             Verify OTP
-            <ArrowRight className="ml-1 h-3 w-3" />
+            <ArrowRight className="ml-3 h-2 w-4 group-hover:translate-x-1 transition-transform" />
           </Button>
         </form>
       </Card>
@@ -153,10 +155,13 @@ const Login = () => {
 
   const handleVerifyOTP = async (otp) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/users/verify-otp', { email: otpEmail, otp });
+      const res = await axios.post('http://localhost:5000/api/users/verify-otp', {
+        email: otpEmail,
+        otp,
+      });
       if (res.data.success) {
         await login(res.data.token);
-        toast.success('OTP verified! Redirecting...');
+        toast.success('OTP verified! Redirecting to dashboard...');
         navigate(from, { replace: true });
       } else {
         toast.error(res.data.error);
@@ -168,7 +173,7 @@ const Login = () => {
 
   const handleResendOTP = async () => {
     try {
-      const res = await axios.post('http://localhost:5000/api/users/register', { email: otpEmail });
+      const res = await axios.post('http://localhost:5000/api/users/register', { email: otpEmail }); // Re-trigger registration for new OTP
       if (res.data.success) {
         setInitialOtp(res.data.otp);
         toast.success('OTP resent successfully.');
@@ -187,84 +192,96 @@ const Login = () => {
 
     if (isLogin) {
       if (!formData.email || !formData.password) {
-        toast.error('Enter email and password.');
+        toast.error('Please enter both email and password.');
         setIsLoading(false);
         return;
       }
       if (!isValidEmail(formData.email)) {
-        toast.error('Valid Gmail required.');
+        toast.error('Please enter a valid Gmail address (e.g., user@gmail.com).');
         setIsLoading(false);
         return;
       }
 
       try {
-        const response = await axios.post('http://localhost:5000/api/users/login', { email: formData.email, password: formData.password });
+        const response = await axios.post('http://localhost:5000/api/users/login', {
+          email: formData.email,
+          password: formData.password,
+        });
         if (response.data.success && response.data.token) {
           await login(response.data.token);
           toast.success('Login successful!');
           navigate(from, { replace: true });
         } else {
-          toast.error(response.data.error || 'Login failed.');
+          toast.error(response.data.error || 'Login failed. Please check your credentials.');
         }
       } catch (error) {
-        toast.error(error.response?.data?.error || 'Login error.');
+        toast.error(error.response?.data?.error || 'An unexpected error occurred during login.');
       }
     } else {
       const { fullName, email, password, phone, address, agreeToTerms } = formData;
 
       if (!fullName || !email || !password || !phone || !address) {
-        toast.error('All fields required.');
+        toast.error('All fields are required.');
         setIsLoading(false);
         return;
       }
 
       if (!isValidEmail(email)) {
-        toast.error('Valid Gmail required.');
+        toast.error('Please enter a valid Gmail address (e.g., user@gmail.com).');
         setIsLoading(false);
         return;
       }
 
       if (!isValidPassword(password)) {
-        toast.error('Password must be 8+ chars with uppercase, lowercase, number, and special char.');
+        toast.error(
+          'Password must be at least 8 characters long and include an uppercase letter, lowercase letter, number, and special character.'
+        );
         setIsLoading(false);
         return;
       }
 
       if (!isValidFullName(fullName)) {
-        toast.error('Valid full name (2+ words) required.');
+        toast.error('Please enter a valid full name (at least 2 words, letters, spaces, or hyphens only).');
         setIsLoading(false);
         return;
       }
 
       if (!isValidAddress(address)) {
-        toast.error('Valid address (5-100 chars) required.');
+        toast.error('Please enter a valid address (5-100 characters, letters, numbers, spaces, commas, periods, or hyphens).');
         setIsLoading(false);
         return;
       }
 
       if (!isValidPhone(phone)) {
-        toast.error('Valid phone number required.');
+        toast.error('Please enter a valid phone number (e.g., +251912345678).');
         setIsLoading(false);
         return;
       }
 
       if (!agreeToTerms) {
-        toast.error('Agree to terms required.');
+        toast.error('You must agree to the Terms of Service and Privacy Policy.');
         setIsLoading(false);
         return;
       }
 
       try {
-        const response = await axios.post('http://localhost:5000/api/users/register', { fullName, email, password, phone, address, agreeToTerms });
+        const response = await axios.post('http://localhost:5000/api/users/register', {
+          fullName,
+          email,
+          password,
+          phone,
+          address,
+          agreeToTerms,
+        });
         if (response.data.success) {
           setOtpEmail(email);
-          setInitialOtp(response.data.otp);
+          setInitialOtp(response.data.otp); // Use OTP from response
           setShowOTP(true);
         } else {
           toast.error(response.data.error || 'Registration failed.');
         }
       } catch (error) {
-        toast.error(error.response?.data?.error || 'Registration failed.');
+        toast.error(error.response?.data?.error || 'Registration failed. Please try again.');
       }
     }
     setIsLoading(false);
@@ -274,26 +291,26 @@ const Login = () => {
     logout();
     localStorage.removeItem('rememberedEmail');
     navigate('/login', { replace: true });
-    toast.success('Logged out!');
+    toast.success('Logged out successfully!');
   };
 
   const renderBasicInfo = () => (
-    <div className="space-y-3">
-      <div className="text-center mb-4">
-        <h3 className="text-sm font-bold text-white">Basic Information</h3>
-        <p className="text-gray-200 text-xs">Enter your details</p>
+    <div className="space-y-8">
+      <div className="text-center mb-10">
+        <h3 className="text-2xl font-bold text-gray-900 mb-3">Basic Information</h3>
+        <p className="text-gray-500 font-medium text-base">Let's start with your basic details</p>
       </div>
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Input
           label="Full Name *"
           name="fullName"
           type="text"
           value={formData.fullName}
           onChange={handleInputChange}
-          placeholder="Full name"
+          placeholder="Enter your full name (e.g., Tilahun Sitotaw)"
           required
-          icon={<User className="h-4 w-4 text-gray-200" />}
-          className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
+          icon={<User className="h-5 w-5 text-gray-950" />}
+          className="text-lg py-3 bg-white/5 border-white/20 text-white placeholder-gray-400"
         />
         <PhoneNumberInput
           label="Phone Number *"
@@ -301,32 +318,38 @@ const Login = () => {
           value={formData.phone}
           onChange={handlePhoneChange}
           required
-          placeholder="+251912345678"
-          className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
+          placeholder="Enter your phone number (e.g., +251912345678)"
+          className="text-lg py-3 bg-white/5 border-white/20 text-white placeholder-gray-400"
         />
-        <Input
-          label="Email Address *"
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={handleInputChange}
-          placeholder="user@gmail.com"
-          required
-          icon={<Mail className="h-4 w-4 text-gray-200" />}
-          className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
-          autoComplete="username"
-        />
-        <Input
-          label="Address *"
-          name="address"
-          type="text"
-          value={formData.address}
-          onChange={handleInputChange}
-          placeholder="123 Main St"
-          required
-          icon={<MapPin className="h-4 w-4 text-gray-200" />}
-          className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
-        />
+        <div className="md:col-span-1">
+          <Input
+            label="Email Address *"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            placeholder="Enter your Gmail address (e.g., user@gmail.com)"
+            required
+            icon={<Mail className="h-5 w-5 text-gray-400" />}
+            className="text-lg py-3 bg-white/5 border-white/20 text-white placeholder-gray-400"
+            autoComplete="username"
+          />
+        </div>
+        <div className="md:col-span-1">
+          <Input
+            label="Address *"
+            name="address"
+            type="text"
+            value={formData.address}
+            onChange={handleInputChange}
+            placeholder="Enter your address (e.g., 123 Main St, Addis Ababa)"
+            required
+            icon={<MapPin className="h-5 w-5 text-gray-400" />}
+            className="text-lg py-3 bg-white/5 border-white/20 text-white placeholder-gray-400"
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="relative">
           <Input
             label="Password *"
@@ -334,53 +357,61 @@ const Login = () => {
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={handleInputChange}
-            placeholder="Password"
+            placeholder="Enter your password"
             required
-            className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
+            className="text-lg py-3 bg-white/5 border-white/20 text-white placeholder-gray-400"
             autoComplete="new-password"
           />
           <button
             type="button"
-            className="absolute right-0 pr-2 top-6"
+            className="absolute inset-y-0 right-0 pr-4 flex items-center top-9"
             onClick={() => setShowPassword(!showPassword)}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
-            {showPassword ? <EyeOff className="h-4 w-4 text-gray-200" /> : <Eye className="h-4 w-4 text-gray-200" />}
+            {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
           </button>
         </div>
-        <Input
-          label="Confirm Password *"
-          name="confirmPassword"
-          type={showPassword ? 'text' : 'password'}
-          value={formData.confirmPassword}
-          onChange={handleInputChange}
-          placeholder="Confirm password"
-          required
-          className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
-          autoComplete="new-password"
-        />
-        <div className="flex items-center">
-          <input
-            id="agreeToTerms"
-            name="agreeToTerms"
-            type="checkbox"
-            checked={formData.agreeToTerms}
+        <div className="relative">
+          <Input
+            label="Confirm Password *"
+            name="confirmPassword"
+            type={showPassword ? 'text' : 'password'}
+            value={formData.confirmPassword}
             onChange={handleInputChange}
-            className="h-4 w-4 text-teal-400 border-gray-300 rounded"
+            placeholder="Confirm your password"
             required
+            className="text-lg py-3 bg-white/5 border-white/20 text-white placeholder-gray-400"
+            autoComplete="new-password"
           />
-          <label htmlFor="agreeToTerms" className="ml-1 text-xs text-gray-200">
-            I agree to{' '}
-            <Link to="/terms-of-service" className="text-teal-400 hover:text-pink-400">Terms</Link> and{' '}
-            <Link to="/privacy-policy" className="text-teal-400 hover:text-pink-400">Privacy</Link>.
-          </label>
         </div>
-        {passwordStrength && (
-          <p className={`text-xs ${passwordStrength === 'Strong' ? 'text-teal-400' : 'text-red-400'}`}>
-            Strength: {passwordStrength}
-          </p>
-        )}
       </div>
+      <div className="flex items-center mt-6">
+        <input
+          id="agreeToTerms"
+          name="agreeToTerms"
+          type="checkbox"
+          checked={formData.agreeToTerms}
+          onChange={handleInputChange}
+          className="h-5 w-5 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+          required
+        />
+        <label htmlFor="agreeToTerms" className="ml-3 block text-base text-gray-950">
+          I agree to the{' '}
+          <Link to="/terms-of-service" className="text-blue-950 hover:text-pink-400 font-semibold">
+            Terms of Service
+          </Link>{' '}
+          and{' '}
+          <Link to="/privacy-policy" className="text-blue-950 hover:text-pink-400 font-semibold">
+            Privacy Policy
+          </Link>
+          .
+        </label>
+      </div>
+      {passwordStrength && (
+        <p className={`text-sm mt-2 ${passwordStrength === 'Strong' ? 'text-emerald-600' : 'text-red-600'}`}>
+          Password Strength: {passwordStrength}
+        </p>
+      )}
     </div>
   );
 
@@ -388,131 +419,150 @@ const Login = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center"
-      style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${bgImage})` }}
+      className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${bgImage})` }}
     >
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-80 space-y-4"
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+        className="max-w-lg w-full space-y-10 mt-16"
       >
         <div className="text-center">
-          <Link to="/" className="flex items-center justify-center space-x-2">
-            <img src={logoIconDarkTransparent} alt="AgroChain Logo" className="h-8 w-8" />
-            <div className="flex flex-col">
-              <span className="text-lg font-bold text-teal-400">AgroChain</span>
-              <span className="text-xs font-medium text-emerald-300">Ethiopia</span>
+          <Link to="/" className="flex items-center justify-center space-x-3 mb-8">
+            <div className="relative">
+              <img src={logoIconDarkTransparent} alt="AgroChain Logo Icon" className="h-12 w-12 object-contain" />
+              <span className="absolute -top-1 -right-1 bg-orange-500 text-black text-sm font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-zinc-400">
+                ET
+              </span>
+            </div>
+            <div className="flex flex-col -space-y-1">
+              <span className="text-3xl font-extrabold text-blue-950">AgroChain</span>
+              <span className="text-lg font-semibold text-emerald-300">Ethiopia</span>
             </div>
           </Link>
-          <h2 className="text-xl font-bold text-white">{isLogin ? 'Welcome Back' : 'Join AgroChain'}</h2>
-          <p className="text-gray-200 text-xs">{isLogin ? 'Sign in' : 'Create account'}</p>
+          <h2 className="text-4xl font-extrabold text-white">{isLogin ? 'Welcome Back' : 'Join AgroChain'}</h2>
+          <p className="text-gray-300 text-lg mt-2">{isLogin ? 'Sign in to continue your journey' : 'Create your account to get started'}</p>
         </div>
-        <Card className="bg-white/15 backdrop-blur-sm border border-white/30 shadow-lg p-4 rounded-lg">
-          <form onSubmit={handleSubmit} className="space-y-3" autoComplete={isLogin ? 'on' : 'off'}>
-            {isLogin ? (
-              <>
-                <Input
-                  label="Email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="user@gmail.com"
-                  icon={<Mail className="h-4 w-4 text-gray-200" />}
-                  className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
-                  autoComplete="username"
-                />
-                <div className="relative">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
+        >
+          <Card className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl rounded-2xl p-8">
+            <form onSubmit={handleSubmit} className="space-y-8" autoComplete={isLogin ? 'on' : 'off'}>
+              {isLogin ? (
+                <>
                   <Input
-                    label="Password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.password}
+                    label="Email Address"
+                    name="email"
+                    type="email"
+                    value={formData.email}
                     onChange={handleInputChange}
                     required
-                    placeholder="Password"
-                    className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
-                    autoComplete="current-password"
+                    placeholder="Enter your Gmail address (e.g., user@gmail.com)"
+                    icon={<Mail className="h-5 w-5 text-gray-400" />}
+                    className="text-lg py-3 bg-white/5 border-white/20 text-white placeholder-gray-400"
+                    autoComplete="username"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-6 text-gray-200 hover:text-teal-400"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center">
-                    <input
-                      id="remember-me"
-                      name="remember-me"
-                      type="checkbox"
-                      className="h-4 w-4 text-teal-400 border-gray-300 rounded"
-                      checked={formData.rememberMe || false}
-                      onChange={e => setFormData(prev => ({ ...prev, rememberMe: e.target.checked }))}
+                  <div className="relative">
+                    <Input
+                      label="Password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Enter your password"
+                      className="text-lg py-3 bg-white/5 border-white/20 text-white placeholder-gray-400"
+                      autoComplete="current-password"
                     />
-                    <label htmlFor="remember-me" className="ml-1 text-gray-200">Remember me</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-9 text-gray-400 hover:text-gray-200"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
                   </div>
-                  <Link to="/forgot-password" className="text-teal-400 hover:text-pink-400">Forgot?</Link>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <input
+                        id="remember-me"
+                        name="remember-me"
+                        type="checkbox"
+                        className="h-5 w-5 text-emerald-400 focus:ring-emerald-500 border-gray-300 rounded"
+                        checked={formData.rememberMe || false}
+                        onChange={e => setFormData(prev => ({ ...prev, rememberMe: e.target.checked }))}
+                      />
+                      <label htmlFor="remember-me" className="ml-3 block text-base text-gray-950">
+                        Remember me
+                      </label>
+                    </div>
+                    <Link to="/forgot-password" className="text-base text-gray-950 hover:text-pink-400">
+                      Forgot Password?
+                    </Link>
+                  </div>
+                  <Button
+                    type="submit"
+                    loading={isLoading}
+                    className="w-full group bg-gradient-to-r from-emerald-600 to-teal-600 hover:text-pink-950 text-gray-200 transition-all duration-300 transform hover:scale-105"
+                    size="large"
+                  >
+                    Sign In
+                    <ArrowRight className="ml-3 h-2 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {renderBasicInfo()}
+                  <Button
+                    type="submit"
+                    loading={isLoading}
+                    className="w-full group bg-gradient-to-r from-emerald-600 to-teal-600 hover:text-pink-950 text-white transition-all duration-300 transform hover:scale-105"
+                    size="large"
+                    disabled={isLoading}
+                  >
+                    Create Account
+                    <ArrowRight className="ml-3 h-2 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </>
+              )}
+              {error && <p className="text-red-500 text-center">{error}</p>}
+            </form>
+            <div className="mt-8">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-white/30" />
                 </div>
-                <Button
-                  type="submit"
-                  loading={isLoading}
-                  className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded text-sm py-1"
-                >
-                  Sign In
-                  <ArrowRight className="ml-1 h-3 w-3" />
-                </Button>
-              </>
-            ) : (
-              <>
-                {renderBasicInfo()}
-                <Button
-                  type="submit"
-                  loading={isLoading}
-                  className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded text-sm py-1"
-                  disabled={isLoading}
-                >
-                  Create Account
-                  <ArrowRight className="ml-1 h-3 w-3" />
-                </Button>
-              </>
-            )}
-            {error && <p className="text-red-400 text-xs text-center">{error}</p>}
-          </form>
-          <div className="mt-2">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/40" />
+                <div className="relative flex justify-center text-base">
+                  <span className="px-3 bg-transparent text-orange-500">
+                    {isLogin ? "Don't have an account?" : 'Already have an account?'}
+                  </span>
+                </div>
               </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="px-2 bg-transparent text-orange-400">
-                  {isLogin ? "No account?" : 'Have account?'}
-                </span>
+              <div className="mt-6">
+                <Button
+                  variant="outline"
+                  onClick={handleToggleForm}
+                  className="w-full border-white/30 text-white hover:text-pink-950 transition-all duration-300 transform hover:scale-105"
+                >
+                  {isLogin ? 'Create an account' : 'Sign in to existing account'}
+                </Button>
               </div>
+              {isAuthenticated && (
+                <Button
+                  variant="outline"
+                  onClick={handleLogout}
+                  className="w-full mt-4 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 transform hover:scale-105"
+                >
+                  Logout
+                </Button>
+              )}
             </div>
-            <Button
-              variant="outline"
-              onClick={handleToggleForm}
-              className="w-full border-white/30 text-white text-xs py-1 mt-1 hover:text-pink-400"
-            >
-              {isLogin ? 'Create account' : 'Sign in'}
-            </Button>
-            {isAuthenticated && (
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                className="w-full mt-1 border-red-400 text-red-400 text-xs py-1 hover:bg-red-400 hover:text-white"
-              >
-                Logout
-              </Button>
-            )}
-          </div>
-        </Card>
+          </Card>
+        </motion.div>
       </motion.div>
       <LiveChat />
     </div>

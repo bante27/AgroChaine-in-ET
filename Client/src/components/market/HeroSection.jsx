@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 const HeroSection = () => {
   return (
-  <section className="bg-gradient-to-r from-green-500 to-blue-600 section-padding text-white">
+  <section className="  text-lime-400 ">
       <div className="max-w-7xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -11,9 +11,11 @@ const HeroSection = () => {
           transition={{ duration: 0.8 }}
           className="text-center max-w-4xl mx-auto"
         >
-          <h1 className="text-4xl sm:text-5xl font-bold mb-6">Vital Marketplace</h1>
-          <p className="text-lg sm:text-xl text-gray-300 leading-relaxed">
-            Discover and sell fresh agricultural products
+          <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-">Welcome to Agrochan Digital Marketplace</h1>
+          <p className="text-lg sm:text-xl text-yellow-300 leading-relaxed">
+            Discover and sell / buy fresh agricultural products with ease. 
+
+
           </p>
         </motion.div>
       </div>
