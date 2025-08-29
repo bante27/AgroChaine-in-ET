@@ -359,10 +359,10 @@ router.get("/:userId", async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.params.userId })
       .select("-password -email -otp -otpExpires -governmentIdPic") // exclude sensitive/private info
-      .populate("postedProducts", "productId title price images createdAt")
-      .populate("soldProducts", "productId title price images createdAt")
-      .populate("boughtProducts", "productId title price images createdAt")
-      .populate("savedProducts", "productId title price images createdAt")
+      .populate("postedProducts")
+      .populate("soldProducts")
+      .populate("boughtProducts")
+      .populate("savedProducts")
       .populate("transactionHistory") // keep the full Transaction doc
       .populate("closeCustomers", "userId fullName profilePic rank customerRating");
 
