@@ -24,13 +24,33 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
     }
     setLoading(true);
     try {
-      // Simulate API call to add balance (replace with actual endpoint)
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
-      toast.success(`Successfully added ${amount} ETB via ${selectedMethod.toUpperCase()}`);
-      onPaymentSuccess();
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('http://localhost:5000/api/users/add-balance', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: parseFloat(amount)
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Payment request failed');
+      }
+
+      const data = await response.json();
+      toast.success(data.message || `Successfully added ${amount} ETB via ${selectedMethod.toUpperCase()}`);
+      onPaymentSuccess(data.balance);
       onClose();
     } catch (error) {
-      toast.error('Payment failed. Please try again.');
+      toast.error(error.message || 'Payment failed. Please try again.');
     } finally {
       setLoading(false);
     }
