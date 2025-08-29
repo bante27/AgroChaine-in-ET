@@ -2,7 +2,7 @@ import express from "express";
 import auth from "../middleware/auth.js";
 import Product from "../models/Product.js";
 import User from "../models/User.js";
-import { productImageUpload } from "../middleware/upload.js";
+import { productImageUpload } from "../middleware/cloudinaryUpload.js"; // Ensure this points to the Cloudinary middleware
 
 const router = express.Router();
 
@@ -19,7 +19,8 @@ router.post("/", auth, productImageUpload.array("images", 5), async (req, res) =
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
 
-    const images = req.files ? req.files.map(f => `/uploads/productImages/${f.filename}`) : [];
+    // Use Cloudinary secure_url for images
+    const images = req.files ? req.files.map(f => f.path) : []; // f.path is the Cloudinary secure_url
     const productId = generateProductId();
 
     const newProduct = new Product({
@@ -32,7 +33,7 @@ router.post("/", auth, productImageUpload.array("images", 5), async (req, res) =
       quantityAvailable: quantity,
       description,
       comment,
-      images,
+      images, // Store Cloudinary URLs
       ownerUserId: req.user.userId,
       ownerName: req.user.fullName,
     });
