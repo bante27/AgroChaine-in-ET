@@ -11,7 +11,7 @@ const SERVICE_FEE_PERCENT = 5; // 5% from buyer and seller
 // Create a purchase (buy a product)
 router.post("/buy", auth, async (req, res) => {
   try {
-    const { productId, quantity, deliveryAddress } = req.body;
+    const { productId, quantity26quantity, deliveryAddress } = req.body;
     const buyerUserId = req.user.userId;
 
     if (!productId || !quantity || !deliveryAddress)
@@ -21,7 +21,7 @@ router.post("/buy", auth, async (req, res) => {
       });
 
     // Fetch product
-    const product = await Product.findOne({ productId });
+    const product = await Product.findById(productId);
     if (!product)
       return res.status(404).json({ success: false, error: "Product not found" });
 
@@ -81,29 +81,29 @@ router.post("/buy", auth, async (req, res) => {
     await transaction.save();
 
     // Update user relationships
-await User.updateOne(
-  { userId: buyerUserId },
-  { 
-    $addToSet: { 
-      boughtProducts: product._id, 
-      closeCustomers: seller._id,          // use seller._id
-      transactionHistory: transaction._id,
-    },
-    $inc: { rank: 0.5 }
-  }
-);
+    await User.updateOne(
+      { userId: buyerUserId },
+      { 
+        $addToSet: { 
+          boughtProducts: product._id, 
+          closeCustomers: seller._id,
+          transactionHistory: transaction._id,
+        },
+        $inc: { rank: 0.5 }
+      }
+    );
 
-await User.updateOne(
-  { userId: product.ownerUserId },
-  { 
-    $addToSet: { 
-      soldProducts: product._id, 
-      closeCustomers: buyer._id,          // use buyer._id
-      transactionHistory: transaction._id,
-    },
-    $inc: { rank: 0.5 }
-  }
-);
+    await User.updateOne(
+      { userId: product.ownerUserId },
+      { 
+        $addToSet: { 
+          soldProducts: product._id, 
+          closeCustomers: buyer._id,
+          transactionHistory: transaction._id,
+        },
+        $inc: { rank: 0.5 }
+      }
+    );
 
     res.json({
       success: true,
@@ -113,6 +113,99 @@ await User.updateOne(
   } catch (error) {
     console.error("Transaction error:", error);
     res.status(500).json({ success: false, error: "Server error during transaction" });
+  }
+});
+
+// Mark transaction as shipped (seller action)
+router.post("/mark-shipped/:transactionId", auth, async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const sellerUserId = req.user.userId;
+
+    // Find the transaction
+    const transaction = await Transaction.findById(transactionId);
+    if (!transaction) {
+      return res.status(404).json({ success: false, error: "Transaction not found" });
+    }
+
+    // Verify the seller is the one updating
+    if (transaction.sellerUserId !== sellerUserId) {
+      return res.status(403).json({ success: false, error: "Only the seller can mark as shipped" });
+    }
+
+    // Check if transaction is in a valid state
+    if (transaction.status !== "pending") {
+      return res.status(400).json({ success: false, error: "Transaction cannot be marked as shipped in current status" });
+    }
+
+    // Update transaction status
+    transaction.status = "shipped";
+    await transaction.save();
+
+    res.json({
+      success: true,
+      message: "Transaction marked as shipped. Awaiting buyer confirmation.",
+      transaction,
+    });
+  } catch (error) {
+    console.error("Mark shipped error:", error);
+    res.status(500).json({ success: false, error: "Server error during status update" });
+  }
+});
+
+// Confirm delivery of a transaction (buyer action)
+router.post("/confirm-delivery/:transactionId", auth, async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const buyerUserId = req.user.userId;
+
+    // Find the transaction
+    const transaction = await Transaction.findById(transactionId);
+    if (!transaction) {
+      return res.status(404).json({ success: false, error: "Transaction not found" });
+    }
+
+    // Verify the buyer is the one confirming
+    if (transaction.buyerUserId !== buyerUserId) {
+      return res.status(403).json({ success: false, error: "Only the buyer can confirm delivery" });
+    }
+
+    // Check if transaction is in a valid state
+    if (transaction.status !== "pending" && transaction.status !== "shipped") {
+      return res.status(400).json({ success: false, error: "Transaction cannot be confirmed in current status" });
+    }
+
+    // Fetch buyer and seller
+    const buyer = await User.findOne({ userId: transaction.buyerUserId });
+    const seller = await User.findOne({ userId: transaction.sellerUserId });
+
+    if (!buyer || !seller) {
+      return res.status(404).json({ success: false, error: "Buyer or seller not found" });
+    }
+
+    // Update transaction
+    transaction.status = "completed";
+    transaction.buyerConfirmed = true;
+    transaction.paymentHeld = false;
+    transaction.releaseDate = new Date();
+
+    // Release funds: deduct from buyer's pending balance, credit seller
+    buyer.pendingBalance -= (transaction.totalPrice + transaction.platformFeeBuyer);
+    seller.balance += transaction.netSellerAmount;
+
+    // Save changes
+    await transaction.save();
+    await buyer.save();
+    await seller.save();
+
+    res.json({
+      success: true,
+      message: "Delivery confirmed. Funds released to seller.",
+      transaction,
+    });
+  } catch (error) {
+    console.error("Confirm delivery error:", error);
+    res.status(500).json({ success: false, error: "Server error during delivery confirmation" });
   }
 });
 

@@ -16,6 +16,10 @@ import {
   Moon,
   Sun,
   Wallet,
+  Star,
+  CheckCircle,
+  Clock,
+  XCircle,
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -77,6 +81,9 @@ const Dashboard = () => {
           location: response.data.user.location || '',
         });
         setVerificationStatus(response.data.user.verified ? 'verified' : 'unverified');
+        
+        // Update stats with data from profile response
+        updateStatsFromProfile(response.data.user);
       } catch (error) {
         console.error('Error fetching user profile:', {
           message: error.message,
@@ -96,80 +103,41 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch dashboard stats
-  const fetchDashboardStats = async () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const [productsResponse, ordersResponse, ratingResponse] = await Promise.all([
-          axios.get('http://localhost:5000/api/users/sold-products', {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get('http://localhost:5000/api/users/total-orders', {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get('http://localhost:5000/api/users/customer-rating', {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
-
-        setStats([
-          {
-            title: 'Sold Products',
-            value: productsResponse.data.soldProducts || 0,
-            change: productsResponse.data.change || '0',
-            trend: productsResponse.data.trend || 'up',
-            icon: Package,
-            color: 'cyan',
-            gradient: 'from-cyan-500 to-blue-600',
-          },
-          {
-            title: 'Total Orders',
-            value: ordersResponse.data.totalOrders || 0,
-            change: ordersResponse.data.change || '0',
-            trend: ordersResponse.data.trend || 'up',
-            icon: BarChart3,
-            color: 'purple',
-            gradient: 'from-purple-500 to-indigo-600',
-          },
-          {
-            title: 'Customer Rating',
-            value: `${ratingResponse.data.customerRating || 0}/5`,
-            change: ratingResponse.data.change || '0',
-            trend: ratingResponse.data.trend || 'up',
-            icon: Users,
-            color: 'teal',
-            gradient: 'from-teal-500 to-cyan-600',
-          },
-        ]);
-        setError(null);
-      } catch (error) {
-        console.error('Error fetching dashboard stats:', {
-          message: error.message,
-          response: error.response ? {
-            status: error.response.status,
-            data: error.response.data,
-            headers: error.response.headers,
-          } : null,
-          config: error.config,
-        });
-        setError('Failed to fetch dashboard stats');
-        // Fallback to initial loading state if fetch fails
-        setStats([
-          { title: 'Sold Products', value: 'Error loading', change: '0', trend: 'up', icon: Package, color: 'cyan', gradient: 'from-cyan-500 to-blue-600' },
-          { title: 'Total Orders', value: 'Error loading', change: '0', trend: 'up', icon: BarChart3, color: 'purple', gradient: 'from-purple-500 to-indigo-600' },
-          { title: 'Customer Rating', value: 'Error loading', change: '0', trend: 'up', icon: Users, color: 'teal', gradient: 'from-teal-500 to-cyan-600' },
-        ]);
-      }
-    } else {
-      console.error('No token found in localStorage for stats fetch');
-      setError('Authentication token missing');
-      setStats([
-        { title: 'Sold Products', value: 'Auth error', change: '0', trend: 'up', icon: Package, color: 'cyan', gradient: 'from-cyan-500 to-blue-600' },
-        { title: 'Total Orders', value: 'Auth error', change: '0', trend: 'up', icon: BarChart3, color: 'purple', gradient: 'from-purple-500 to-indigo-600' },
-        { title: 'Customer Rating', value: 'Auth error', change: '0', trend: 'up', icon: Users, color: 'teal', gradient: 'from-teal-500 to-cyan-600' },
-      ]);
-    }
+  // Update stats from profile data
+  const updateStatsFromProfile = (userData) => {
+    const soldProductsCount = userData.soldProducts?.length || 0;
+    const totalOrdersCount = userData.transactionHistory?.length || 0;
+    const customerRating = userData.customerRating || 0;
+    
+    setStats([
+      {
+        title: 'Sold Products',
+        value: soldProductsCount,
+        change: '0',
+        trend: 'up',
+        icon: Package,
+        color: 'cyan',
+        gradient: 'from-cyan-500 to-blue-600',
+      },
+      {
+        title: 'Total Orders',
+        value: totalOrdersCount,
+        change: '0',
+        trend: 'up',
+        icon: BarChart3,
+        color: 'purple',
+        gradient: 'from-purple-500 to-indigo-600',
+      },
+      {
+        title: 'Customer Rating',
+        value: `${customerRating}/5`,
+        change: '0',
+        trend: 'up',
+        icon: Users,
+        color: 'teal',
+        gradient: 'from-teal-500 to-cyan-600',
+      },
+    ]);
   };
 
   useEffect(() => {
@@ -177,7 +145,6 @@ const Dashboard = () => {
       navigate('/login', { replace: true });
     } else if (!loading) {
       fetchUserProfile();
-      fetchDashboardStats();
     }
   }, [loading, isAuthenticated, navigate, setUser]);
 
@@ -191,6 +158,7 @@ const Dashboard = () => {
         location: user.location || '',
       });
       setVerificationStatus(user.verified ? 'verified' : 'unverified');
+      updateStatsFromProfile(user);
     }
   }, [user]);
 
@@ -334,7 +302,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/50 dark:to-indigo-950/50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -346,13 +314,13 @@ const Dashboard = () => {
 
   if (error && !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/50 dark:to-indigo-950/50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center py-10 text-2xl text-red-500 bg-red-100/80 dark:bg-red-900/80 rounded-2xl p-8 border border-red-200 dark:border-red-800 shadow-2xl backdrop-blur-md">
           {error}
           <Button
             onClick={() => {
               setError(null);
-              fetchDashboardStats();
+              fetchUserProfile();
             }}
             className="mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 px-4 text-sm shadow-lg hover:shadow-xl transition-all"
           >
@@ -364,12 +332,12 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/50 dark:to-indigo-950/50 text-white">
+    <div className="min-h-screen bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-900 dark:to-gray-800 text-white">
       {/* Profile Section */}
       <div ref={profileRef} className="fixed top-4 right-4 z-50">
         <button
           onClick={() => setIsProfileOpen(!isProfileOpen)}
-          className="flex items-center justify-center w-12 h-12 rounded-full overflow-hidden border-2 border-blue-400/50 dark:border-blue-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          className="flex items-center justify-center w-12 h-12 rounded-full overflow-hidden border-2 border-blue-400/50 dark:border-blue-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 backdrop-blur-sm bg-white/10"
         >
           {user?.profilePic ? (
             <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
@@ -389,7 +357,7 @@ const Dashboard = () => {
               transition={{ duration: 0.3, type: 'spring' }}
               className="absolute right-0 mt-3 w-80 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/30 dark:border-blue-800/30 overflow-hidden"
             >
-              <div className="flex items-center space-x-4 p-4 border-b border-blue-200/50 dark:border-blue-800/50 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/50 dark:to-indigo-950/50">
+              <div className="flex items-center space-x-4 p-4 border-b border-blue-200/50 dark:border-blue-800/50 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-800 dark:to-gray-700">
                 <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-blue-400/50 dark:border-blue-600/50 group">
                   {user?.profilePic ? (
                     <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
@@ -457,7 +425,7 @@ const Dashboard = () => {
                   </div>
                 ))}
               </div>
-              <div className="border-t border-blue-200/50 dark:border-blue-800/50 p-4 space-y-2 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/50 dark:to-indigo-950/50">
+              <div className="border-t border-blue-200/50 dark:border-blue-800/50 p-4 space-y-2 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-800 dark:to-gray-700">
                 <Button onClick={saveProfile} className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm shadow-lg hover:shadow-xl transition-all">
                   Save Changes
                 </Button>
@@ -505,7 +473,7 @@ const Dashboard = () => {
           <Button
             onClick={handleBuyClick}
             size="large"
-            className="flex items-center justify-center space-x-3 min-w-[180px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105"
+            className="flex items-center justify-center space-x-3 min-w-[180px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-sm"
           >
             <ShoppingCart className="h-5 w-5" />
             <span>Buy Products</span>
@@ -513,7 +481,7 @@ const Dashboard = () => {
           <Button
             onClick={handleSellClick}
             size="large"
-            className="flex items-center justify-center space-x-3 min-w-[180px] bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105"
+            className="flex items-center justify-center space-x-3 min-w-[180px] bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-sm"
           >
             <Upload className="h-5 w-5" />
             <span>Sell Products</span>
@@ -550,11 +518,6 @@ const Dashboard = () => {
                   {stat.trend === 'up' ? <ArrowUpRight className="h-4 w-4 mr-1" /> : null}
                   {stat.change}
                 </div>
-                {stat.value.includes('Error') && (
-                  <div className="mt-4 text-center text-red-500 text-sm">
-                    Failed to load stats. <Button onClick={fetchDashboardStats} className="text-blue-600 hover:text-blue-700 underline">Retry</Button>
-                  </div>
-                )}
               </Card>
             </motion.div>
           ))}

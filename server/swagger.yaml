@@ -17,6 +17,8 @@ tags:
     description: Product creation, retrieval, reviews, and likes
   - name: Transactions
     description: Purchase transactions and management
+  - name: Admin
+    description: Administrative actions for managing users, products, transactions, and verifications
 
 paths:
   ######################
@@ -25,7 +27,7 @@ paths:
   /api/users/register:
     post:
       tags: [Users]
-      summary: Register a new user (Step 1 - send OTP)
+      summary: Register a new user and send OTP
       requestBody:
         required: true
         content:
@@ -34,13 +36,19 @@ paths:
               $ref: '#/components/schemas/RegisterRequest'
       responses:
         '200':
-          description: OTP sent successfully
+          description: OTP sent to email for verification
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessMessage'
         '400':
-          description: Validation or email already exists
+          description: Validation error or email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error or email credentials missing
           content:
             application/json:
               schema:
@@ -49,7 +57,7 @@ paths:
   /api/users/verify-otp:
     post:
       tags: [Users]
-      summary: Verify OTP and complete registration
+      summary: Verify OTP to complete registration
       requestBody:
         required: true
         content:
@@ -58,13 +66,19 @@ paths:
               $ref: '#/components/schemas/VerifyOtpRequest'
       responses:
         '201':
-          description: Registration completed
+          description: Registration complete, user created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
         '400':
-          description: Invalid or expired OTP
+          description: Invalid email, OTP, or OTP expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error verifying OTP
           content:
             application/json:
               schema:
@@ -86,9 +100,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error during login
           content:
             application/json:
               schema:
@@ -97,18 +123,24 @@ paths:
   /api/users/profile:
     get:
       tags: [Users]
-      summary: Get the logged-in user's profile
+      summary: Get the logged-in user's profile with populated fields
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: User profile
+          description: User profile with populated products and transactions
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error fetching profile
           content:
             application/json:
               schema:
@@ -132,6 +164,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Username taken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error updating profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/users/profile-pic:
     post:
@@ -156,6 +200,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProfilePicResponse'
+        '400':
+          description: No file uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error uploading profile picture
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/users/verify-id:
     post:
@@ -169,6 +225,7 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              required: [govIdFront, govIdBack]
               properties:
                 govIdFront:
                   type: string
@@ -178,11 +235,97 @@ paths:
                   format: binary
       responses:
         '200':
-          description: ID uploaded
+          description: ID uploaded, pending admin review
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GovIdResponse'
+        '400':
+          description: Both ID images required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error uploading government ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/verify-id/{userId}:
+    post:
+      tags: [Admin]
+      summary: Approve or reject government ID verification (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: The user's public ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [approved, rejected]
+                  description: Action to approve or reject the verification
+      responses:
+        '200':
+          description: Verification status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  user:
+                    type: object
+                    properties:
+                      userId: { type: string }
+                      fullName: { type: string }
+                      email: { type: string }
+                      verified: { type: boolean }
+                      govIdStatus: { type: string, enum: [pending, approved, rejected] }
+        '400':
+          description: Invalid status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error processing ID verification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/users/{userId}:
     get:
@@ -204,6 +347,12 @@ paths:
                 $ref: '#/components/schemas/UserResponse'
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error fetching user profile
           content:
             application/json:
               schema:
@@ -234,6 +383,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Rating must be between 1 and 5
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error rating user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/users/add-balance:
     post:
@@ -254,11 +421,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BalanceResponse'
+        '400':
+          description: Amount must be greater than 0
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error adding balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/users/make-admin/{userId}:
     post:
       tags: [Users]
-      summary: Promote a user to admin
+      summary: Promote a user to admin (dev only)
       security:
         - bearerAuth: []
       parameters:
@@ -274,6 +459,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   ######################
   # PRODUCTS
@@ -292,18 +483,28 @@ paths:
               type: object
               required: [title, price, originAddress, type, quantity]
               properties:
-                title: { type: string }
-                price: { type: number }
-                originAddress: { type: string }
-                type: { type: string }
-                quantity: { type: integer }
-                description: { type: string }
-                comment: { type: string }
+                title:
+                  type: string
+                price:
+                  type: number
+                  minimum: 0
+                originAddress:
+                  type: string
+                type:
+                  type: string
+                quantity:
+                  type: integer
+                  minimum: 1
+                description:
+                  type: string
+                comment:
+                  type: string
                 images:
                   type: array
                   items:
                     type: string
                     format: binary
+                  maxItems: 5
       responses:
         '201':
           description: Product created
@@ -311,6 +512,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductResponse'
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error adding product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
     get:
       tags: [Products]
@@ -318,16 +531,22 @@ paths:
       parameters:
         - in: query
           name: page
-          schema: { type: integer, default: 1 }
+          schema:
+            type: integer
+            default: 1
         - in: query
           name: limit
-          schema: { type: integer, default: 20 }
+          schema:
+            type: integer
+            default: 20
         - in: query
           name: search
-          schema: { type: string }
+          schema:
+            type: string
         - in: query
           name: type
-          schema: { type: string }
+          schema:
+            type: string
       responses:
         '200':
           description: Products list
@@ -335,6 +554,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductListResponse'
+        '500':
+          description: Server error fetching products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/products/{productId}:
     get:
@@ -343,7 +568,8 @@ paths:
       parameters:
         - in: path
           name: productId
-          schema: { type: string }
+          schema:
+            type: string
           required: true
       responses:
         '200':
@@ -352,6 +578,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductResponse'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error fetching product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/products/{productId}/review:
     post:
@@ -362,9 +600,11 @@ paths:
       parameters:
         - in: path
           name: productId
-          schema: { type: string }
+          schema:
+            type: string
           required: true
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -376,6 +616,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductResponse'
+        '400':
+          description: Review comment is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error adding review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/products/{productId}/like:
     post:
@@ -386,7 +644,8 @@ paths:
       parameters:
         - in: path
           name: productId
-          schema: { type: string }
+          schema:
+            type: string
           required: true
       responses:
         '200':
@@ -395,6 +654,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LikeResponse'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error liking product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/products/{productId}/unlike:
     post:
@@ -405,7 +676,8 @@ paths:
       parameters:
         - in: path
           name: productId
-          schema: { type: string }
+          schema:
+            type: string
           required: true
       responses:
         '200':
@@ -414,6 +686,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LikeResponse'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error unliking product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   ######################
   # TRANSACTIONS
@@ -422,7 +706,7 @@ paths:
     post:
       tags: [Transactions]
       summary: Create a purchase transaction
-      security: 
+      security:
         - bearerAuth: []
       requestBody:
         required: true
@@ -434,55 +718,138 @@ paths:
               properties:
                 productId:
                   type: string
-                  description: Public product ID
+                  description: MongoDB ID of the product
                 quantity:
                   type: integer
                   minimum: 1
                 deliveryAddress:
                   type: string
       responses:
-        "200":
+        '200':
           description: Purchase created successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TransactionResponse"
-        "400": { description: Validation error }
-        "404": { description: Product, buyer, or seller not found }
-        "500": { description: Server error }
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Missing required fields, insufficient quantity, insufficient balance, or cannot buy own product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Product, buyer, or seller not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error during transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
-  /api/transactions/{transactionId}/confirm:
+  /api/transactions/{transactionId}/confirm-delivery:
     post:
       tags: [Transactions]
       summary: Buyer confirms delivery
-      security: 
+      security:
         - bearerAuth: []
       parameters:
         - in: path
           name: transactionId
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
-        "200":
-          description: Delivery confirmed and escrow released
+        '200':
+          description: Delivery confirmed and funds released to seller
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TransactionResponse"
-        "400": { description: Cannot confirm }
-        "404": { description: Transaction not found }
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Transaction cannot be confirmed in current status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Only the buyer can confirm delivery
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Transaction, buyer, or seller not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error during delivery confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/transactions/{transactionId}/mark-shipped:
+    post:
+      tags: [Transactions]
+      summary: Seller marks product as shipped
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: transactionId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction marked as shipped
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Transaction cannot be marked as shipped in current status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Only the seller can mark as shipped
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error during status update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/transactions/{transactionId}/cancel:
     post:
       tags: [Transactions]
       summary: Cancel a transaction
-      security: 
+      security:
         - bearerAuth: []
       parameters:
         - in: path
           name: transactionId
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -494,25 +861,24 @@ paths:
                   type: string
                   example: "Product damaged"
       responses:
-        "200": { description: Transaction cancelled }
-        "400": { description: Cannot cancel transaction }
-        "404": { description: Transaction not found }
-
-  /api/transactions/{transactionId}/ship:
-    post:
-      tags: [Transactions]
-      summary: Seller marks product as shipped
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: transactionId
-          required: true
-          schema: { type: string }
-      responses:
-        "200": { description: Transaction updated to shipped }
-        "400": { description: Cannot update transaction }
-        "404": { description: Transaction not found }
+        '200':
+          description: Transaction cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Cannot cancel transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/transactions/{transactionId}/deliver:
     post:
@@ -524,11 +890,27 @@ paths:
         - in: path
           name: transactionId
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
-        "200": { description: Transaction updated to delivered }
-        "400": { description: Cannot update transaction }
-        "404": { description: Transaction not found }
+        '200':
+          description: Transaction updated to delivered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Cannot update transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/transactions/{transactionId}/release:
     post:
@@ -540,11 +922,27 @@ paths:
         - in: path
           name: transactionId
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
-        "200": { description: Funds released }
-        "400": { description: Cannot release funds }
-        "404": { description: Transaction not found }
+        '200':
+          description: Funds released
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Cannot release funds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/transactions/my:
     get:
@@ -553,14 +951,20 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        "200":
+        '200':
           description: List of user transactions
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Transaction"
+                  $ref: '#/components/schemas/Transaction'
+        '500':
+          description: Server error fetching transactions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/transactions/{transactionId}:
     get:
@@ -572,15 +976,244 @@ paths:
         - in: path
           name: transactionId
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
-        "200":
+        '200':
           description: Transaction details
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Transaction"
-        "404": { description: Transaction not found }
+                $ref: '#/components/schemas/Transaction'
+        '404':
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error fetching transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  ######################
+  # ADMIN
+  ######################
+  /api/users:
+    get:
+      tags: [Admin]
+      summary: Get all users (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of all users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (not an admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/{userId}/restrict:
+    post:
+      tags: [Admin]
+      summary: Restrict or unrestrict a user (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: The user's public ID
+      responses:
+        '200':
+          description: User restricted or unrestricted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (not an admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/products:
+    get:
+      tags: [Admin]
+      summary: Get all products (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of all products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (not an admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/transactions:
+    get:
+      tags: [Admin]
+      summary: Get all transactions (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of all transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  transactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (not an admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/suspicious:
+    get:
+      tags: [Admin]
+      summary: Get suspicious users (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of suspicious users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  suspiciousUsers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (not an admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/verifications/pending:
+    get:
+      tags: [Admin]
+      summary: Get pending government ID verifications (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of users with pending ID verifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  pending:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        userId: { type: string }
+                        fullName: { type: string }
+                        email: { type: string }
+                        governmentId:
+                          type: object
+                          properties:
+                            status: { type: string }
+                            front: { type: string }
+                            back: { type: string }
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (not an admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   securitySchemes:
@@ -597,31 +1230,51 @@ components:
       type: object
       required: [fullName, email, password, phone, address]
       properties:
-        fullName: { type: string }
-        email: { type: string, format: email }
-        password: { type: string, minLength: 8 }
-        phone: { type: string }
-        address: { type: string }
+        fullName:
+          type: string
+          minLength: 2
+          maxLength: 50
+          pattern: '^[a-zA-Z\\s-]+$'
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        phone:
+          type: string
+        address:
+          type: string
 
     VerifyOtpRequest:
       type: object
       required: [email, otp]
       properties:
-        email: { type: string, format: email }
-        otp: { type: string, minLength: 6, maxLength: 6 }
+        email:
+          type: string
+          format: email
+        otp:
+          type: string
+          minLength: 6
+          maxLength: 6
 
     LoginRequest:
       type: object
       required: [email, password]
       properties:
-        email: { type: string, format: email }
-        password: { type: string }
+        email:
+          type: string
+          format: email
+        password:
+          type: string
 
     UpdateProfileRequest:
       type: object
       properties:
-        username: { type: string }
-        location: { type: string }
+        username:
+          type: string
+        location:
+          type: string
 
     RateUserRequest:
       type: object
@@ -658,14 +1311,63 @@ components:
         rank: { type: number }
         customerRating: { type: number }
         balance: { type: number }
+        pendingBalance: { type: number }
         isAdmin: { type: boolean }
         isRestricted: { type: boolean }
+        govIdStatus:
+          type: string
+          enum: [pending, approved, rejected]
+        postedProducts:
+          type: array
+          items:
+            type: string
+            description: IDs of products posted by the user
+        savedProducts:
+          type: array
+          items:
+            type: string
+            description: IDs of products saved/liked by the user
+        boughtProducts:
+          type: array
+          items:
+            type: string
+            description: IDs of products bought by the user
+        soldProducts:
+          type: array
+          items:
+            type: string
+            description: IDs of products sold by the user
+        closeCustomers:
+          type: array
+          items:
+            type: string
+            description: IDs of users involved in transactions with this user
+        transactionHistory:
+          type: array
+          items:
+            type: string
+            description: IDs of transactions involving this user
 
     AuthResponse:
       type: object
       properties:
         success: { type: boolean }
         message: { type: string }
+        token: { type: string }
+        user:
+          type: object
+          properties:
+            userId: { type: string }
+            fullName: { type: string }
+            email: { type: string }
+            phone: { type: string }
+            address: { type: string }
+            verified: { type: boolean }
+
+    LoginResponse:
+      type: object
+      properties:
+        success: { type: boolean }
         token: { type: string }
         user:
           $ref: '#/components/schemas/User'
@@ -733,7 +1435,7 @@ components:
         ownerName: { type: string }
         likesCount: { type: integer }
         averageRating: { type: number }
-        status: { type: string }
+        status: { type: string, enum: [available, sold out] }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
         reviews:
@@ -773,8 +1475,12 @@ components:
       type: object
       required: [comment]
       properties:
-        comment: { type: string }
-        rating: { type: integer }
+        comment:
+          type: string
+        rating:
+          type: integer
+          minimum: 0
+          maximum: 5
 
     LikeResponse:
       type: object
@@ -795,7 +1501,7 @@ components:
         productId: { type: string }
         quantity: { type: integer }
         totalPrice: { type: number }
-        status: 
+        status:
           type: string
           enum: [pending, shipped, delivered, completed, cancelled]
         paymentHeld: { type: boolean }
@@ -806,10 +1512,13 @@ components:
         date: { type: string, format: date-time }
         buyerConfirmed: { type: boolean }
         cancelledReason: { type: string }
+        serviceFeePercent: { type: number }
+        releaseDate: { type: string, format: date-time, nullable: true }
 
     TransactionResponse:
       type: object
       properties:
         success: { type: boolean }
         message: { type: string }
-        transaction: { $ref: "#/components/schemas/Transaction" }
+        transaction:
+          $ref: '#/components/schemas/Transaction'
