@@ -93,7 +93,7 @@ const CartSidebar = ({
                         item.images?.[0]
                           ? String(item.images[0]).startsWith("http")
                             ? item.images[0]
-                            : `http://localhost:5000${item.images[0]}`
+                            : item.images[0]
                           : "https://via.placeholder.com/50"
                       }
                       alt={item.title}

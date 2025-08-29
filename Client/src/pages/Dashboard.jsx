@@ -372,7 +372,7 @@ const Dashboard = () => {
           className="flex items-center justify-center w-12 h-12 rounded-full overflow-hidden border-2 border-blue-400/50 dark:border-blue-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
         >
           {user?.profilePic ? (
-            <img src={`http://localhost:5000${user.profilePic}`} alt="Profile" className="w-full h-full object-cover" />
+            <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
           ) : (
             <span className="text-base font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-700 w-full h-full flex items-center justify-center">
               {user?.fullName?.[0] || 'U'}
@@ -392,7 +392,7 @@ const Dashboard = () => {
               <div className="flex items-center space-x-4 p-4 border-b border-blue-200/50 dark:border-blue-800/50 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/50 dark:to-indigo-950/50">
                 <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-blue-400/50 dark:border-blue-600/50 group">
                   {user?.profilePic ? (
-                    <img src={`http://localhost:5000${user.profilePic}`} alt="Profile" className="w-full h-full object-cover" />
+                    <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-lg font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-700 w-full h-full flex items-center justify-center">
                       {user?.fullName?.[0] || 'U'}
