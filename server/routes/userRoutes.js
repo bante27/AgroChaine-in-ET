@@ -355,25 +355,6 @@ router.post(
   }
 );
 
-
-// -------------------- Get User by ID with Full Product Info --------------------i updated
-router.get("/:userId", async (req, res) => {
-  try {
-    const user = await User.findOne({ userId: req.params.userId })
-      .select("-password -email -otp -otpExpires -governmentIdPic")
-      .populate({
-        path: "postedProducts",
-        select:
-          "productId title price images quantityAvailable soldQuantity likesCount reviews createdAt",
-      })
-      .populate({
-        path: "soldProducts",
-        select: "productId title price images quantityAvailable soldQuantity likesCount reviews createdAt",
-      })
-      .populate({
-        path: "boughtProducts",
-        select: "productId title price images quantityAvailable soldQuantity likesCount reviews createdAt",
-      });
 router.get("/:userId", async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.params.userId })
@@ -384,62 +365,18 @@ router.get("/:userId", async (req, res) => {
       .populate("savedProducts")
       .populate("transactionHistory") // keep the full Transaction doc
       .populate("closeCustomers", "userId fullName profilePic rank customerRating");
-      .select("-password -email -otp -otpExpires -governmentIdPic")
-      .populate({
-        path: "postedProducts",
-        select:
-          "productId title price images quantityAvailable soldQuantity likesCount reviews createdAt",
-      })
-      .populate({
-        path: "soldProducts",
-        select: "productId title price images quantityAvailable soldQuantity likesCount reviews createdAt",
-      })
-      .populate({
-        path: "boughtProducts",
-        select: "productId title price images quantityAvailable soldQuantity likesCount reviews createdAt",
-      });
 
     if (!user) {
       return res.status(404).json({ success: false, error: "User not found" });
     }
 
-    // Map posted products to include totalLikes and totalReviews for frontend convenience
-    const postedProducts = user.postedProducts.map((product) => ({
-      ...product._doc,
-      totalLikes: product.likesCount || 0,
-      totalReviews: product.reviews ? product.reviews.length : 0,
-      soldQuantity: product.soldQuantity || 0,
-      quantityAvailable: product.quantityAvailable || 0,
-    }));
-
-    const soldProducts = user.soldProducts.map((product) => ({
-      ...product._doc,
-      totalLikes: product.likesCount || 0,
-      totalReviews: product.reviews ? product.reviews.length : 0,
-    }));
-
-    const boughtProducts = user.boughtProducts.map((product) => ({
-      ...product._doc,
-      totalLikes: product.likesCount || 0,
-      totalReviews: product.reviews ? product.reviews.length : 0,
-    }));
-
-    res.json({
-      success: true,
-      user: {
-        ...user._doc,
-        postedProducts,
-        soldProducts,
-        boughtProducts,
-      },
-    });
+    res.json({ success: true, user });
   } catch (error) {
     console.error("Error fetching user profile:", error);
     res.status(500).json({ success: false, error: "Server error fetching user profile" });
   }
 });
 
-//end
 
 router.post("/:userId/rate", auth, async (req, res) => {
   try {
@@ -517,5 +454,4 @@ router.post("/make-admin/:userId", auth, async (req, res) => {
   res.json({ success: true, message: "User promoted to admin", user });
 });
 
-  
 export default router;
