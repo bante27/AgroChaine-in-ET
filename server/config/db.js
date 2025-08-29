@@ -14,5 +14,4 @@ const connectDB = async () => {
   }
 };
 
-// ✅ Default export for ESM
 export default connectDB;
