@@ -114,7 +114,6 @@ router.post(
   }
 );
 
-
 // -------------------- Verify OTP --------------------
 router.post(
   '/verify-otp',
@@ -154,7 +153,7 @@ router.post(
         password: pending.password,
         phone: pending.phone,
         address: pending.address,
-        verified: true,
+        verified: false, // Initialize as false, awaiting ID verification
       });
       await newUser.save();
       pendingUsers.delete(email);
@@ -167,7 +166,7 @@ router.post(
 
       res.status(201).json({
         success: true,
-        message: 'Registration complete',
+        message: 'Registration complete. Please upload government ID for verification.',
         token,
         user: {
           userId: newUser.userId,
@@ -175,6 +174,7 @@ router.post(
           email: newUser.email,
           phone: newUser.phone,
           address: newUser.address,
+          verified: newUser.verified,
         },
       });
     } catch (err) {
@@ -337,12 +337,12 @@ router.post(
       user.govIdFront = `/uploads/govIds/${req.files.govIdFront[0].filename}`;
       user.govIdBack = `/uploads/govIds/${req.files.govIdBack[0].filename}`;
       user.govIdStatus = 'pending';
-      user.verified = false;
+      user.verified = false; // Ensure verified is false until approved
 
       await user.save();
       res.json({
         success: true,
-        message: 'ID uploaded, pending review',
+        message: 'ID uploaded, pending admin review',
         govIdFront: user.govIdFront,
         govIdBack: user.govIdBack,
       });
@@ -355,10 +355,65 @@ router.post(
   }
 );
 
+// -------------------- Admin Approve/Reject ID Verification --------------------
+router.post(
+  '/verify-id/:userId',
+  auth,
+  async (req, res) => {
+    try {
+      const user = await User.findOne({ userId: req.user.userId });
+      if (!user || !user.isAdmin)
+        return res.status(403).json({ success: false, error: 'Admin access required' });
+
+      const targetUser = await User.findOne({ userId: req.params.userId });
+      if (!targetUser)
+        return res.status(404).json({ success: false, error: 'User not found' });
+
+      const { status } = req.body; // 'approved' or 'rejected'
+      if (!['approved', 'rejected'].includes(status))
+        return res.status(400).json({ success: false, error: 'Invalid status' });
+
+      targetUser.govIdStatus = status;
+      targetUser.verified = status === 'approved';
+
+      await targetUser.save();
+
+      // Notify user via email
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: targetUser.email,
+        subject: `ID Verification ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+        text: `Your government ID verification has been ${status}. ${
+          status === 'approved'
+            ? 'Your account is now fully verified.'
+            : 'Please upload valid ID documents and try again.'
+        }`,
+      });
+
+      res.json({
+        success: true,
+        message: `User ID verification ${status}`,
+        user: {
+          userId: targetUser.userId,
+          fullName: targetUser.fullName,
+          email: targetUser.email,
+          verified: targetUser.verified,
+          govIdStatus: targetUser.govIdStatus,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      res
+        .status(500)
+        .json({ success: false, error: 'Server error processing ID verification' });
+    }
+  }
+);
+
 router.get("/:userId", async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.params.userId })
-      .select("-password -email -otp -otpExpires -governmentIdPic") // exclude sensitive/private info
+      .select("-password -email -otp -otpExpires -govIdFront -govIdBack") // exclude sensitive/private info
       .populate("postedProducts")
       .populate("soldProducts")
       .populate("boughtProducts")
@@ -376,7 +431,6 @@ router.get("/:userId", async (req, res) => {
     res.status(500).json({ success: false, error: "Server error fetching user profile" });
   }
 });
-
 
 router.post("/:userId/rate", auth, async (req, res) => {
   try {
@@ -405,7 +459,8 @@ router.post("/:userId/rate", auth, async (req, res) => {
     res.status(500).json({ success: false, error: "Server error rating user" });
   }
 });
-//Balance 
+
+// -------------------- Add Balance --------------------
 router.post(
   '/add-balance',
   auth,
@@ -443,7 +498,7 @@ router.post(
   }
 );
 
-// routes/adminDevTools.js (for dev only)
+// -------------------- Make Admin (for dev only) --------------------
 router.post("/make-admin/:userId", auth, async (req, res) => {
   const user = await User.findOne({ userId: req.params.userId });
   if (!user) return res.status(404).json({ success: false, error: "User not found" });
