@@ -284,6 +284,7 @@ router.patch('/profile', auth, async (req, res) => {
 });
 
 // -------------------- Upload Profile Pic --------------------
+// -------------------- Upload Profile Pic --------------------
 router.post(
   '/profile-pic',
   auth,
@@ -297,7 +298,7 @@ router.post(
 
       const updatedUser = await User.findOneAndUpdate(
         { userId: req.user.userId },
-        { profilePic: `/uploads/profilePics/${req.file.filename}` },
+        { profilePic: req.file.path }, // Use Cloudinary secure URL from req.file.path
         { new: true, select: '-password -_id -__v' }
       );
 
@@ -307,7 +308,7 @@ router.post(
         profilePic: updatedUser.profilePic,
       });
     } catch (err) {
-      console.error(err);
+      console.error('Error uploading profile picture:', err);
       res
         .status(500)
         .json({ success: false, error: 'Error uploading profile picture' });
