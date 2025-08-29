@@ -1,17 +1,24 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { v2 as cloudinary } from "cloudinary";
 
-// Helper to create storage for a folder
+// Configure Cloudinary with your credentials
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Helper to create Cloudinary storage for a folder
 const makeStorage = (folder) => {
-  const dir = `uploads/${folder}`;
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-  return multer.diskStorage({
-    destination: (req, file, cb) => cb(null, dir),
-    filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      cb(null, uniqueSuffix + path.extname(file.originalname));
+  return new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: `uploads/${folder}`,
+      public_id: (req, file) => {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        return uniqueSuffix + "-" + file.originalname;
+      },
     },
   });
 };
@@ -33,13 +40,12 @@ export const govIdUpload = multer({
 });
 
 // General contact uploads (files + voice)
-const contactStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = "uploads/contact";
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
+const contactStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "uploads/contact",
+    public_id: (req, file) => Date.now() + "-" + file.originalname,
   },
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
 });
 
 export const contactUpload = multer({ storage: contactStorage }).fields([
