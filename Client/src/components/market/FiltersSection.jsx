@@ -33,7 +33,7 @@ const FiltersSection = ({
               />
               <button
                 onClick={onSearchSubmit}
-                className="absolute right-1 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="absolute right-1 top-1/2 -translate-y-1/2 px-3 py-1 bg-sky-400 text-white rounded-lg hover:bg-amber-400"
               >
                 Search
               </button>
@@ -57,7 +57,7 @@ const FiltersSection = ({
             <select
               value={sortBy}
               onChange={onSortChange}
-              className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-300 focus:border-rose-100"
             >
               <option value="price-low">Price: Low to High</option>
               <option value="price-high">Price: High to Low</option>
@@ -68,13 +68,13 @@ const FiltersSection = ({
             <div className="flex border border-gray-300 rounded-lg">
               <button
                 onClick={() => onViewModeChange('grid')}
-                className={`p-2 ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-100'}`}
+                className={`p-2 ${viewMode === 'grid' ? 'bg-sky-300 text-white' : 'text-gray-400 hover:bg-emerald-300'}`}
               >
                 <Grid className="h-5 w-5" />
               </button>
               <button
                 onClick={() => onViewModeChange('list')}
-                className={`p-2 ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-100'}`}
+                className={`p-2 ${viewMode === 'list' ? 'bg-sky-300 text-white' : 'text-gray-400 hover:bg-pink-300'}`}
               >
                 <List className="h-5 w-5" />
               </button>

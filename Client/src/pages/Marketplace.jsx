@@ -11,13 +11,6 @@ import CheckoutModal from '../components/market/CheckoutModal';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const fadeInUp = {
-  initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: 30 },
-  transition: { duration: 0.5, ease: 'easeOut' },
-};
-
 const modalBackdrop = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },
@@ -154,7 +147,7 @@ const Marketplace = () => {
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-emerald-700 to-teal-800">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1 }}
@@ -165,27 +158,16 @@ const Marketplace = () => {
 
   if (error)
     return (
-      <div className="min-h-screen flex items-center justify-center text-red-400 bg-gradient-to-tr from-emerald-700 to-teal-800 font-semibold">
+      <div className="min-h-screen flex items-center justify-center text-red-400 bg-white font-semibold">
         {error}
       </div>
     );
 
   return (
-    <div
-      className="min-h-screen flex flex-col bg-gradient-to-tr from-emerald-700 to-teal-800 text-white"
-      style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}
-    >
-      {/* Main content wrapper with subtle glass background */}
-      <motion.div
-        className="flex-1 overflow-y-auto"
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        variants={fadeInUp}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 backdrop-blur-md bg-white/10 rounded-3xl shadow-lg">
+    <div className="min-h-screen flex flex-col bg-white text-black" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}>
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-white">
           <HeroSection />
-
           <FiltersSection
             inputValue={inputValue}
             onSearchChange={handleSearchChange}
@@ -200,7 +182,6 @@ const Marketplace = () => {
             onViewModeChange={setViewMode}
             searchInputRef={searchInputRef}
           />
-
           <div className="mt-6">
             <ProductsDisplay
               products={displayedProducts}
@@ -214,15 +195,14 @@ const Marketplace = () => {
             />
           </div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Modals & Sidebars with backdrop and animations */}
       <AnimatePresence>
         {isModalOpen && selectedProduct && (
           <>
             <motion.div
               key="product-backdrop"
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+              className="fixed inset-0 bg-black/70 z-40"
               variants={modalBackdrop}
               initial="initial"
               animate="animate"
@@ -232,13 +212,18 @@ const Marketplace = () => {
             <motion.div
               key="product-modal"
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
-              variants={fadeInUp}
+              variants={{
+                initial: { opacity: 0, y: 30 },
+                animate: { opacity: 1, y: 0 },
+                exit: { opacity: 0, y: 30 },
+                transition: { duration: 0.5, ease: 'easeOut' },
+              }}
               initial="initial"
               animate="animate"
               exit="exit"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-xl max-w-4xl w-full p-6 text-white">
+              <div className="bg-white rounded-3xl shadow-xl max-w-4xl w-full p-6 text-black">
                 <ProductModal
                   isOpen={isModalOpen}
                   product={selectedProduct}
@@ -264,7 +249,7 @@ const Marketplace = () => {
           <>
             <motion.div
               key="cart-backdrop"
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+              className="fixed inset-0 bg-black/70 z-40"
               variants={modalBackdrop}
               initial="initial"
               animate="animate"
@@ -273,7 +258,7 @@ const Marketplace = () => {
             />
             <motion.div
               key="cart-sidebar"
-              className="fixed top-0 right-0 h-full z-50 bg-white/10 backdrop-blur-lg shadow-xl w-full max-w-md p-6 text-white flex flex-col"
+              className="fixed top-0 right-0 h-full z-50 bg-white shadow-xl w-full max-w-md p-6 text-black flex flex-col"
               variants={{
                 initial: { x: '100%' },
                 animate: { x: 0 },
@@ -305,7 +290,7 @@ const Marketplace = () => {
           <>
             <motion.div
               key="checkout-backdrop"
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+              className="fixed inset-0 bg-black/70 z-40"
               variants={modalBackdrop}
               initial="initial"
               animate="animate"
@@ -315,13 +300,18 @@ const Marketplace = () => {
             <motion.div
               key="checkout-modal"
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
-              variants={fadeInUp}
+              variants={{
+                initial: { opacity: 0, y: 30 },
+                animate: { opacity: 1, y: 0 },
+                exit: { opacity: 0, y: 30 },
+                transition: { duration: 0.5, ease: 'easeOut' },
+              }}
               initial="initial"
               animate="animate"
               exit="exit"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-xl max-w-3xl w-full p-6 text-white">
+              <div className="bg-white rounded-3xl shadow-xl max-w-3xl w-full p-6 text-black">
                 <CheckoutModal
                   isOpen={isCheckoutOpen}
                   onClose={() => setIsCheckoutOpen(false)}
@@ -346,7 +336,7 @@ const Marketplace = () => {
           <>
             <motion.div
               key="auth-backdrop"
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+              className="fixed inset-0 bg-black/70 z-40"
               variants={modalBackdrop}
               initial="initial"
               animate="animate"
@@ -356,13 +346,18 @@ const Marketplace = () => {
             <motion.div
               key="auth-modal"
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
-              variants={fadeInUp}
+              variants={{
+                initial: { opacity: 0, y: 30 },
+                animate: { opacity: 1, y: 0 },
+                exit: { opacity: 0, y: 30 },
+                transition: { duration: 0.5, ease: 'easeOut' },
+              }}
               initial="initial"
               animate="animate"
               exit="exit"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-xl max-w-md w-full p-6 text-white">
+              <div className="bg-white rounded-3xl shadow-xl max-w-md w-full p-6 text-black">
                 <AuthModal
                   isOpen={isAuthModalOpen}
                   onClose={() => setIsAuthModalOpen(false)}
