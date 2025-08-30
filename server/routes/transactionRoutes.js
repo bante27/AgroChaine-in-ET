@@ -11,7 +11,7 @@ const SERVICE_FEE_PERCENT = 5; // 5% from buyer and seller
 // Create a purchase (buy a product)
 router.post("/buy", auth, async (req, res) => {
   try {
-    const { productId, quantity26quantity, deliveryAddress } = req.body;
+    const { productId, quantity, deliveryAddress } = req.body;
     const buyerUserId = req.user.userId;
 
     if (!productId || !quantity || !deliveryAddress)
