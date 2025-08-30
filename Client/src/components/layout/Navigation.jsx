@@ -10,7 +10,7 @@ const Navigation = ({ mobile = false, onItemClick }) => {
   const navItems = [
     { path: '/', label: t('nav.home') },
     { path: '/about', label: t('nav.about') },
-    { path: '/services', label: t('nav.services') },
+    // { path: '/services', label: t('nav.services') },
     { path: '/marketplace', label: t('nav.marketplace') },
     { path: '/contact', label: t('nav.contact') }
   ];

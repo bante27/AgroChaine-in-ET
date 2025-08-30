@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, User, Mail, MapPin, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Mail, ArrowRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
@@ -10,7 +11,6 @@ import PhoneNumberInput from '../components/common/PhoneNumberInput';
 import toast from 'react-hot-toast';
 import { parsePhoneNumber } from 'libphonenumber-js';
 import logoIconDarkTransparent from '../assets/images/newlogo.png';
-import bgImage from '../assets/images/bg-login.jfif';
 import axios from 'axios';
 import LiveChat from '../components/LiveChat';
 
@@ -18,47 +18,48 @@ import LiveChat from '../components/LiveChat';
 const OTPInput = ({ email, otp, onVerify, onResend }) => {
   const [inputOtp, setInputOtp] = useState('');
   const [timer, setTimer] = useState(300);
-
   useEffect(() => {
     setInputOtp(otp || '');
     const interval = setInterval(() => setTimer(prev => (prev > 0 ? prev - 1 : 0)), 1000);
     return () => clearInterval(interval);
   }, [otp]);
-
   const handleVerify = () => {
     if (!inputOtp || inputOtp.length !== 6) return toast.error('Enter a valid 6-digit OTP');
     onVerify(inputOtp);
   };
-
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center" style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${bgImage})` }}>
-      <Card className="bg-white/15 backdrop-blur-sm border border-white/30 shadow-lg p-4 w-80 rounded-lg">
+    <div className="min-h-screen flex items-center justify-center py-6 px-2 sm:px-4 bg-gradient-to-br from-gray-50 to-teal-50">
+      <Card className="bg-white shadow-sm rounded-md p-3 sm:p-4 w-full max-w-xs">
         <div className="text-center">
-          <h2 className="text-xl font-bold text-white">Verify Your Email</h2>
-          <p className="text-gray-200 text-xs mt-1">Enter OTP sent to {email}</p>
+          <h2 className="text-base font-medium text-gray-800">Verify Your Email</h2>
+          <p className="text-gray-600 text-[10px] mt-1">Enter OTP sent to {email}</p>
         </div>
-        <form className="space-y-3 mt-3">
+        <form className="space-y-2 mt-3">
           <Input
             label="OTP Code"
             value={inputOtp}
             onChange={e => setInputOtp(e.target.value)}
             placeholder="6-digit OTP"
-            className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
+            className="text-[10px] py-1 px-1.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded focus:ring-2 focus:ring-teal-500"
           />
-          <div className="flex justify-between text-gray-200 text-xs">
-            <span>{timer > 0 ? `Expires: ${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}` : 'Expired'}</span>
-            <button type="button" disabled={timer > 0} onClick={onResend} className="text-teal-400 hover:underline disabled:text-gray-500">
+          <div className="flex justify-between items-center text-gray-500 text-[10px]">
+            <span>{timer > 0 ? `${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}` : 'Expired'}</span>
+            <button
+              type="button"
+              disabled={timer > 0}
+              onClick={onResend}
+              className="text-teal-600 hover:text-teal-700 disabled:text-gray-400"
+            >
               Resend
             </button>
           </div>
           <Button
             type="button"
             onClick={handleVerify}
-            loading={false}
-            className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded text-sm py-1"
+            className="w-full bg-teal-600 text-white hover:bg-teal-700 rounded py-1 text-[10px] font-medium"
           >
-            Verify OTP
-            <ArrowRight className="ml-1 h-3 w-3" />
+            Verify
+            <ArrowRight className="ml-0.5 h-3 w-3" />
           </Button>
         </form>
       </Card>
@@ -83,12 +84,33 @@ const Login = () => {
     agreeToTerms: false,
   });
   const [error, setError] = useState(null);
-  const [passwordStrength, setPasswordStrength] = useState('');
-
-  const { login, logout, user, isAuthenticated, loading } = useAuth();
+  const { login, user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/dashboard';
+
+  // Dynamic Date and Time
+  const [currentDateTime, setCurrentDateTime] = useState('04:39 PM EAT on Saturday, August 30, 2025');
+  useEffect(() => {
+    const updateDateTime = () => {
+      const now = new Date();
+      const options = {
+        timeZone: 'Africa/Addis_Ababa',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      };
+      const formattedDate = new Intl.DateTimeFormat('en-US', options).format(now);
+      setCurrentDateTime(formattedDate.replace(',', ' at'));
+    };
+    updateDateTime();
+    const interval = setInterval(updateDateTime, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated && user && !loading) {
@@ -113,14 +135,6 @@ const Login = () => {
       return false;
     }
   };
-
-  useEffect(() => {
-    if (formData.password && !isLogin) {
-      setPasswordStrength(isValidPassword(formData.password) ? 'Strong' : 'Weak');
-    } else {
-      setPasswordStrength('');
-    }
-  }, [formData.password, isLogin]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -171,7 +185,7 @@ const Login = () => {
       const res = await axios.post('http://localhost:5000/api/users/register', { email: otpEmail });
       if (res.data.success) {
         setInitialOtp(res.data.otp);
-        toast.success('OTP resent successfully.');
+        toast.success('OTP resent.');
       } else {
         toast.error(res.data.error);
       }
@@ -192,7 +206,7 @@ const Login = () => {
         return;
       }
       if (!isValidEmail(formData.email)) {
-        toast.error('Valid Gmail required.');
+        toast.error('Valid Gmail required (e.g., user@gmail.com).');
         setIsLoading(false);
         return;
       }
@@ -210,46 +224,45 @@ const Login = () => {
         toast.error(error.response?.data?.error || 'Login error.');
       }
     } else {
-      const { fullName, email, password, phone, address, agreeToTerms } = formData;
+      const { fullName, email, password, phone, address, agreeToTerms, confirmPassword } = formData;
 
-      if (!fullName || !email || !password || !phone || !address) {
+      if (!fullName || !email || !password || !phone || !address || !confirmPassword) {
         toast.error('All fields required.');
         setIsLoading(false);
         return;
       }
-
       if (!isValidEmail(email)) {
         toast.error('Valid Gmail required.');
         setIsLoading(false);
         return;
       }
-
       if (!isValidPassword(password)) {
-        toast.error('Password must be 8+ chars with uppercase, lowercase, number, and special char.');
+        toast.error('Password: 8+ chars, uppercase, lowercase, number, special char.');
         setIsLoading(false);
         return;
       }
-
+      if (password !== confirmPassword) {
+        toast.error('Passwords do not match.');
+        setIsLoading(false);
+        return;
+      }
       if (!isValidFullName(fullName)) {
-        toast.error('Valid full name (2+ words) required.');
+        toast.error('Valid full name (2+ words, letters only).');
         setIsLoading(false);
         return;
       }
-
       if (!isValidAddress(address)) {
-        toast.error('Valid address (5-100 chars) required.');
+        toast.error('Valid address (5-100 chars).');
         setIsLoading(false);
         return;
       }
-
       if (!isValidPhone(phone)) {
-        toast.error('Valid phone number required.');
+        toast.error('Valid phone (e.g., +251912345678).');
         setIsLoading(false);
         return;
       }
-
       if (!agreeToTerms) {
-        toast.error('Agree to terms required.');
+        toast.error('Agree to Terms and Privacy.');
         setIsLoading(false);
         return;
       }
@@ -270,116 +283,97 @@ const Login = () => {
     setIsLoading(false);
   };
 
-  const handleLogout = () => {
-    logout();
-    localStorage.removeItem('rememberedEmail');
-    navigate('/login', { replace: true });
-    toast.success('Logged out!');
-  };
-
   const renderBasicInfo = () => (
-    <div className="space-y-3">
-      <div className="text-center mb-4">
-        <h3 className="text-sm font-bold text-white">Basic Information</h3>
-        <p className="text-gray-200 text-xs">Enter your details</p>
+    <div className="space-y-1.5 sm:space-y-2">
+      <div className="text-center mb-1.5 sm:mb-2">
+        <h3 className="text-xs font-medium text-gray-800">Basic Info</h3>
       </div>
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
         <Input
-          label="Full Name *"
+          label="Full Name"
           name="fullName"
           type="text"
           value={formData.fullName}
           onChange={handleInputChange}
-          placeholder="Full name"
-          required
-          icon={<User className="h-4 w-4 text-gray-200" />}
-          className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
+          placeholder="Tilahun Sitotaw"
+          className="text-[10px] py-1 px-1 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded focus:ring-2 focus:ring-teal-500"
         />
         <PhoneNumberInput
-          label="Phone Number *"
+          label="Phone"
           name="phone"
           value={formData.phone}
           onChange={handlePhoneChange}
-          required
           placeholder="+251912345678"
-          className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
+          className="text-[10px] py-1 px-1 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded focus:ring-2 focus:ring-teal-500"
         />
-        <Input
-          label="Email Address *"
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={handleInputChange}
-          placeholder="user@gmail.com"
-          required
-          icon={<Mail className="h-4 w-4 text-gray-200" />}
-          className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
-          autoComplete="username"
-        />
-        <Input
-          label="Address *"
-          name="address"
-          type="text"
-          value={formData.address}
-          onChange={handleInputChange}
-          placeholder="123 Main St"
-          required
-          icon={<MapPin className="h-4 w-4 text-gray-200" />}
-          className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
-        />
+      </div>
+      <Input
+        label="Email"
+        name="email"
+        type="email"
+        value={formData.email}
+        onChange={handleInputChange}
+        placeholder="user@gmail.com"
+        className="text-[10px] py-1 px-1 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded focus:ring-2 focus:ring-teal-500"
+      />
+      <Input
+        label="Address"
+        name="address"
+        type="text"
+        value={formData.address}
+        onChange={handleInputChange}
+        placeholder="123 Main St, Addis Ababa"
+        className="text-[10px] py-1 px-1 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded focus:ring-2 focus:ring-teal-500"
+      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
         <div className="relative">
           <Input
-            label="Password *"
+            label="Password"
             name="password"
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={handleInputChange}
             placeholder="Password"
-            required
-            className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
-            autoComplete="new-password"
+            className="text-[10px] py-1 px-1 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded focus:ring-2 focus:ring-teal-500"
           />
           <button
             type="button"
-            className="absolute right-0 pr-2 top-6"
             onClick={() => setShowPassword(!showPassword)}
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            className="absolute right-1 top-6 text-gray-600 hover:text-gray-800"
           >
-            {showPassword ? <EyeOff className="h-4 w-4 text-gray-200" /> : <Eye className="h-4 w-4 text-gray-200" />}
+            {showPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
           </button>
         </div>
         <Input
-          label="Confirm Password *"
+          label="Confirm Password"
           name="confirmPassword"
           type={showPassword ? 'text' : 'password'}
           value={formData.confirmPassword}
           onChange={handleInputChange}
-          placeholder="Confirm password"
-          required
-          className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
-          autoComplete="new-password"
+          placeholder="Confirm Password"
+          className="text-[10px] py-1 px-1 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded focus:ring-2 focus:ring-teal-500"
         />
-        <div className="flex items-center">
-          <input
-            id="agreeToTerms"
-            name="agreeToTerms"
-            type="checkbox"
-            checked={formData.agreeToTerms}
-            onChange={handleInputChange}
-            className="h-4 w-4 text-teal-400 border-gray-300 rounded"
-            required
-          />
-          <label htmlFor="agreeToTerms" className="ml-1 text-xs text-gray-200">
-            I agree to{' '}
-            <Link to="/terms-of-service" className="text-teal-400 hover:text-pink-400">Terms</Link> and{' '}
-            <Link to="/privacy-policy" className="text-teal-400 hover:text-pink-400">Privacy</Link>.
-          </label>
-        </div>
-        {passwordStrength && (
-          <p className={`text-xs ${passwordStrength === 'Strong' ? 'text-teal-400' : 'text-red-400'}`}>
-            Strength: {passwordStrength}
-          </p>
-        )}
+      </div>
+      <div className="flex items-center mt-1">
+        <input
+          id="agreeToTerms"
+          name="agreeToTerms"
+          type="checkbox"
+          checked={formData.agreeToTerms}
+          onChange={handleInputChange}
+          className="h-3 w-3 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+        />
+        <label htmlFor="agreeToTerms" className="ml-0.5 text-[10px] text-gray-700">
+          Agree to{' '}
+          <Link to="/terms-of-service" className="text-teal-600 hover:text-teal-700">
+            Terms
+          </Link>{' '}
+          and{' '}
+          <Link to="/privacy-policy" className="text-teal-600 hover:text-teal-700">
+            Privacy
+          </Link>
+          .
+        </label>
       </div>
     </div>
   );
@@ -387,29 +381,21 @@ const Login = () => {
   if (showOTP) return <OTPInput email={otpEmail} otp={initialOtp} onVerify={handleVerifyOTP} onResend={handleResendOTP} />;
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center"
-      style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${bgImage})` }}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-80 space-y-4"
-      >
-        <div className="text-center">
-          <Link to="/" className="flex items-center justify-center space-x-2">
-            <img src={logoIconDarkTransparent} alt="AgroChain Logo" className="h-8 w-8" />
+    <div className="min-h-screen flex items-center justify-center py-6 px-2 sm:px-4 bg-gradient-to-br from-gray-50 to-teal-50">
+      <div className="w-full max-w-xs">
+        <div className="text-center mb-3 sm:mb-4">
+          <Link to="/" className="flex items-center justify-center space-x-1">
+            <img src={logoIconDarkTransparent} alt="AgroChain Logo" className="h-5 w-5 object-contain" />
             <div className="flex flex-col">
-              <span className="text-lg font-bold text-teal-400">AgroChain</span>
-              <span className="text-xs font-medium text-emerald-300">Ethiopia</span>
+              <span className="text-xs sm:text-sm font-medium text-gray-800">AgroChain</span>
+              <span className="text-[8px] sm:text-[10px] font-light text-teal-600">Ethiopia</span>
             </div>
           </Link>
-          <h2 className="text-xl font-bold text-white">{isLogin ? 'Welcome Back' : 'Join AgroChain'}</h2>
-          <p className="text-gray-200 text-xs">{isLogin ? 'Sign in' : 'Create account'}</p>
+          <h2 className="text-lg sm:text-xl font-medium text-gray-800 mt-2 sm:mt-3">{isLogin ? 'Welcome Back' : 'Join Us'}</h2>
+          <p className="text-gray-600 text-[10px] sm:text-xs mt-1">Sign in or create your account</p>
         </div>
-        <Card className="bg-white/15 backdrop-blur-sm border border-white/30 shadow-lg p-4 rounded-lg">
-          <form onSubmit={handleSubmit} className="space-y-3" autoComplete={isLogin ? 'on' : 'off'}>
+        <Card className="bg-white shadow-sm rounded-md p-3 sm:p-4">
+          <form onSubmit={handleSubmit} className="space-y-1.5 sm:space-y-2" autoComplete={isLogin ? 'on' : 'off'}>
             {isLogin ? (
               <>
                 <Input
@@ -418,11 +404,8 @@ const Login = () => {
                   type="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  required
                   placeholder="user@gmail.com"
-                  icon={<Mail className="h-4 w-4 text-gray-200" />}
-                  className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
-                  autoComplete="username"
+                  className="text-[10px] py-1 px-1.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded focus:ring-2 focus:ring-teal-500"
                 />
                 <div className="relative">
                   <Input
@@ -431,41 +414,40 @@ const Login = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={handleInputChange}
-                    required
                     placeholder="Password"
-                    className="text-sm py-1 bg-white/10 border-white/30 text-white placeholder-gray-300 rounded focus:ring-teal-400"
-                    autoComplete="current-password"
+                    className="text-[10px] py-1 px-1.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded focus:ring-2 focus:ring-teal-500"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-6 text-gray-200 hover:text-teal-400"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute right-1 top-6 text-gray-600 hover:text-gray-800"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                   </button>
                 </div>
-                <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center justify-between text-[10px]">
                   <div className="flex items-center">
                     <input
                       id="remember-me"
                       name="remember-me"
                       type="checkbox"
-                      className="h-4 w-4 text-teal-400 border-gray-300 rounded"
+                      className="h-2.5 w-2.5 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
                       checked={formData.rememberMe || false}
                       onChange={e => setFormData(prev => ({ ...prev, rememberMe: e.target.checked }))}
                     />
-                    <label htmlFor="remember-me" className="ml-1 text-gray-200">Remember me</label>
+                    <label htmlFor="remember-me" className="ml-0.5 text-gray-700">Remember me</label>
                   </div>
-                  <Link to="/forgot-password" className="text-teal-400 hover:text-pink-400">Forgot?</Link>
+                  <Link to="/forgot-password" className="text-teal-600 hover:text-teal-700">
+                    Forgot?
+                  </Link>
                 </div>
                 <Button
                   type="submit"
                   loading={isLoading}
-                  className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded text-sm py-1"
+                  className="w-full bg-teal-600 text-white hover:bg-teal-700 rounded py-1 text-[10px] font-medium"
                 >
                   Sign In
-                  <ArrowRight className="ml-1 h-3 w-3" />
+                  <ArrowRight className="ml-0.5 h-3 w-3" />
                 </Button>
               </>
             ) : (
@@ -474,46 +456,34 @@ const Login = () => {
                 <Button
                   type="submit"
                   loading={isLoading}
-                  className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded text-sm py-1"
-                  disabled={isLoading}
+                  className="w-full bg-teal-600 text-white hover:bg-teal-700 rounded py-1 text-[10px] font-medium"
                 >
                   Create Account
-                  <ArrowRight className="ml-1 h-3 w-3" />
+                  <ArrowRight className="ml-0.5 h-3 w-3" />
                 </Button>
               </>
             )}
-            {error && <p className="text-red-400 text-xs text-center">{error}</p>}
+            {error && <p className="text-red-600 text-center text-[10px]">{error}</p>}
           </form>
-          <div className="mt-2">
+          <div className="mt-2 sm:mt-3 text-center">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/40" />
+                <div className="w-full border-t border-gray-200" />
               </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="px-2 bg-transparent text-orange-400">
-                  {isLogin ? "No account?" : 'Have account?'}
-                </span>
+              <div className="relative flex justify-center text-[10px]">
+                <span className="px-1.5 bg-white text-gray-600">No account?</span>
               </div>
             </div>
             <Button
               variant="outline"
               onClick={handleToggleForm}
-              className="w-full border-white/30 text-white text-xs py-1 mt-1 hover:text-pink-400"
+              className="w-full mt-1.5 border-gray-300 text-gray-700 hover:bg-teal-600 hover:text-white rounded py-1 text-[10px] font-medium"
             >
-              {isLogin ? 'Create account' : 'Sign in'}
+              {isLogin ? 'Create Account' : 'Sign In'}
             </Button>
-            {isAuthenticated && (
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                className="w-full mt-1 border-red-400 text-red-400 text-xs py-1 hover:bg-red-400 hover:text-white"
-              >
-                Logout
-              </Button>
-            )}
           </div>
         </Card>
-      </motion.div>
+      </div>
       <LiveChat />
     </div>
   );

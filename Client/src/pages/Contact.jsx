@@ -17,6 +17,55 @@ import LiveChat from '../components/LiveChat';
 import toast from 'react-hot-toast';
 import contactBg from '../assets/images/bg-login.jfif';
 
+const styles = `
+  .polygon-bg {
+    clip-path: polygon(0 0, 100% 0, 100% 75%, 85% 100%, 15% 100%, 0 75%);
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+  }
+  .deep-shadow {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+  }
+  .hover-lift {
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+  }
+  .gradient-text {
+    background: linear-gradient(90deg, #6d28d9, #3b82f6, #14b8a6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .glow-effect {
+    filter: drop-shadow(0 0 15px rgba(124, 58, 237, 0.5));
+  }
+  .pulse-animation {
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  .animate-gradient-shift {
+    animation: gradientShift 10s ease infinite;
+    background-size: 200% 200%;
+  }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @media (max-width: 640px) {
+    .polygon-bg {
+      clip-path: polygon(0 0, 100% 0, 100% 85%, 80% 100%, 20% 100%, 0 85%);
+    }
+  }
+`;
+
 const MAX_FILE_SIZE = 15 * 1024 * 1024 * 1024; // 15GB
 
 const Contact = () => {
@@ -187,38 +236,41 @@ const Contact = () => {
   ];
 
   return (
-    <div className="min-h-screen font-sans text-gray-900 bg-gradient-to-br from-gray-50 to-white">
+    <div className="min-h-screen font-sans text-gray-900 bg-gradient-to-br from-green-100 to-emerald-200 animate-gradient-shift">
+      <style>{styles}</style>
       {/* Hero Section - Modern & Attractive */}
       <section
-        className="relative h-[80vh] flex items-center justify-center bg-cover bg-center overflow-hidden"
+        className="relative h-[80vh] flex items-center justify-center bg-cover bg-center overflow-hidden polygon-bg"
         style={{ backgroundImage: `url(${contactBg})`, backgroundAttachment: 'fixed' }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/80 to-blue-600/80"></div>
         <div className="relative z-10 text-center text-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <motion.h1
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: 'easeOut' }}
-            className="text-5xl sm:text-6xl md:text-7xl font-extrabold mb-6 leading-tight tracking-wide"
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 1.2, type: 'spring', stiffness: 100 }}
+            className="text-5xl sm:text-6xl md:text-7xl font-extrabold mb-6 leading-tight tracking-wide gradient-text glow-effect"
+            style={{ textShadow: '0 6px 15px rgba(0, 0, 0, 0.7)' }}
           >
-            Contact <span className="text-teal-300">AgroChain Ethiopia</span>
+            Contact <span className="text-yellow-300">AgroChain Ethiopia</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
-            className="text-lg sm:text-xl max-w-3xl mx-auto mb-8"
+            transition={{ duration: 1.2, delay: 0.2, type: 'spring', stiffness: 100 }}
+            className="text-lg sm:text-xl max-w-3xl mx-auto mb-8 text-white bg-white/70 rounded-xl p-4 shadow-md"
           >
             Let’s grow together! Reach out to transform your agricultural journey.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.4, ease: 'easeOut' }}
+            transition={{ duration: 1.2, delay: 0.4, type: 'spring', stiffness: 100 }}
+            className="flex justify-center"
           >
             <a
               href="#contact-form"
-              className="bg-teal-300 text-gray-900 px-6 py-3 rounded-lg font-semibold text-lg hover:bg-teal-400 hover:shadow-lg transition-all duration-300 inline-flex items-center gap-3"
+              className="bg-teal-500 text-white px-6 py-3 rounded-full font-semibold text-lg hover:bg-teal-600 hover:shadow-2xl transition-all duration-300 deep-shadow hover-lift pulse-animation inline-flex items-center gap-3"
             >
               Get in Touch
               <ArrowRight className="h-5 w-5" />
@@ -228,18 +280,19 @@ const Contact = () => {
       </section>
 
       {/* Form & Contact Info Section - Modern Layout */}
-      <section id="contact-form" className="py-24 bg-white">
+      <section id="contact-form" className="py-24 bg-white/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             {/* Contact Form */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.8, type: 'spring', stiffness: 80 }}
               viewport={{ once: true, amount: 0.3 }}
-              className="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-xl transition-all duration-300"
+              className="bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl p-8 shadow-md hover:shadow-xl transition-all duration-300 deep-shadow"
+              style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)' }}
             >
-              <h2 className="text-3xl font-bold text-gray-800 mb-6">Send Us a Message</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-6 gradient-text">Send Us a Message</h2>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -252,7 +305,7 @@ const Contact = () => {
                       value={formData.name}
                       onChange={handleInputChange}
                       required
-                      className={`w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.name ? 'border-red-500' : ''}`}
+                      className={`w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.name ? 'border-red-500' : ''} hover:border-teal-500 transition-all duration-300`}
                       aria-describedby={errors.name ? 'name-error' : undefined}
                     />
                     {errors.name && (
@@ -272,7 +325,7 @@ const Contact = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className={`w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.email ? 'border-red-500' : ''}`}
+                      className={`w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.email ? 'border-red-500' : ''} hover:border-teal-500 transition-all duration-300`}
                       aria-describedby={errors.email ? 'email-error' : undefined}
                     />
                     {errors.email && (
@@ -292,7 +345,7 @@ const Contact = () => {
                     value={formData.subject}
                     onChange={handleInputChange}
                     required
-                    className={`w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.subject ? 'border-red-500' : ''}`}
+                    className={`w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.subject ? 'border-red-500' : ''} hover:border-teal-500 transition-all duration-300`}
                     aria-describedby={errors.subject ? 'subject-error' : undefined}
                   />
                   {errors.subject && (
@@ -312,7 +365,7 @@ const Contact = () => {
                     onChange={handleInputChange}
                     required
                     rows={5}
-                    className={`w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.message ? 'border-red-500' : ''}`}
+                    className={`w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.message ? 'border-red-500' : ''} hover:border-teal-500 transition-all duration-300`}
                     placeholder="Your message..."
                     aria-describedby={errors.message ? 'message-error' : undefined}
                   />
@@ -326,7 +379,7 @@ const Contact = () => {
                   <button
                     type="button"
                     onClick={recording ? stopRecording : startRecording}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-200 transition-all duration-300"
+                    className="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-600 rounded-full hover:bg-emerald-200 hover:shadow-md transition-all duration-300 deep-shadow hover-lift"
                     aria-label={recording ? 'Stop recording voice message' : 'Start recording voice message'}
                   >
                     <Mic className={`${recording ? 'text-red-500 animate-pulse' : 'text-emerald-600'} h-5 w-5`} />
@@ -334,9 +387,9 @@ const Contact = () => {
                   </button>
                   {audioBlob && (
                     <div className="flex items-center gap-2">
-                      <audio controls src={URL.createObjectURL(audioBlob)} className="max-w-xs" />
+                      <audio controls src={URL.createObjectURL(audioBlob)} className="max-w-xs rounded-lg border border-gray-200" />
                       <Trash2
-                        className="cursor-pointer text-red-500 h-5 w-5 hover:text-red-700"
+                        className="cursor-pointer text-red-500 h-5 w-5 hover:text-red-700 transition-colors duration-300"
                         onClick={deleteRecording}
                         aria-label="Delete voice recording"
                       />
@@ -351,13 +404,13 @@ const Contact = () => {
                     type="file"
                     multiple
                     onChange={handleFileChange}
-                    className="w-full text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-emerald-100 file:text-emerald-600 hover:file:bg-emerald-200"
+                    className="w-full text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-100 file:text-emerald-600 hover:file:bg-emerald-200 transition-all duration-300"
                     aria-label="Upload files"
                   />
                   {files.length > 0 && (
-                    <ul className="text-gray-600 text-sm mt-2">
+                    <ul className="text-gray-600 text-sm mt-2 bg-white/80 rounded-lg p-2 shadow-md">
                       {files.map((f, i) => (
-                        <li key={i} className="flex justify-between">
+                        <li key={i} className="flex justify-between p-1">
                           {f.name} ({(f.size / 1024 / 1024).toFixed(2)} MB)
                         </li>
                       ))}
@@ -367,7 +420,7 @@ const Contact = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-full flex justify-center items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-lg font-semibold hover:from-emerald-700 hover:to-teal-600 transition-all duration-300 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-xl'}`}
+                  className={`w-full flex justify-center items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-full font-semibold hover:from-emerald-700 hover:to-teal-600 transition-all duration-300 deep-shadow hover-lift ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-xl pulse-animation'}`}
                   aria-label="Send message"
                 >
                   <Send className="h-5 w-5" /> Send Message
@@ -379,7 +432,7 @@ const Contact = () => {
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: 0.8, delay: 0.2, type: 'spring', stiffness: 80 }}
               viewport={{ once: true, amount: 0.3 }}
               className="space-y-6"
             >
@@ -388,22 +441,23 @@ const Contact = () => {
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  transition={{ duration: 0.6, delay: index * 0.1, type: 'spring', stiffness: 80 }}
                   viewport={{ once: true, amount: 0.3 }}
-                  className="bg-gray-50 rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300"
+                  className="bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 deep-shadow"
+                  style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)' }}
                 >
                   <div className="flex items-start gap-4">
-                    <div className="p-3 bg-emerald-100 rounded-full">
+                    <div className="p-3 bg-emerald-100 rounded-full glow-effect">
                       <info.icon className="h-6 w-6 text-emerald-600" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-800 mb-2">{info.title}</h3>
+                      <h3 className="text-xl font-semibold text-gray-800 mb-2 gradient-text">{info.title}</h3>
                       {info.details.map((detail, i) => (
                         <p key={i} className="text-gray-600 text-sm mb-1 flex items-center gap-2">
                           {detail.link ? (
                             <a
                               href={detail.link}
-                              className="text-emerald-600 hover:text-emerald-700 hover:underline transition-all duration-300"
+                              className="text-emerald-600 hover:text-emerald-700 hover:underline transition-all duration-300 hover-lift"
                               aria-label={
                                 detail.isMap
                                   ? `View ${detail.text} on Google Maps`
@@ -431,24 +485,24 @@ const Contact = () => {
       </section>
 
       {/* FAQ Section - Modern & Attractive */}
-      <section className="py-24 bg-gradient-to-br from-gray-900 to-gray-800 text-white relative overflow-hidden">
+      <section className="py-24 bg-gradient-to-br from-gray-900 to-gray-800 text-white relative overflow-hidden polygon-bg">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,#4ade80_0%,_transparent_70%)] opacity-10"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: 'easeOut' }}
+            transition={{ duration: 1.2, type: 'spring', stiffness: 100 }}
             viewport={{ once: true, amount: 0.3 }}
             className="text-center mb-12"
           >
-            <h2 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight">
+            <h2 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight gradient-text glow-effect">
               <span className="text-yellow-400">F</span>requently
               <br />
               <span className="text-yellow-400">A</span>sked
               <br />
-              <span className="text-white">Q</span>uestions
+              <span className="text-teal-300">Q</span>uestions
             </h2>
-            <p className="text-lg text-gray-300 max-w-2xl mx-auto mt-2">
+            <p className="text-lg text-gray-300 max-w-2xl mx-auto mt-2 bg-white/20 rounded-lg p-3 shadow-md">
               Discover answers to your questions about AgroChain Ethiopia.
             </p>
           </motion.div>
@@ -458,13 +512,14 @@ const Contact = () => {
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                transition={{ duration: 0.6, delay: index * 0.1, type: 'spring', stiffness: 80 }}
                 viewport={{ once: true, amount: 0.3 }}
-                className="bg-white/10 backdrop-blur-md rounded-xl p-4 hover:bg-white/20 transition-all duration-300"
+                className="bg-white/10 backdrop-blur-md rounded-xl p-4 hover:bg-white/20 transition-all duration-300 deep-shadow"
+                style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)' }}
               >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="w-full flex justify-between items-center text-left text-white"
+                  className="w-full flex justify-between items-center text-left text-white hover:gradient-text transition-colors duration-300"
                   aria-expanded={openFaqIndex === index}
                   aria-controls={`faq-answer-${index}`}
                 >
@@ -481,7 +536,7 @@ const Contact = () => {
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="mt-2 text-gray-200 text-sm p-2"
+                      className="mt-2 text-gray-200 text-sm p-2 bg-white/10 rounded-lg shadow-md"
                     >
                       {faq.answer}
                     </motion.div>
@@ -494,33 +549,33 @@ const Contact = () => {
       </section>
 
       {/* CTA Section - Modern & Attractive */}
-      <section className="py-24 bg-gradient-to-r from-emerald-600 to-teal-500 text-white">
+      <section className="py-24 bg-gradient-to-r from-emerald-600 to-teal-500 text-white polygon-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.h2
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: 'easeOut' }}
-            className="text-4xl sm:text-5xl font-extrabold mb-6"
+            transition={{ duration: 1.2, type: 'spring', stiffness: 100 }}
+            className="text-4xl sm:text-5xl font-extrabold mb-6 gradient-text glow-effect"
           >
             Ready to Transform <span className="text-teal-200">Your Business?</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
-            className="text-lg mb-10 max-w-2xl mx-auto"
+            transition={{ duration: 1.2, delay: 0.2, type: 'spring', stiffness: 100 }}
+            className="text-lg mb-10 max-w-2xl mx-auto bg-white/20 rounded-lg p-3 shadow-md"
           >
             Join AgroChain Ethiopia and unlock a transparent, efficient agricultural ecosystem.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.4, ease: 'easeOut' }}
+            transition={{ duration: 1.2, delay: 0.4, type: 'spring', stiffness: 100 }}
             className="flex flex-col sm:flex-row gap-6 justify-center"
           >
             <Link
               to="/register"
-              className="bg-teal-300 text-gray-900 px-6 py-3 rounded-lg font-semibold text-lg hover:bg-teal-400 hover:shadow-lg transition-all duration-300 inline-flex items-center gap-3"
+              className="bg-teal-500 text-white px-6 py-3 rounded-full font-semibold text-lg hover:bg-teal-600 hover:shadow-2xl transition-all duration-300 deep-shadow hover-lift pulse-animation inline-flex items-center gap-3"
               aria-label="Get started with AgroChain"
             >
               Get Started Now
@@ -528,7 +583,7 @@ const Contact = () => {
             </Link>
             <Link
               to="/services"
-              className="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold text-lg hover:bg-white/10 hover:shadow-lg transition-all duration-300 inline-flex items-center gap-3"
+              className="border-2 border-white text-white px-6 py-3 rounded-full font-semibold text-lg hover:bg-white/10 hover:shadow-lg transition-all duration-300 deep-shadow hover-lift inline-flex items-center gap-3"
               aria-label="Explore our services"
             >
               Explore Services

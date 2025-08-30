@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -113,56 +114,54 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center py-4 px-2 sm:px-4 lg:px-8 bg-gradient-to-br from-blue-700 via-emerald-600 to-blue-500 overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center py-4 px-2 sm:px-4 bg-white overflow-hidden">
       {/* Decorative leaves */}
-      <motion.svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" className="hidden md:block absolute left-0 top-1/6 -translate-y-1/6 w-24 md:w-48 h-24 md:h-48 opacity-30" initial={{ y: -100, opacity: 0 }} animate={{ y: 100, opacity: 2 }} transition={{ duration: 1.5 }}>
-        <path d="M100 10 C 140 40, 160 100, 100 180 C 40 100, 60 40, 100 10 Z" fill="green" stroke="darkgreen" strokeWidth="2" />
-        <line x1="100" y1="20" x2="100" y2="170" stroke="white" strokeWidth="1" />
+      <motion.svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" className="hidden md:block absolute left-0 top-1/6 -translate-y-1/6 w-16 md:w-24 h-16 md:h-24 opacity-10" initial={{ y: -100, opacity: 0 }} animate={{ y: 100, opacity: 0.2 }} transition={{ duration: 1.5 }}>
+        <path d="M100 10 C 140 40, 160 100, 100 180 C 40 100, 60 40, 100 10 Z" fill="#10B981" stroke="#047857" strokeWidth="1" />
+        <line x1="100" y1="20" x2="100" y2="170" stroke="#047857" strokeWidth="0.5" />
       </motion.svg>
-
-      <motion.svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" className="hidden md:block absolute right-0 top-1/6 -translate-y-1/6 w-24 md:w-48 h-24 md:h-48 opacity-30" initial={{ y: 100, opacity: 0 }} animate={{ y: -100, opacity: 2 }} transition={{ duration: 1.5 }}>
-        <path d="M100 10 C 140 40, 160 100, 100 180 C 40 100, 60 40, 100 10 Z" fill="green" stroke="darkgreen" strokeWidth="2" />
-        <line x1="100" y1="20" x2="100" y2="170" stroke="white" strokeWidth="1" />
+      <motion.svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" className="hidden md:block absolute right-0 top-1/6 -translate-y-1/6 w-16 md:w-24 h-16 md:h-24 opacity-10" initial={{ y: 100, opacity: 0 }} animate={{ y: -100, opacity: 0.2 }} transition={{ duration: 1.5 }}>
+        <path d="M100 10 C 140 40, 160 100, 100 180 C 40 100, 60 40, 100 10 Z" fill="#10B981" stroke="#047857" strokeWidth="1" />
+        <line x1="100" y1="20" x2="100" y2="170" stroke="#047857" strokeWidth="0.5" />
       </motion.svg>
 
       {/* Main */}
-      <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full max-w-xs sm:max-w-md lg:max-w-xl space-y-3 sm:space-y-6 relative z-10">
+      <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full max-w-xs sm:max-w-sm space-y-2 sm:space-y-4 relative z-10">
         {/* Header */}
         <div className="text-center">
-          <Link to="/" className="flex items-center justify-center space-x-1 sm:space-x-3 mb-2 sm:mb-4">
+          <Link to="/" className="flex items-center justify-center space-x-1 sm:space-x-2 mb-2 sm:mb-3">
             <div className="relative">
-              <img src={logoIconDarkTransparent} alt="AgroChain Logo" className="h-6 w-6 sm:h-10 sm:w-10 object-contain" />
-              <span className="absolute -top-1 -right-1 bg-orange-500 text-black text-[7px] sm:text-xs font-bold rounded-full w-3 h-3 flex items-center justify-center border border-zinc-400">ET</span>
+              <img src={logoIconDarkTransparent} alt="AgroChain Logo" className="h-5 w-5 sm:h-6 sm:w-6 object-contain" />
+              <span className="absolute -top-0.5 -right-0.5 bg-amber-400 text-black text-[6px] sm:text-[8px] font-bold rounded-full w-2.5 h-2.5 sm:w-3 sm:h-3 flex items-center justify-center border border-gray-600">ET</span>
             </div>
-            <div className="flex flex-col -space-y-1">
-              <span className="text-base sm:text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-500">AgroChain</span>
-              <span className="text-[8px] sm:text-sm font-semibold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 drop-shadow-md">Ethiopia</span>
+            <div className="flex flex-col -space-y-0.5">
+              <span className="text-sm sm:text-lg font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600">AgroChain</span>
+              <span className="text-[6px] sm:text-xs font-semibold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500">Ethiopia</span>
             </div>
           </Link>
-          <h2 className="text-base sm:text-2xl font-extrabold text-white mt-1">
+          <h2 className="text-sm sm:text-xl font-extrabold text-gray-900 mt-1 sm:mt-2">
             {step === 1 ? 'Reset Your Password' : step === 2 ? 'Enter OTP' : 'Set New Password'}
           </h2>
-          <p className="text-gray-200 text-[8px] sm:text-sm mt-1">
+          <p className="text-gray-600 text-[6px] sm:text-xs mt-0.5 sm:mt-1">
             {step === 1
               ? 'Enter your email to receive a reset OTP'
               : step === 2
               ? 'Check your email and enter the OTP below'
               : 'Enter your new password and confirm'}
           </p>
-          <div className="flex justify-center space-x-1 sm:space-x-2 mt-2 sm:mt-4">
+          <div className="flex justify-center space-x-1 sm:space-x-2 mt-1 sm:mt-2">
             {[1, 2, 3].map((s) => (
-              <span key={s} className={`w-1.5 h-1.5 sm:w-3 sm:h-3 rounded-full shadow-lg ${step >= s ? 'bg-emerald-400' : 'bg-gray-400'}`}></span>
+              <span key={s} className={`w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full ${step >= s ? 'bg-emerald-600' : 'bg-gray-300'}`}></span>
             ))}
           </div>
         </div>
 
         {/* Card */}
-        <motion.div variants={cardVariants} initial="hidden" animate="visible" whileHover={{ scale: 1.01 }} className="transform-gpu">
-          <Card className="bg-blue-500/20 sm:bg-green-500/20 backdrop-blur-lg border border-white/20 shadow-xl rounded-lg sm:rounded-2xl p-2 sm:p-6 space-y-2 sm:space-y-5 text-[8px] sm:text-sm transition-all duration-300">
-
-            {/* ✅ Step 1 - No Reload */}
+        <motion.div variants={cardVariants} initial="hidden" animate="visible" whileHover={{ scale: 1.02 }} className="transform-gpu">
+          <Card className="bg-white shadow-lg rounded-lg sm:rounded-xl p-2 sm:p-4 space-y-1 sm:space-y-3 text-[6px] sm:text-sm transition-all duration-300">
+            {/* Step 1 - Email */}
             {step === 1 && (
-              <div className="space-y-1 sm:space-y-4">
+              <div className="space-y-1 sm:space-y-3">
                 <Input
                   label="Email Address"
                   name="email"
@@ -171,24 +170,24 @@ const ForgotPassword = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
-                  icon={<Mail className="h-2 sm:h-5 w-2 sm:w-5 text-gray-400" />}
-                  className="text-[8px] sm:text-sm py-1 sm:py-2 bg-white/10 border border-white/20 text-white placeholder-gray-400 rounded-md sm:rounded-lg focus:ring-2 focus:ring-emerald-400 transition"
+                  icon={<Mail className="h-3 sm:h-4 w-3 sm:w-4 text-gray-500" />}
+                  className="text-[6px] sm:text-xs py-1 sm:py-1.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-md focus:ring-2 focus:ring-emerald-500 transition"
                 />
                 <Button
                   type="button"
                   onClick={handleEmailSubmit}
                   loading={isLoading}
                   disabled={isLoading}
-                  className="w-full py-1 sm:py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-md sm:rounded-lg shadow-md flex items-center justify-center space-x-1 sm:space-x-2 text-[8px] sm:text-sm"
+                  className="w-full py-1 sm:py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-md flex items-center justify-center space-x-1 sm:space-x-2 text-[6px] sm:text-xs"
                 >
-                  {isLoading ? <Loader2 className="h-2 sm:h-4 w-2 sm:w-4 animate-spin" /> : <>Send OTP <ArrowRight className="h-2 w-2 sm:h-4 sm:w-4" /></>}
+                  {isLoading ? <Loader2 className="h-3 sm:h-4 w-3 sm:w-4 animate-spin" /> : <>Send OTP <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" /></>}
                 </Button>
               </div>
             )}
 
             {/* Step 2 - OTP */}
             {step === 2 && (
-              <form onSubmit={handleOtpSubmit} className="space-y-1 sm:space-y-4">
+              <form onSubmit={handleOtpSubmit} className="space-y-1 sm:space-y-3">
                 <Input
                   label="OTP"
                   name="otp"
@@ -197,17 +196,17 @@ const ForgotPassword = () => {
                   onChange={(e) => setOtp(e.target.value)}
                   placeholder="6-digit code"
                   required
-                  className="text-[8px] sm:text-sm py-1 sm:py-2 bg-white/10 border border-white/20 text-white placeholder-gray-400 rounded-md sm:rounded-lg focus:ring-2 focus:ring-emerald-400 transition"
+                  className="text-[6px] sm:text-xs py-1 sm:py-1.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-md focus:ring-2 focus:ring-emerald-500 transition"
                 />
                 {timer > 0 ? (
-                  <p className="text-red-500 text-[10px] sm:text-sm text-center font-semibold">
+                  <p className="text-red-600 text-[7px] sm:text-xs text-center font-medium">
                     Time remaining: {Math.floor(timer / 60)}:{timer % 60 < 10 ? `0${timer % 60}` : timer % 60}
                   </p>
                 ) : (
-                  <p className="text-center text-[10px] sm:text-sm">
+                  <p className="text-center text-[7px] sm:text-xs">
                     <button
                       onClick={handleResendOtp}
-                      className="text-emerald-400 hover:text-emerald-500 underline"
+                      className="text-emerald-600 hover:text-emerald-700 underline"
                       disabled={isLoading}
                     >
                       {isLoading ? 'Sending...' : 'Resend OTP'}
@@ -218,16 +217,16 @@ const ForgotPassword = () => {
                   type="submit"
                   loading={isLoading}
                   disabled={isLoading}
-                  className="w-full py-1 sm:py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-md sm:rounded-lg shadow-md flex items-center justify-center space-x-1 sm:space-x-2 text-[8px] sm:text-sm"
+                  className="w-full py-1 sm:py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-md flex items-center justify-center space-x-1 sm:space-x-2 text-[6px] sm:text-xs"
                 >
-                  {isLoading ? <Loader2 className="h-2 sm:h-4 w-2 sm:w-4 animate-spin" /> : <>Verify OTP <ArrowRight className="h-2 w-2 sm:h-4 sm:w-4" /></>}
+                  {isLoading ? <Loader2 className="h-3 sm:h-4 w-3 sm:w-4 animate-spin" /> : <>Verify OTP <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" /></>}
                 </Button>
               </form>
             )}
 
             {/* Step 3 - Password Reset */}
             {step === 3 && (
-              <form onSubmit={handlePasswordSubmit} className="space-y-1 sm:space-y-4">
+              <form onSubmit={handlePasswordSubmit} className="space-y-1 sm:space-y-3">
                 {/* New Password */}
                 <div className="relative">
                   <Input
@@ -238,15 +237,15 @@ const ForgotPassword = () => {
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter new password"
                     required
-                    icon={<Lock className="h-2 sm:h-5 w-2 sm:w-5 text-gray-400" />}
-                    className="text-[8px] sm:text-sm py-1 sm:py-2 bg-white/10 border border-white/20 text-white placeholder-gray-400 rounded-md sm:rounded-lg focus:ring-2 focus:ring-emerald-400 transition pr-10"
+                    icon={<Lock className="h-3 sm:h-4 w-3 sm:w-4 text-gray-500" />}
+                    className="text-[6px] sm:text-xs py-1 sm:py-1.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-md pr-9 sm:pr-10 focus:ring-2 focus:ring-emerald-500 transition"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200 focus:outline-none"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                   >
-                    {showNewPassword ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
+                    {showNewPassword ? <EyeOff className="h-3 sm:h-4 w-3 sm:w-4" /> : <Eye className="h-3 sm:h-4 w-3 sm:w-4" />}
                   </button>
                 </div>
 
@@ -260,15 +259,15 @@ const ForgotPassword = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm new password"
                     required
-                    icon={<Lock className="h-2 sm:h-5 w-2 sm:w-5 text-gray-400" />}
-                    className="text-[8px] sm:text-sm py-1 sm:py-2 bg-white/10 border border-white/20 text-white placeholder-gray-400 rounded-md sm:rounded-lg focus:ring-2 focus:ring-emerald-400 transition pr-10"
+                    icon={<Lock className="h-3 sm:h-4 w-3 sm:w-4 text-gray-500" />}
+                    className="text-[6px] sm:text-xs py-1 sm:py-1.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-md pr-9 sm:pr-10 focus:ring-2 focus:ring-emerald-500 transition"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200 focus:outline-none"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                   >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
+                    {showConfirmPassword ? <EyeOff className="h-3 sm:h-4 w-3 sm:w-4" /> : <Eye className="h-3 sm:h-4 w-3 sm:w-4" />}
                   </button>
                 </div>
 
@@ -276,15 +275,15 @@ const ForgotPassword = () => {
                   type="submit"
                   loading={isLoading}
                   disabled={isLoading}
-                  className="w-full py-1 sm:py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-md sm:rounded-lg shadow-md flex items-center justify-center space-x-1 sm:space-x-2 text-[8px] sm:text-sm"
+                  className="w-full py-1 sm:py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-md flex items-center justify-center space-x-1 sm:space-x-2 text-[6px] sm:text-xs"
                 >
-                  {isLoading ? <Loader2 className="h-2 sm:h-4 w-2 sm:w-4 animate-spin" /> : <>Reset Password <ArrowRight className="h-2 w-2 sm:h-4 sm:w-4" /></>}
+                  {isLoading ? <Loader2 className="h-3 sm:h-4 w-3 sm:w-4 animate-spin" /> : <>Reset Password <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" /></>}
                 </Button>
               </form>
             )}
 
-            <div className="mt-1 sm:mt-4 text-center">
-              <Button variant="outline" onClick={() => navigate('/login')} className="w-full border-white/30 text-white text-[8px] sm:text-sm">
+            <div className="mt-1 sm:mt-2 text-center">
+              <Button variant="outline" onClick={() => navigate('/login')} className="w-full border-gray-300 text-gray-700 hover:bg-emerald-50 text-[6px] sm:text-xs">
                 Back to Sign In
               </Button>
             </div>
