@@ -278,7 +278,7 @@ const Home = () => {
           >
             <Link
               to="/marketplace"
-              className="bg-purple-600 text-white px-10 py-5 rounded-full font-semibold text-xl hover:bg-purple-700 hover:shadow-2xl hover:scale-115 transition duration-500 flex items-center gap-3 deep-shadow hover-lift glow-effect"
+              className=" text-white px-10 py-5 rounded-full font-semibold text-xl hover:text-purple-950 hover:shadow-2xl hover:scale-115 transition duration-500 flex items-center gap-3 deep-shadow hover-lift glow-effect"
             >
               Explore Marketplace
               <ArrowRight className="h-6 w-6" />
@@ -287,7 +287,7 @@ const Home = () => {
               onClick={() => setIsDemoOpen(true)}
               className="flex items-center gap-4 text-white px-10 py-5 rounded-full font-semibold text-xl hover:bg-white/20 hover:shadow-2xl hover:scale-115 transition duration-500 deep-shadow hover-lift glow-effect"
             >
-              <span className="w-14 h-14 bg-purple-600 rounded-full flex items-center justify-center hover:bg-purple-700">
+              <span className="w-14  rounded-full flex items-center justify-center hover:bg-purple-700">
                 <Play className="h-7 w-7 text-white" />
               </span>
               Watch Demo

@@ -95,26 +95,26 @@ const ProductModal = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
         onClick={onClose}
       >
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="bg-white/30 backdrop-blur-lg border border-white/20 text-gray-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5 shadow-xl relative"
+          className="bg-gradient-to-br from-gray-50 to-gray-200 border border-gray-200 text-gray-900 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 shadow-xl relative"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 text-white hover:text-gray-100"
+            className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
           >
             <X className="w-5 h-5" />
           </button>
 
           {/* Title */}
-          <h2 className="text-2xl font-bold mb-4 text-center text-white">
+          <h2 className="text-2xl font-bold mb-4 text-center text-gray-900 font-inter">
             {product.title}
           </h2>
 
@@ -134,15 +134,15 @@ const ProductModal = ({
                 key={i}
                 src={img}
                 alt={`Product ${i}`}
-                className="w-16 h-16 object-cover rounded-lg flex-shrink-0 border border-white/30 hover:scale-105 transition"
+                className="w-16 h-16 object-cover rounded-lg flex-shrink-0 border border-gray-200 hover:scale-105 transition"
               />
             ))}
           </div>
 
           {/* Details */}
-          <div className="space-y-2 text-sm text-white">
+          <div className="space-y-2 text-sm text-gray-900">
             <p><strong>Price:</strong> {product.price} ETB</p>
-            <p><strong>Available:</strong> {availableCount}</p>
+            <p><strong>Available:</strong> {availableCount}KG</p>
             <p><strong>Type:</strong> {product.type || "N/A"}</p>
             <p><strong>Origin:</strong> {product.originAddress || "Unknown"}</p>
             <p><strong>Description:</strong> {product.description || "No description"}</p>
@@ -152,7 +152,7 @@ const ProductModal = ({
           <div className="mt-4 text-center">
             <Link
               to={`/seller/${product.ownerUserId}`}
-              className="text-blue-200 font-semibold text-sm underline hover:text-white"
+              className="text-blue-600 font-semibold text-sm underline hover:text-blue-800"
             >
               {product.ownerName || "Unknown Seller"}
             </Link>
@@ -160,8 +160,8 @@ const ProductModal = ({
 
           {/* Reviews and Likes */}
           <div className="flex justify-between items-center mt-4">
-            <div className="flex items-center gap-1 text-yellow-300 text-sm">
-              <Star className="w-4 h-4 fill-yellow-300" />
+            <div className="flex items-center gap-1 text-yellow-500 text-sm">
+              <Star className="w-4 h-4 fill-yellow-500" />
               {product.reviews?.length || 0} review
               {product.reviews?.length !== 1 ? "s" : ""}
             </div>
@@ -210,24 +210,24 @@ const ProductModal = ({
 
           {/* Reviews Section */}
           <div className="mt-5">
-            <h3 className="text-white text-lg font-semibold mb-2">Reviews</h3>
+            <h3 className="text-gray-900 text-lg font-semibold mb-2">Reviews</h3>
 
-            <div className="space-y-2 text-sm text-white">
+            <div className="space-y-2 text-sm text-gray-700">
               {product.reviews?.length ? (
                 product.reviews.map((review) => (
                   <div
                     key={review._id}
-                    className="bg-white/20 border border-white/30 rounded-lg p-2"
+                    className="bg-white border border-gray-200 rounded-lg p-2"
                   >
                     <p className="font-semibold">{review.userName || "Anonymous"}</p>
                     <p>{review.comment}</p>
-                    <p className="text-[10px] text-gray-200">
+                    <p className="text-[10px] text-gray-500">
                       {new Date(review.createdAt).toLocaleString()}
                     </p>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-200">No reviews yet.</p>
+                <p className="text-gray-500">No reviews yet.</p>
               )}
 
               {/* Add Review */}
@@ -235,7 +235,7 @@ const ProductModal = ({
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Write a review..."
-                className="w-full rounded-lg border border-white/20 bg-white/10 text-white p-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                className="w-full rounded-lg border border-gray-300 bg-white text-gray-900 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 rows={2}
               />
               <Button

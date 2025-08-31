@@ -7,7 +7,7 @@ import { Search } from 'lucide-react';
 
 const ProductsDisplay = ({ products, viewMode, page, totalPages, onPageChange, onProductClick, onAddToCart, onBuyNow }) => {
   return (
-    <section className="section-padding bg-gradient-to-br from-teal-900 via-emerald-900 to-green-900 text-white">
+    <section className="section-padding  text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -10,7 +9,6 @@ import Card from '../components/common/Card';
 import PhoneNumberInput from '../components/common/PhoneNumberInput';
 import toast from 'react-hot-toast';
 import { parsePhoneNumber } from 'libphonenumber-js';
-import logoIconDarkTransparent from '../assets/images/newlogo.png';
 import axios from 'axios';
 import LiveChat from '../components/LiveChat';
 
@@ -28,41 +26,48 @@ const OTPInput = ({ email, otp, onVerify, onResend }) => {
     onVerify(inputOtp);
   };
   return (
-    <div className="min-h-screen flex items-center justify-center py-4 px-2 sm:px-4 bg-gradient-to-br from-indigo-50 to-purple-100">
-      <Card className="bg-white/95 backdrop-blur-md border border-gray-100 shadow-xl rounded-xl p-3 sm:p-4 w-full max-w-sm">
-        <div className="text-center">
-          <h2 className="text-lg font-extrabold text-gray-900 sm:text-xl">Verify Your Email</h2>
-          <p className="text-gray-600 text-xs mt-1 sm:text-sm">Enter OTP sent to {email}</p>
-        </div>
-        <form className="space-y-2 mt-3 sm:space-y-3">
-          <Input
-            label="OTP Code"
-            value={inputOtp}
-            onChange={e => setInputOtp(e.target.value)}
-            placeholder="6-digit OTP"
-            className="text-xs py-1.5 px-3 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-600"
-          />
-          <div className="flex justify-between items-center text-gray-500 text-xs sm:text-sm">
-            <span>{timer > 0 ? `${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}` : 'Expired'}</span>
-            <button
-              type="button"
-              disabled={timer > 0}
-              onClick={onResend}
-              className="text-indigo-600 hover:text-indigo-800 disabled:text-gray-400 transition-colors font-medium"
-            >
-              Resend
-            </button>
+    <div className="min-h-screen flex items-center justify-center py-6 px-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
+      >
+        <Card className="bg-white/90 backdrop-blur-lg border border-gray-100 shadow-2xl rounded-2xl p-6">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900">Verify Your Email</h2>
+            <p className="text-gray-500 text-sm mt-2">Enter the OTP sent to <span className="font-medium">{email}</span></p>
           </div>
-          <Button
-            type="button"
-            onClick={handleVerify}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 rounded-lg text-xs py-1.5"
-          >
-            Verify
-            <ArrowRight className="ml-1 h-4 w-4" />
-          </Button>
-        </form>
-      </Card>
+          <form className="space-y-4 mt-6">
+            <Input
+              label="OTP Code"
+              value={inputOtp}
+              onChange={e => setInputOtp(e.target.value)}
+              placeholder="Enter 6-digit OTP"
+              className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
+            />
+            <div className="flex justify-between items-center text-gray-500 text-sm">
+              <span>{timer > 0 ? `${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}` : 'Expired'}</span>
+              <button
+                type="button"
+                disabled={timer > 0}
+                onClick={onResend}
+                className="text-indigo-600 hover:text-indigo-700 disabled:text-gray-400 font-medium transition-colors"
+              >
+                Resend OTP
+              </button>
+            </div>
+            <Button
+              type="button"
+              onClick={handleVerify}
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
+            >
+              Verify OTP
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </form>
+        </Card>
+      </motion.div>
     </div>
   );
 };
@@ -277,11 +282,11 @@ const Login = () => {
   };
 
   const renderBasicInfo = () => (
-    <div className="space-y-2 sm:space-y-3">
-      <div className="text-center mb-2 sm:mb-3">
-        <h3 className="text-lg font-extrabold text-gray-900 sm:text-xl">Basic Info</h3>
+    <div className="space-y-4">
+      <div className="text-center">
+        <h3 className="text-xl font-bold text-gray-900">Basic Information</h3>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input
           label="Full Name"
           name="fullName"
@@ -289,8 +294,8 @@ const Login = () => {
           value={formData.fullName}
           onChange={handleInputChange}
           placeholder="Tilahun Sitotaw"
-          icon={<User className="h-4 w-4 text-gray-600" />}
-          className="text-xs py-1.5 px-3 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-600"
+          icon={<User className="h-5 w-5 text-gray-500" />}
+          className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
         />
         <PhoneNumberInput
           label="Phone"
@@ -298,7 +303,7 @@ const Login = () => {
           value={formData.phone}
           onChange={handlePhoneChange}
           placeholder="+251912345678"
-          className="text-xs py-1.5 px-3 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-600"
+          className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
         />
       </div>
       <Input
@@ -308,8 +313,8 @@ const Login = () => {
         value={formData.email}
         onChange={handleInputChange}
         placeholder="user@gmail.com"
-        icon={<Mail className="h-4 w-4 text-gray-600" />}
-        className="text-xs py-1.5 px-3 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-600"
+        icon={<Mail className="h-5 w-5 text-gray-500" />}
+        className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
       />
       <Input
         label="Address"
@@ -318,10 +323,10 @@ const Login = () => {
         value={formData.address}
         onChange={handleInputChange}
         placeholder="123 Main St, Addis Ababa"
-        icon={<MapPin className="h-4 w-4 text-gray-600" />}
-        className="text-xs py-1.5 px-3 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-600"
+        icon={<MapPin className="h-5 w-5 text-gray-500" />}
+        className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
       />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="relative">
           <Input
             label="Password"
@@ -329,15 +334,15 @@ const Login = () => {
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={handleInputChange}
-            placeholder="Password"
-            className="text-xs py-1.5 px-3 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-600"
+            placeholder="Create a password"
+            className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-2 top-7 text-gray-600 hover:text-gray-800"
+            className="absolute right-3 top-10 text-gray-500 hover:text-gray-700"
           >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
         </div>
         <Input
@@ -346,11 +351,11 @@ const Login = () => {
           type={showPassword ? 'text' : 'password'}
           value={formData.confirmPassword}
           onChange={handleInputChange}
-          placeholder="Confirm Password"
-          className="text-xs py-1.5 px-3 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-600"
+          placeholder="Confirm your password"
+          className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
         />
       </div>
-      <div className="flex items-center mt-1 sm:mt-2">
+      <div className="flex items-center">
         <input
           id="agreeToTerms"
           name="agreeToTerms"
@@ -359,16 +364,15 @@ const Login = () => {
           onChange={handleInputChange}
           className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
         />
-        <label htmlFor="agreeToTerms" className="ml-1 text-xs text-gray-700">
-          Agree to{' '}
-          <Link to="/privacy" className="text-indigo-600 hover:text-indigo-800">
+        <label htmlFor="agreeToTerms" className="ml-2 text-sm text-gray-600">
+          I agree to the{' '}
+          <Link to="/terms" className="text-indigo-600 hover:text-indigo-700 font-medium">
             Terms
           </Link>{' '}
           and{' '}
-          <Link to="/terms" className="text-indigo-600 hover:text-indigo-800">
-            Privacy
+          <Link to="/privacy" className="text-indigo-600 hover:text-indigo-700 font-medium">
+            Privacy Policy
           </Link>
-          
         </label>
       </div>
     </div>
@@ -377,26 +381,21 @@ const Login = () => {
   if (showOTP) return <OTPInput email={otpEmail} otp={initialOtp} onVerify={handleVerifyOTP} onResend={handleResendOTP} />;
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-4 px-2 sm:px-4 bg-gradient-to-br from-indigo-50 to-purple-100">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-3 sm:mb-4">
-          <Link to="/" className="flex items-center justify-center space-x-2">
-            <div className="relative">
-              <img src={logoIconDarkTransparent} alt="AgroChain Logo" className="h-6 w-6 sm:h-7 sm:w-7 object-contain" />
-              <span className="absolute -top-0.5 -right-0.5 bg-amber-500 text-white text-[6px] font-bold rounded-full w-3 h-3 flex items-center justify-center border border-gray-800">
-                ET
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg sm:text-xl font-extrabold text-gray-900">AgroChain</span>
-              <span className="text-[8px] sm:text-xs font-medium text-indigo-600">Ethiopia</span>
-            </div>
-          </Link>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 mt-2 sm:mt-3">{isLogin ? 'Welcome Back' : 'Join Us'}</h2>
-          <p className="text-gray-600 text-xs sm:text-sm mt-1">{isLogin ? 'Sign in to your account' : 'Create a new account'}</p>
+    <div className="min-h-screen flex items-center justify-center py-6 px-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
+      >
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-bold text-gray-900">{isLogin ? 'Welcome Back' : 'Join AgroChain'}</h2>
+          <p className="text-gray-500 text-sm mt-2">
+            {isLogin ? 'Sign in to access your account' : 'Create an account to get started'}
+          </p>
         </div>
-        <Card className="bg-white/95 backdrop-blur-md border border-gray-100 shadow-xl rounded-xl p-3 sm:p-4">
-          <form onSubmit={handleSubmit} className="space-y-2 sm:space-y-3" autoComplete={isLogin ? 'on' : 'off'}>
+        <Card className="bg-white/90 backdrop-blur-lg border border-gray-100 shadow-2xl rounded-2xl p-6">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete={isLogin ? 'on' : 'off'}>
             {isLogin ? (
               <>
                 <Input
@@ -406,8 +405,8 @@ const Login = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="user@gmail.com"
-                  icon={<Mail className="h-4 w-4 text-gray-600" />}
-                  className="text-xs py-1.5 px-3 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-600"
+                  icon={<Mail className="h-5 w-5 text-gray-500" />}
+                  className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
                 />
                 <div className="relative">
                   <Input
@@ -416,40 +415,40 @@ const Login = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={handleInputChange}
-                    placeholder="Password"
-                    className="text-xs py-1.5 px-3 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-600"
+                    placeholder="Enter your password"
+                    className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-7 text-gray-600 hover:text-gray-800"
+                    className="absolute right-3 top-10 text-gray-500 hover:text-gray-700"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
-                <div className="flex items-center justify-between text-xs sm:text-sm">
+                <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center">
                     <input
                       id="remember-me"
                       name="remember-me"
                       type="checkbox"
-                      className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                       checked={formData.rememberMe || false}
                       onChange={e => setFormData(prev => ({ ...prev, rememberMe: e.target.checked }))}
                     />
-                    <label htmlFor="remember-me" className="ml-1 text-gray-700">Remember me</label>
+                    <label htmlFor="remember-me" className="ml-2 text-gray-600">Remember me</label>
                   </div>
-                  <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-800">
+                  <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-700 font-medium">
                     Forgot Password?
                   </Link>
                 </div>
                 <Button
                   type="submit"
                   loading={isLoading}
-                  className="w-md bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 rounded-lg text-xs py-1.5"
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
                 >
                   Sign In
-                  <ArrowRight className="ml-1 h-4 w-4" />
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </>
             ) : (
@@ -458,34 +457,34 @@ const Login = () => {
                 <Button
                   type="submit"
                   loading={isLoading}
-                  className="w-md bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 rounded-lg text-xs py-1.5"
+                  className="w- bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
                 >
                   Create Account
-                  <ArrowRight className="ml-1 h-4 w-4" />
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </>
             )}
-            {error && <p className="text-red-600 text-center text-xs">{error}</p>}
+            {error && <p className="text-red-500 text-center text-sm">{error}</p>}
           </form>
-          <div className="mt-3 sm:mt-4 text-center">
+          <div className="mt-6 text-center">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200" />
               </div>
-              <div className="relative flex justify-center text-xs sm:text-sm">
-                <span className="px-2 bg-white text-gray-600">{isLogin ? 'No account?' : 'Have an account?'}</span>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-3 bg-white text-gray-500">{isLogin ? 'New to AgroChain?' : 'Already have an account?'}</span>
               </div>
             </div>
             <Button
               variant="outline"
               onClick={handleToggleForm}
-              className="w-md mt-2 border-gray-200 text-gray-800 hover:bg-indigo-600 hover:text-white transition-all duration-300 rounded-lg text-xs py-1.5"
+              className="w-full mt-4 border-gray-200 text-gray-800 hover:bg-indigo-600 hover:text-white py-2 rounded-xl text-sm font-semibold transition-all duration-300"
             >
               {isLogin ? 'Create Account' : 'Sign In'}
             </Button>
           </div>
         </Card>
-      </div>
+      </motion.div>
       <LiveChat />
     </div>
   );
