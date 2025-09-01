@@ -95,10 +95,14 @@ router.post(
       });
 
       await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: 'Your OTP Code',
-        text: `Your OTP is ${otp}. It expires in 5 minutes.`,
+        html: `
+          <p>Dear ${fullName},</p>
+          <p>Your OTP is <strong>${otp}</strong>. It expires in 5 minutes.</p>
+          <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+        `,
       });
 
       res.status(200).json({
@@ -106,7 +110,7 @@ router.post(
         message: 'OTP sent to email. Please verify to complete registration.',
       });
     } catch (err) {
-      console.error(err);
+      console.error('Error during registration:', err);
       res
         .status(500)
         .json({ success: false, error: 'Server error during registration' });
@@ -114,7 +118,7 @@ router.post(
   }
 );
 
-// -------------------- Verify OTP --------------------
+// -------------------- Verify OTP (Registration) --------------------
 router.post(
   '/verify-otp',
   [
@@ -145,7 +149,7 @@ router.post(
       if (!isValidOtp)
         return res.status(400).json({ success: false, error: 'Invalid OTP' });
 
-      // Save the user to DB now
+      // Save the user to DB
       const newUser = new User({
         userId: pending.userId,
         fullName: pending.fullName,
@@ -153,7 +157,7 @@ router.post(
         password: pending.password,
         phone: pending.phone,
         address: pending.address,
-        verified: false, // Initialize as false, awaiting ID verification
+        verified: false,
       });
       await newUser.save();
       pendingUsers.delete(email);
@@ -178,10 +182,131 @@ router.post(
         },
       });
     } catch (err) {
-      console.error(err);
+      console.error('Error verifying OTP:', err);
       res
         .status(500)
         .json({ success: false, error: 'Server error verifying OTP' });
+    }
+  }
+);
+
+// -------------------- Forgot Password --------------------
+router.post(
+  '/forgot-password',
+  [
+    checkEmailCredentials,
+    body('email').isEmail().withMessage('Invalid email'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res
+        .status(400)
+        .json({ success: false, error: errors.array()[0].msg });
+
+    try {
+      const { email } = req.body;
+      const user = await User.findOne({ email });
+      if (!user)
+        return res
+          .status(404)
+          .json({ success: false, error: 'No user found with this email' });
+
+      const otp = generateOtp();
+      const otpHash = await bcrypt.hash(otp, 10);
+      const otpExpires = Date.now() + 5 * 60 * 1000;
+
+      // Store OTP in User document
+      user.otp = otpHash;
+      user.otpExpires = otpExpires;
+      await user.save();
+
+      await transporter.sendMail({
+        from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Password Reset OTP',
+        html: `
+          <p>Dear ${user.fullName},</p>
+          <p>Your OTP for password reset is <strong>${otp}</strong>. It expires in 5 minutes.</p>
+          <p>If you did not request a password reset, please ignore this email.</p>
+          <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+        `,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'OTP sent to email for password reset.',
+      });
+    } catch (err) {
+      console.error('Error during forgot password:', err);
+      res
+        .status(500)
+        .json({ success: false, error: 'Server error sending OTP' });
+    }
+  }
+);
+
+// -------------------- Reset Password --------------------
+router.post(
+  '/reset-password',
+  [
+    body('email').isEmail().withMessage('Invalid email'),
+    body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
+    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res
+        .status(400)
+        .json({ success: false, error: errors.array()[0].msg });
+
+    try {
+      const { email, otp, password } = req.body;
+      const user = await User.findOne({ email });
+      if (!user)
+        return res
+          .status(404)
+          .json({ success: false, error: 'No user found with this email' });
+
+      if (!user.otp || !user.otpExpires || Date.now() > user.otpExpires) {
+        return res.status(400).json({ success: false, error: 'OTP expired or invalid' });
+      }
+
+      const isValidOtp = await bcrypt.compare(otp, user.otp);
+      if (!isValidOtp)
+        return res.status(400).json({ success: false, error: 'Invalid OTP' });
+
+      // Update password and clear OTP
+      user.password = await bcrypt.hash(password, 10);
+      user.otp = null;
+      user.otpExpires = null;
+      await user.save();
+
+      const token = jwt.sign(
+        { userId: user.userId, fullName: user.fullName },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      res.json({
+        success: true,
+        message: 'Password reset successfully. You are now logged in.',
+        token,
+        user: {
+          userId: user.userId,
+          fullName: user.fullName,
+          email: user.email,
+          phone: user.phone,
+          address: user.address,
+          verified: user.verified,
+        },
+      });
+    } catch (err) {
+      console.error('Error resetting password:', err);
+      res
+        .status(500)
+        .json({ success: false, error: 'Server error resetting password' });
     }
   }
 );
@@ -216,9 +341,21 @@ router.post(
         { expiresIn: '7d' }
       );
 
-      res.json({ success: true, token, user });
+      res.json({
+        success: true,
+        token,
+        user: {
+          userId: user.userId,
+          fullName: user.fullName,
+          email: user.email,
+          phone: user.phone,
+          address: user.address,
+          verified: user.verified,
+          isAdmin: user.isAdmin,
+        },
+      });
     } catch (err) {
-      console.error(err);
+      console.error('Error during login:', err);
       res
         .status(500)
         .json({ success: false, error: 'Server error during login' });
@@ -230,12 +367,12 @@ router.post(
 router.get('/profile', auth, async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.user.userId })
-      .select('-password -_id -__v -otp -otpExpires') // keep email for self, hide secrets
+      .select('-password -_id -__v -otp -otpExpires')
       .populate('postedProducts', 'productId title price images createdAt')
       .populate('soldProducts', 'productId title price images createdAt')
       .populate('boughtProducts', 'productId title price images createdAt')
       .populate('savedProducts', 'productId title price images createdAt')
-      .populate('transactionHistory') // full Transaction docs
+      .populate('transactionHistory')
       .populate('closeCustomers', 'userId fullName profilePic rank customerRating');
 
     if (!user) {
@@ -244,7 +381,7 @@ router.get('/profile', auth, async (req, res) => {
 
     res.json({ success: true, user });
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching profile:', err);
     res.status(500).json({ success: false, error: 'Server error fetching profile' });
   }
 });
@@ -267,7 +404,7 @@ router.patch('/profile', auth, async (req, res) => {
     const updatedUser = await User.findOneAndUpdate(
       { userId: req.user.userId },
       { $set: updates },
-      { new: true, select: '-password -_id -__v' }
+      { new: true, select: '-password -_id -__v -otp -otpExpires' }
     );
 
     res.json({
@@ -276,7 +413,7 @@ router.patch('/profile', auth, async (req, res) => {
       user: updatedUser,
     });
   } catch (err) {
-    console.error(err);
+    console.error('Error updating profile:', err);
     res
       .status(500)
       .json({ success: false, error: 'Server error updating profile' });
@@ -295,12 +432,10 @@ router.post(
           .status(400)
           .json({ success: false, error: 'No file uploaded' });
 
-      // The CloudinaryStorage middleware already uploads the file to Cloudinary
-      // req.file.path contains the Cloudinary secure URL
       const updatedUser = await User.findOneAndUpdate(
         { userId: req.user.userId },
-        { profilePic: req.file.path }, // Store Cloudinary secure URL
-        { new: true, select: '-password -_id -__v' }
+        { profilePic: req.file.path },
+        { new: true, select: '-password -_id -__v -otp -otpExpires' }
       );
 
       res.json({
@@ -336,11 +471,10 @@ router.post(
       if (!user)
         return res.status(404).json({ success: false, error: 'User not found' });
 
-      // Store Cloudinary secure URLs from req.files
       user.govIdFront = req.files.govIdFront[0].path;
       user.govIdBack = req.files.govIdBack[0].path;
       user.govIdStatus = 'pending';
-      user.verified = false; // Ensure verified is false until approved
+      user.verified = false;
 
       await user.save();
       res.json({
@@ -358,71 +492,16 @@ router.post(
   }
 );
 
-// -------------------- Admin Approve/Reject ID Verification --------------------
-router.post(
-  '/verify-id/:userId',
-  auth,
-  async (req, res) => {
-    try {
-      const user = await User.findOne({ userId: req.user.userId });
-      if (!user || !user.isAdmin)
-        return res.status(403).json({ success: false, error: 'Admin access required' });
-
-      const targetUser = await User.findOne({ userId: req.params.userId });
-      if (!targetUser)
-        return res.status(404).json({ success: false, error: 'User not found' });
-
-      const { status } = req.body; // 'approved' or 'rejected'
-      if (!['approved', 'rejected'].includes(status))
-        return res.status(400).json({ success: false, error: 'Invalid status' });
-
-      targetUser.govIdStatus = status;
-      targetUser.verified = status === 'approved';
-
-      await targetUser.save();
-
-      // Notify user via email
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: targetUser.email,
-        subject: `ID Verification ${status.charAt(0).toUpperCase() + status.slice(1)}`,
-        text: `Your government ID verification has been ${status}. ${
-          status === 'approved'
-            ? 'Your account is now fully verified.'
-            : 'Please upload valid ID documents and try again.'
-        }`,
-      });
-
-      res.json({
-        success: true,
-        message: `User ID verification ${status}`,
-        user: {
-          userId: targetUser.userId,
-          fullName: targetUser.fullName,
-          email: targetUser.email,
-          verified: targetUser.verified,
-          govIdStatus: targetUser.govIdStatus,
-        },
-      });
-    } catch (err) {
-      console.error(err);
-      res
-        .status(500)
-        .json({ success: false, error: 'Server error processing ID verification' });
-    }
-  }
-);
-
 // -------------------- Get User Profile by ID --------------------
 router.get('/:userId', async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.params.userId })
-      .select('-password -email -otp -otpExpires -govIdFront -govIdBack') // exclude sensitive/private info
+      .select('-password -email -otp -otpExpires -govIdFront -govIdBack')
       .populate('postedProducts')
       .populate('soldProducts')
       .populate('boughtProducts')
       .populate('savedProducts')
-      .populate('transactionHistory') // keep the full Transaction doc
+      .populate('transactionHistory')
       .populate('closeCustomers', 'userId fullName profilePic rank customerRating');
 
     if (!user) {
@@ -430,8 +509,8 @@ router.get('/:userId', async (req, res) => {
     }
 
     res.json({ success: true, user });
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
+  } catch (err) {
+    console.error('Error fetching user profile:', err);
     res.status(500).json({ success: false, error: 'Server error fetching user profile' });
   }
 });
@@ -447,20 +526,18 @@ router.post('/:userId/rate', auth, async (req, res) => {
     const user = await User.findOne({ userId: req.params.userId });
     if (!user) return res.status(404).json({ success: false, error: 'User not found' });
 
-    // Simple average rating update
     if (!user.customerRating || user.customerRating === 0) {
       user.customerRating = rating;
-      user.rank += 0.5; // increase rank for rating received
+      user.rank += 0.5;
     } else {
-      // For simplicity, assuming customerRating is average and rank updates by 0.5 per rating
       user.customerRating = (user.customerRating + rating) / 2;
       user.rank += 0.5;
     }
 
     await user.save();
     res.json({ success: true, message: 'User rated successfully', user });
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error('Error rating user:', err);
     res.status(500).json({ success: false, error: 'Server error rating user' });
   }
 });
@@ -514,7 +591,7 @@ router.post('/make-admin/:userId', auth, async (req, res) => {
 
     res.json({ success: true, message: 'User promoted to admin', user });
   } catch (err) {
-    console.error(err);
+    console.error('Error promoting admin:', err);
     res
       .status(500)
       .json({ success: false, error: 'Server error promoting admin' });

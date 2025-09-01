@@ -84,6 +84,78 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/users/forgot-password:
+    post:
+      tags: [Users]
+      summary: Request password reset OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: OTP sent to email for password reset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Invalid email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No user found with this email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error sending OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/reset-password:
+    post:
+      tags: [Users]
+      summary: Reset password using OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid email, OTP, or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No user found with this email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error resetting password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/users/login:
     post:
       tags: [Users]
@@ -145,7 +217,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
     patch:
       tags: [Users]
       summary: Update the logged-in user's profile (username, location)
@@ -292,16 +363,24 @@ paths:
               schema:
                 type: object
                 properties:
-                  success: { type: boolean }
-                  message: { type: string }
+                  success:
+                    type: boolean
+                  message:
+                    type: string
                   user:
                     type: object
                     properties:
-                      userId: { type: string }
-                      fullName: { type: string }
-                      email: { type: string }
-                      verified: { type: boolean }
-                      govIdStatus: { type: string, enum: [pending, approved, rejected] }
+                      userId:
+                        type: string
+                      fullName:
+                        type: string
+                      email:
+                        type: string
+                      verified:
+                        type: boolean
+                      govIdStatus:
+                        type: string
+                        enum: [pending, approved, rejected]
         '400':
           description: Invalid status
           content:
@@ -461,6 +540,12 @@ paths:
                 $ref: '#/components/schemas/UserResponse'
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error promoting admin
           content:
             application/json:
               schema:
@@ -998,9 +1083,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
- ######################
-# ADMIN
-######################
+  ######################
+  # ADMIN
+  ######################
   /api/admin/users:
     get:
       tags: [Admin]
@@ -1424,76 +1509,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  components:
-    schemas:
-      User:
-        type: object
-        properties:
-          userId: { type: string }
-          fullName: { type: string }
-          email: { type: string }
-          phone: { type: string }
-          address: { type: string }
-          username: { type: string }
-          location: { type: string }
-          profilePic: { type: string }
-          verified: { type: boolean }
-          govIdStatus: { type: string, enum: ['not_uploaded', 'pending', 'approved', 'rejected'] }
-          registrationDate: { type: string, format: date-time }
-          rank: { type: number }
-          transactionHistory: { type: array, items: { $ref: '#/components/schemas/Transaction' } }
-          savedProducts: { type: array, items: { $ref: '#/components/schemas/Product' } }
-          closeCustomers: { type: array, items: { $ref: '#/components/schemas/User' } }
-          boughtProducts: { type: array, items: { $ref: '#/components/schemas/Product' } }
-          soldProducts: { type: array, items: { $ref: '#/components/schemas/Product' } }
-          postedProducts: { type: array, items: { $ref: '#/components/schemas/Product' } }
-          customerRating: { type: number }
-          isAdmin: { type: boolean }
-          isRestricted: { type: boolean }
-          balance: { type: number }
-          pendingBalance: { type: number }
-      Message:
-        type: object
-        properties:
-          name: { type: string }
-          email: { type: string }
-          subject: { type: string }
-          message: { type: string }
-          attachments:
-            type: array
-            items:
-              type: object
-              properties:
-                filename: { type: string }
-                path: { type: string }
-                mimetype: { type: string }
-                size: { type: number }
-          status: { type: string, enum: ['pending', 'replied'] }
-          createdAt: { type: string, format: date-time }
-      Product:
-        type: object
-        properties:
-          productId: { type: string }
-          title: { type: string }
-          price: { type: number }
-          images: { type: array, items: { type: string } }
-          createdAt: { type: string, format: date-time }
-      Transaction:
-        type: object
-        properties:
-          id: { type: string }
-          date: { type: string, format: date-time }
-      ErrorResponse:
-        type: object
-        properties:
-          success: { type: boolean }
-          error: { type: string }
-    securitySchemes:
-      bearerAuth:
-        type: http
-        scheme: bearer
-        bearerFormat: JWT
-
 components:
   securitySchemes:
     bearerAuth:
@@ -1536,6 +1551,29 @@ components:
           type: string
           minLength: 6
           maxLength: 6
+
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+
+    ResetPasswordRequest:
+      type: object
+      required: [email, otp, password]
+      properties:
+        email:
+          type: string
+          format: email
+        otp:
+          type: string
+          minLength: 6
+          maxLength: 6
+        password:
+          type: string
+          minLength: 8
 
     LoginRequest:
       type: object
@@ -1600,32 +1638,26 @@ components:
           type: array
           items:
             type: string
-            description: IDs of products posted by the user
         savedProducts:
           type: array
           items:
             type: string
-            description: IDs of products saved/liked by the user
         boughtProducts:
           type: array
           items:
             type: string
-            description: IDs of products bought by the user
         soldProducts:
           type: array
           items:
             type: string
-            description: IDs of products sold by the user
         closeCustomers:
           type: array
           items:
             type: string
-            description: IDs of users involved in transactions with this user
         transactionHistory:
           type: array
           items:
             type: string
-            description: IDs of transactions involving this user
 
     AuthResponse:
       type: object
@@ -1801,3 +1833,25 @@ components:
         message: { type: string }
         transaction:
           $ref: '#/components/schemas/Transaction'
+
+    ######################
+    # ADMIN
+    ######################
+    Message:
+      type: object
+      properties:
+        name: { type: string }
+        email: { type: string }
+        subject: { type: string }
+        message: { type: string }
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              filename: { type: string }
+              path: { type: string }
+              mimetype: { type: string }
+              size: { type: number }
+        status: { type: string, enum: ['pending', 'replied'] }
+        createdAt: { type: string, format: date-time }

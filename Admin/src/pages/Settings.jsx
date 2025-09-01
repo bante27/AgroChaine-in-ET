@@ -1,88 +1,77 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Palette, Bell, Shield, Globe, Save } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Search, UserCheck, Check } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
-import { useTheme } from '../context/ThemeContext';
+import Modal from '../components/common/Modal';
+import Table from '../components/common/Table';
 
-const Settings = () => {
-  const { isDark, toggleTheme } = useTheme();
-  const [settings, setSettings] = useState({
-    siteName: 'AgroChain Ethiopia',
-    adminEmail: '',
-    notifications: {
-      newUser: true,
-      newOrder: true,
-      newMessage: true,
-      systemAlerts: true
-    },
-    appearance: {
-      theme: 'dark',
-      primaryColor: 'emerald'
-    },
-    security: {
-      sessionTimeout: 30,
-      maxLoginAttempts: 3,
-      requireTwoFactor: false
-    }
-  });
+const Verifications = () => {
+  const [verifications, setVerifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedVerification, setSelectedVerification] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [actionType, setActionType] = useState(null); // 'approve' or 'rejected'
 
   useEffect(() => {
-    fetchSettings();
+    fetchVerifications();
   }, []);
 
-  const fetchSettings = async () => {
+  const fetchVerifications = async () => {
     try {
-      const response = await fetch('/api/admin/settings');
+      const token = localStorage.getItem('userToken');
+      const response = await fetch('http://localhost:5000/api/admin/verifications/pending', {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
       if (response.ok) {
         const data = await response.json();
-        setSettings(data);
+        setVerifications(data.pending);
+      } else {
+        console.error('Failed to fetch verifications:', response.status);
       }
     } catch (error) {
-      console.error('Error fetching settings:', error);
+      console.error('Error fetching verifications:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSaveSettings = async () => {
-    setSaving(true);
-    
+  const handleVerificationAction = async (userId, action) => {
     try {
-      const response = await fetch('/api/admin/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings)
+      const token = localStorage.getItem('userToken');
+      const response = await fetch(`http://localhost:5000/api/admin/verify/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action }),
       });
-      
+
       if (response.ok) {
-        // Show success message
+        fetchVerifications(); // Refresh verifications list
+        setShowActionModal(false);
+        setShowDetailsModal(false); // Close details modal after action
+      } else {
+        console.error(`Failed to ${action} verification:`, response.status);
       }
     } catch (error) {
-      console.error('Error saving settings:', error);
-    } finally {
-      setSaving(false);
+      console.error(`Error ${action}ing verification:`, error);
     }
   };
 
-  const handleSettingChange = (category, field, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [field]: value
-      }
-    }));
-  };
-
-  const handleDirectChange = (field, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  const filteredVerifications = verifications.filter(
+    (verification) =>
+      verification.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      verification.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -94,223 +83,215 @@ const Settings = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <SettingsIcon className="h-8 w-8 text-emerald-400" />
-          <h1 className="text-3xl font-bold text-white">System Settings</h1>
-        </div>
-        
-        <Button
-          onClick={handleSaveSettings}
-          variant="primary"
-          disabled={saving}
-          className="flex items-center gap-2"
-        >
-          <Save className="h-4 w-4" />
-          {saving ? 'Saving...' : 'Save All Changes'}
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* General Settings */}
-        <Card gradient className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Globe className="h-6 w-6 text-blue-400" />
-            <h2 className="text-xl font-bold text-white">General Settings</h2>
-          </div>
-          
-          <div className="space-y-4">
+      <Table
+        title="Pending Verifications"
+        icon={UserCheck}
+        actions={[
+          <div key="search" className="flex items-center gap-2">
             <Input
-              label="Site Name"
-              value={settings.siteName}
-              onChange={(e) => handleDirectChange('siteName', e.target.value)}
-              placeholder="Enter site name"
+              placeholder="Search verifications..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              icon={Search}
+              className="w-64"
             />
-            
-            <Input
-              label="Admin Email"
-              type="email"
-              value={settings.adminEmail}
-              onChange={(e) => handleDirectChange('adminEmail', e.target.value)}
-              placeholder="Enter admin email"
-            />
-            
-            <div>
-              <label className="block text-sm font-medium text-white/90 mb-2">Site Logo</label>
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-lg flex items-center justify-center">
-                  <SettingsIcon className="h-8 w-8 text-white" />
+          </div>,
+        ]}
+      >
+        <div className="space-y-4">
+          {filteredVerifications.map((verification) => (
+            <Card key={verification._id} gradient className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-full flex items-center justify-center">
+                    <UserCheck className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold">{verification.fullName}</h3>
+                    <p className="text-white/60 text-sm">{verification.email}</p>
+                    <p className="text-white/60 text-sm">User ID: {verification.userId}</p>
+                  </div>
                 </div>
-                <Button variant="secondary" size="sm">Upload New Logo</Button>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Appearance Settings */}
-        <Card gradient className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Palette className="h-6 w-6 text-purple-400" />
-            <h2 className="text-xl font-bold text-white">Appearance</h2>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-white/90 mb-3">Theme</label>
-              <div className="flex gap-4">
-                <button
-                  onClick={toggleTheme}
-                  className={`flex-1 p-3 rounded-lg border transition-all ${
-                    isDark 
-                      ? 'bg-white/10 border-emerald-400 text-emerald-400' 
-                      : 'bg-white/5 border-white/20 text-white/70'
-                  }`}
-                >
-                  Dark Theme
-                </button>
-                <button
-                  onClick={toggleTheme}
-                  className={`flex-1 p-3 rounded-lg border transition-all ${
-                    !isDark 
-                      ? 'bg-white/10 border-emerald-400 text-emerald-400' 
-                      : 'bg-white/5 border-white/20 text-white/70'
-                  }`}
-                >
-                  Light Theme
-                </button>
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-white/90 mb-3">Primary Color</label>
-              <div className="grid grid-cols-3 gap-3">
-                {['emerald', 'blue', 'purple'].map(color => (
-                  <button
-                    key={color}
-                    onClick={() => handleSettingChange('appearance', 'primaryColor', color)}
-                    className={`p-3 rounded-lg border transition-all ${
-                      settings.appearance?.primaryColor === color
-                        ? `bg-${color}-500/20 border-${color}-400 text-${color}-400`
-                        : 'bg-white/5 border-white/20 text-white/70'
-                    }`}
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium border bg-yellow-500/20 text-yellow-400 border-yellow-500/30`}
                   >
-                    {color.charAt(0).toUpperCase() + color.slice(1)}
-                  </button>
-                ))}
+                    {verification.govIdStatus}
+                  </span>
+                </div>
               </div>
-            </div>
-          </div>
-        </Card>
 
-        {/* Notification Settings */}
-        <Card gradient className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Bell className="h-6 w-6 text-yellow-400" />
-            <h2 className="text-xl font-bold text-white">Notifications</h2>
-          </div>
-          
-          <div className="space-y-4">
-            {[
-              { key: 'newUser', label: 'New User Registrations' },
-              { key: 'newOrder', label: 'New Orders' },
-              { key: 'newMessage', label: 'New Messages' },
-              { key: 'systemAlerts', label: 'System Alerts' }
-            ].map(({ key, label }) => (
-              <div key={key} className="flex items-center justify-between">
-                <span className="text-white">{label}</span>
-                <button
-                  onClick={() => handleSettingChange('notifications', key, !settings.notifications?.[key])}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${
-                    settings.notifications?.[key] 
-                      ? 'bg-emerald-500' 
-                      : 'bg-white/20'
-                  }`}
+              <div className="mt-4 flex gap-2">
+                <Button
+                  onClick={() => {
+                    setSelectedVerification(verification);
+                    setShowDetailsModal(true);
+                  }}
+                  variant="primary"
+                  size="sm"
+                  className="flex items-center gap-2"
                 >
-                  <div
-                    className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                      settings.notifications?.[key] 
-                        ? 'translate-x-7' 
-                        : 'translate-x-1'
-                    }`}
-                  />
-                </button>
+                  <Eye className="h-4 w-4" />
+                  View Details
+                </Button>
+                <Button
+                  onClick={() => {
+                    setSelectedVerification(verification);
+                    setActionType('approve');
+                    setShowActionModal(true);
+                  }}
+                  variant="success"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Approve
+                </Button>
+                <Button
+                  onClick={() => {
+                    setSelectedVerification(verification);
+                    setActionType('rejected');
+                    setShowActionModal(true);
+                  }}
+                  variant="danger"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <XCircle className="h-4 w-4" />
+                  Reject
+                </Button>
               </div>
-            ))}
-          </div>
-        </Card>
+            </Card>
+          ))}
+        </div>
+      </Table>
 
-        {/* Security Settings */}
-        <Card gradient className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Shield className="h-6 w-6 text-red-400" />
-            <h2 className="text-xl font-bold text-white">Security</h2>
-          </div>
-          
-          <div className="space-y-4">
-            <Input
-              label="Session Timeout (minutes)"
-              type="number"
-              value={settings.security?.sessionTimeout}
-              onChange={(e) => handleSettingChange('security', 'sessionTimeout', parseInt(e.target.value))}
-              placeholder="30"
-            />
-            
-            <Input
-              label="Max Login Attempts"
-              type="number"
-              value={settings.security?.maxLoginAttempts}
-              onChange={(e) => handleSettingChange('security', 'maxLoginAttempts', parseInt(e.target.value))}
-              placeholder="3"
-            />
-            
-            <div className="flex items-center justify-between">
+      {/* Verification Details Modal */}
+      <Modal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        title="Verification Details"
+        size="lg"
+      >
+        {selectedVerification && (
+          <div className="space-y-6">
+            <div className="flex items-start justify-between">
               <div>
-                <span className="text-white font-medium">Require Two-Factor Authentication</span>
-                <p className="text-white/60 text-sm">Force 2FA for all admin accounts</p>
+                <h3 className="text-xl font-bold text-white">{selectedVerification.fullName}</h3>
+                <p className="text-white/60">Email: {selectedVerification.email}</p>
+                <p className="text-white/60">User ID: {selectedVerification.userId}</p>
+                <p className="text-white/60">Status: {selectedVerification.govIdStatus}</p>
               </div>
-              <button
-                onClick={() => handleSettingChange('security', 'requireTwoFactor', !settings.security?.requireTwoFactor)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${
-                  settings.security?.requireTwoFactor 
-                    ? 'bg-emerald-500' 
-                    : 'bg-white/20'
-                }`}
-              >
-                <div
-                  className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                    settings.security?.requireTwoFactor 
-                      ? 'translate-x-7' 
-                      : 'translate-x-1'
-                  }`}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-lg font-semibold text-white mb-3">Government ID (Front)</h4>
+                <img
+                  src={selectedVerification.govIdFront}
+                  alt="Government ID Front"
+                  className="w-full h-auto rounded-lg border border-white/20"
                 />
-              </button>
+                <a
+                  href={selectedVerification.govIdFront}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-400 hover:underline mt-2 block"
+                >
+                  View Full Size
+                </a>
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold text-white mb-3">Government ID (Back)</h4>
+                <img
+                  src={selectedVerification.govIdBack}
+                  alt="Government ID Back"
+                  className="w-full h-auto rounded-lg border border-white/20"
+                />
+                <a
+                  href={selectedVerification.govIdBack}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-400 hover:underline mt-2 block"
+                >
+                  View Full Size
+                </a>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                onClick={() => {
+                  setActionType('approve');
+                  setShowActionModal(true);
+                }}
+                variant="success"
+                className="flex-1"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Check className="h-4 w-4" />
+                Verify
+              </Button>
+              <Button
+                onClick={() => {
+                  setActionType('approve');
+                  setShowActionModal(true);
+                }}
+                variant="success"
+                className="flex-1"
+              >
+                Approve Verification
+              </Button>
+              <Button
+                onClick={() => {
+                  setActionType('rejected');
+                  setShowActionModal(true);
+                }}
+                variant="danger"
+                className="flex-1"
+              >
+                Reject Verification
+              </Button>
             </div>
           </div>
-        </Card>
-      </div>
+        )}
+      </Modal>
 
-      {/* System Information */}
-      <Card gradient className="p-6">
-        <h2 className="text-xl font-bold text-white mb-6">System Information</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-            <h3 className="text-white font-medium mb-2">Platform Version</h3>
-            <p className="text-white/60 text-sm">v2.1.0</p>
+      {/* Action Confirmation Modal */}
+      <Modal
+        isOpen={showActionModal}
+        onClose={() => setShowActionModal(false)}
+        title={`${actionType === 'approve' ? 'Approve' : 'Reject'} Verification`}
+        size="sm"
+      >
+        {selectedVerification && (
+          <div className="space-y-4">
+            <p className="text-white/90">
+              Are you sure you want to {actionType === 'approve' ? 'approve' : 'reject'} the verification for{' '}
+              <span className="font-semibold">{selectedVerification.fullName}</span>?
+            </p>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleVerificationAction(selectedVerification.userId, actionType)}
+                variant={actionType === 'approve' ? 'success' : 'danger'}
+                className="flex-1"
+              >
+                {actionType === 'approve' ? 'Approve' : 'Reject'}
+              </Button>
+              <Button
+                onClick={() => setShowActionModal(false)}
+                variant="secondary"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
-          
-          <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-            <h3 className="text-white font-medium mb-2">Database Status</h3>
-            <p className="text-green-400 text-sm">Connected</p>
-          </div>
-          
-          <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-            <h3 className="text-white font-medium mb-2">Last Backup</h3>
-            <p className="text-white/60 text-sm">2 hours ago</p>
-          </div>
-        </div>
-      </Card>
+        )}
+      </Modal>
     </div>
   );
 };
 
-export default Settings;
+export default Verifications;

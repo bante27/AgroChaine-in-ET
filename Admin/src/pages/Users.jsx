@@ -2,9 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   Search,
   Filter,
-  CheckCircle,
-  Clock,
-  XCircle,
   User,
   Phone,
   MapPin,
@@ -12,6 +9,9 @@ import {
   Eye,
   Users as UsersIcon,
   ShieldAlert,
+  CheckCircle,
+  Clock,
+  XCircle,
 } from "lucide-react";
 import Button from "../components/common/Button";
 import Input from "../components/common/Input";
@@ -24,6 +24,8 @@ const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [verificationData, setVerificationData] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -31,8 +33,9 @@ const Users = () => {
 
   const fetchUsers = async () => {
     try {
+      const token = localStorage.getItem("userToken");
       const res = await axios.get("http://localhost:5000/api/admin/users", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("userToken")}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data.users || []);
     } catch (err) {
@@ -42,46 +45,59 @@ const Users = () => {
     }
   };
 
-  const handleVerifyId = async (userId) => {
+  const fetchVerificationData = async (userId) => {
     try {
-      await axios.patch(`http://localhost:5000/api/users/verify-id/${userId}`, {}, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("userToken")}` },
+      const token = localStorage.getItem("userToken");
+      const res = await axios.get("http://localhost:5000/api/admin/verifications/pending", {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      fetchUsers();
+      const verification = res.data.pending.find((v) => v.userId === userId);
+      setVerificationData(verification || null);
     } catch (err) {
-      console.error("Error verifying ID:", err);
+      console.error("Error fetching verification data:", err);
     }
   };
 
   const handleRestrictUser = async (userId) => {
+    setActionLoading(true);
     try {
-      await axios.patch(`http://localhost:5000/api/users/${userId}/restrict`, {}, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("userToken")}` },
-      });
+      const token = localStorage.getItem("userToken");
+      await axios.post(
+        `http://localhost:5000/api/admin/users/${userId}/restrict`,
+        {},
+        {
+          headers: {
+            accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       fetchUsers();
     } catch (err) {
       console.error("Error restricting user:", err);
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  const getStatusBadge = (user) => {
+  const getStatusBadge = (user, verificationData) => {
     if (user.isRestricted) {
       return (
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-red-100 text-red-600">
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-red-500/20 text-red-400 border-red-500/30">
           <XCircle className="w-3 h-3 mr-1" /> Restricted
         </span>
       );
     }
     if (user.verified) {
       return (
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-green-100 text-green-600">
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
           <CheckCircle className="w-3 h-3 mr-1" /> Verified
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-yellow-100 text-yellow-600">
-        <Clock className="w-3 h-3 mr-1" /> Unverified
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+        <Clock className="w-3 h-3 mr-1" /> {verificationData?.govIdStatus || "Unverified"}
       </span>
     );
   };
@@ -92,20 +108,21 @@ const Users = () => {
       .some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-96 bg-gray-50 dark:bg-gray-900">
+      <div className="flex items-center justify-center min-h-96 bg-gray-950">
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-emerald-400"></div>
       </div>
     );
+  }
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-md min-h-[80vh] flex flex-col">
+    <div className="bg-gray-950 rounded-2xl shadow-md min-h-[80vh] flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700 rounded-t-2xl flex items-center justify-between shadow-sm">
+      <div className="sticky top-0 z-20 bg-gray-800 p-4 border-b border-gray-700 rounded-t-2xl flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2">
-          <UsersIcon className="h-6 w-6 text-emerald-500" />
-          <h2 className="text-lg md:text-xl font-semibold text-gray-800 dark:text-gray-100">
+          <UsersIcon className="h-6 w-6 text-emerald-400" />
+          <h2 className="text-lg md:text-xl font-semibold text-white">
             User Management
           </h2>
         </div>
@@ -115,28 +132,28 @@ const Users = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             icon={Search}
-            className="w-48 md:w-64 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500"
+            className="w-48 md:w-64 bg-gray-700 border border-gray-600 text-white placeholder-gray-500"
           />
           <Button
             variant="ghost"
             size="icon"
-            className="hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="hover:bg-gray-700 text-gray-300"
           >
-            <Filter className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+            <Filter className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
       {/* Table */}
       <div className="flex-1 overflow-x-auto p-4">
-        <table className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <table className="w-full bg-gray-800 rounded-lg shadow-sm">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-              <th className="text-left p-4">User</th>
-              <th className="text-left p-4">Contact</th>
-              <th className="text-left p-4">Status</th>
-              <th className="text-left p-4">Joined</th>
-              <th className="text-left p-4">Actions</th>
+            <tr className="border-b border-gray-700 bg-gray-700/50">
+              <th className="text-left p-4 text-white/90">User</th>
+              <th className="text-left p-4 text-white/90">Contact</th>
+              <th className="text-left p-4 text-white/90">Status</th>
+              <th className="text-left p-4 text-white/90">Joined</th>
+              <th className="text-left p-4 text-white/90">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -144,8 +161,8 @@ const Users = () => {
               filteredUsers.map((user) => (
                 <tr
                   key={user.userId}
-                  className={`border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 ${
-                    user.isRestricted ? "bg-red-100 dark:bg-red-900/20" : ""
+                  className={`border-b border-gray-700 hover:bg-gray-700 ${
+                    user.isRestricted ? "bg-red-900/20" : ""
                   }`}
                 >
                   <td className="p-4 flex items-center gap-3">
@@ -161,15 +178,11 @@ const Users = () => {
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">
-                        {user.fullName}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {user.email}
-                      </p>
+                      <p className="font-medium text-white">{user.fullName}</p>
+                      <p className="text-sm text-white/60">{user.email}</p>
                     </div>
                   </td>
-                  <td className="p-4 space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                  <td className="p-4 space-y-1 text-sm text-white/80">
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4" /> {user.phone || "-"}
                     </div>
@@ -177,32 +190,29 @@ const Users = () => {
                       <MapPin className="h-4 w-4" /> {user.address || "-"}
                     </div>
                   </td>
-                  <td className="p-4">{getStatusBadge(user)}</td>
-                  <td className="p-4 flex items-center gap-2">
+                  <td className="p-4">{getStatusBadge(user, verificationData)}</td>
+                  <td className="p-4 flex items-center gap-2 text-white/80">
                     <Calendar className="h-4 w-4" />
-                    {new Date(user.registrationDate).toLocaleDateString()}
+                    {new Date(user.registrationDate).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
                   </td>
                   <td className="p-4 flex gap-2">
-                    <Button
-                      onClick={() => handleVerifyId(user.userId)}
-                      variant="success"
-                      size="icon"
-                      title={user.verified ? "Re-verify ID" : "Verify ID"}
-                      disabled={user.verified}
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                    </Button>
                     <Button
                       onClick={() => handleRestrictUser(user.userId)}
                       variant="danger"
                       size="icon"
                       title={user.isRestricted ? "Unrestrict User" : "Restrict User"}
+                      disabled={actionLoading}
                     >
                       <ShieldAlert className="h-4 w-4" />
                     </Button>
                     <Button
                       onClick={() => {
                         setSelectedUser(user);
+                        fetchVerificationData(user.userId);
                         setShowUserModal(true);
                       }}
                       variant="secondary"
@@ -216,7 +226,7 @@ const Users = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="text-center p-4">
+                <td colSpan="5" className="text-center p-4 text-white/80">
                   No users found.
                 </td>
               </tr>
@@ -228,7 +238,10 @@ const Users = () => {
       {/* Modal */}
       <Modal
         isOpen={showUserModal}
-        onClose={() => setShowUserModal(false)}
+        onClose={() => {
+          setShowUserModal(false);
+          setVerificationData(null);
+        }}
         title="User Details"
         size="lg"
       >
@@ -247,49 +260,101 @@ const Users = () => {
                 )}
               </div>
               <div>
-                <h3 className="text-xl font-bold">{selectedUser.fullName}</h3>
-                <p className="text-gray-500">{selectedUser.email}</p>
-                <div className="mt-2">{getStatusBadge(selectedUser)}</div>
+                <h3 className="text-xl font-bold text-white">{selectedUser.fullName}</h3>
+                <p className="text-white/60">{selectedUser.email}</p>
+                <div className="mt-2">{getStatusBadge(selectedUser, verificationData)}</div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
-                <label className="block text-sm font-medium">Phone</label>
-                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                <label className="block text-sm font-medium text-white/90">Phone</label>
+                <div className="bg-gray-700 p-3 rounded-lg text-white/80">
                   {selectedUser.phone || "-"}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium">Address</label>
-                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                <label className="block text-sm font-medium text-white/90">Address</label>
+                <div className="bg-gray-700 p-3 rounded-lg text-white/80">
                   {selectedUser.address || "-"}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium">Balance</label>
-                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                <label className="block text-sm font-medium text-white/90">Balance</label>
+                <div className="bg-gray-700 p-3 rounded-lg text-white/80">
                   {selectedUser.balance} ({selectedUser.pendingBalance} pending)
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium">Rank</label>
-                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                  {selectedUser.rank}
+                <label className="block text-sm font-medium text-white/90">Rank</label>
+                <div className="bg-gray-700 p-3 rounded-lg text-white/80">
+                  {selectedUser.rank || "-"}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium">Admin Status</label>
-                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                <label className="block text-sm font-medium text-white/90">Admin Status</label>
+                <div className="bg-gray-700 p-3 rounded-lg text-white/80">
                   {selectedUser.isAdmin ? "Admin" : "User"}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium">Posted Products</label>
-                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                <label className="block text-sm font-medium text-white/90">Posted Products</label>
+                <div className="bg-gray-700 p-3 rounded-lg text-white/80">
                   {selectedUser.postedProducts?.length || 0}
                 </div>
               </div>
+            </div>
+
+            {verificationData && (
+              <div className="mt-6">
+                <h4 className="text-lg font-semibold text-white mb-3">Government ID</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-white/90 mb-2">ID Front</label>
+                    <img
+                      src={verificationData.govIdFront}
+                      alt="Government ID Front"
+                      className="w-full h-auto rounded-lg border border-white/20"
+                    />
+                    <a
+                      href={verificationData.govIdFront}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-400 hover:underline mt-2 block"
+                    >
+                      View Full Size
+                    </a>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-white/90 mb-2">ID Back</label>
+                    <img
+                      src={verificationData.govIdBack}
+                      alt="Government ID Back"
+                      className="w-full h-auto rounded-lg border border-white/20"
+                    />
+                    <a
+                      href={verificationData.govIdBack}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-400 hover:underline mt-2 block"
+                    >
+                      View Full Size
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-2 mt-6">
+              <Button
+                onClick={() => handleRestrictUser(selectedUser.userId)}
+                variant="danger"
+                className="flex-1"
+                disabled={actionLoading}
+              >
+                <ShieldAlert className="h-4 w-4 mr-2" />
+                {selectedUser.isRestricted ? "Unrestrict User" : "Restrict User"}
+              </Button>
             </div>
           </div>
         )}

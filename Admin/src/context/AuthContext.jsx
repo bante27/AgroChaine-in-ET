@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -12,40 +13,41 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('userToken'));
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!token);
-  const [role, setRole] = useState("guest"); // default role
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('userToken'));
+  const [role, setRole] = useState('guest'); // Default role
 
-  // Validate token on app load
+  // Check authentication on app load
   useEffect(() => {
     const checkAuth = async () => {
       const storedToken = localStorage.getItem('userToken');
-      if (storedToken) {
+      if (!storedToken) {
+        setIsAuthenticated(false);
+        setRole('guest');
         setLoading(false);
-        setIsAuthenticated(true);
-        setRole("admin");
         return;
       }
 
       try {
-        const res = await fetch('http://localhost:5000/api/users/validate', {
+        const res = await axios.get('http://localhost:5000/api/users/profile', {
           headers: { Authorization: `Bearer ${storedToken}` },
         });
 
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
+        if (res.data.success && res.data.user) {
+          setUser(res.data.user);
           setIsAuthenticated(true);
-          //setRole(data.user.isAdmin ? "admin" : "user"); // fallback = user
+          setRole(res.data.user.isAdmin ? 'admin' : 'user');
         } else {
           localStorage.removeItem('userToken');
+          setToken(null);
           setIsAuthenticated(false);
-          setRole("guest");
+          setRole('guest');
         }
       } catch (err) {
-        console.error('Auth validation error:', err);
+        console.error('Auth check error:', err);
         localStorage.removeItem('userToken');
+        setToken(null);
         setIsAuthenticated(false);
-        setRole("guest");
+        setRole('guest');
       } finally {
         setLoading(false);
       }
@@ -70,22 +72,24 @@ export const AuthProvider = ({ children }) => {
         setToken(data.token);
         setUser(data.user);
         setIsAuthenticated(true);
-        setRole(data.user.isAdmin ? "admin" : "user"); 
+        setRole(data.user.isAdmin ? 'admin' : 'user');
         return { success: true, user: data.user };
       } else {
         return { success: false, error: data.error || 'Login failed' };
       }
     } catch (err) {
+      console.error('Login error:', err);
       return { success: false, error: 'Network error' };
     }
   };
 
+  // Logout function
   const logout = () => {
     localStorage.removeItem('userToken');
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
-    setRole("guest");
+    setRole('guest');
   };
 
   return (

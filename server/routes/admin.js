@@ -1,5 +1,5 @@
 import express from 'express';
-import { body, validationResult } from 'express-validator';
+import { body, validationResult, param } from 'express-validator';
 import auth from '../middleware/auth.js';
 import admin from '../middleware/adminMiddleware.js';
 import User from '../models/User.js';
@@ -49,7 +49,7 @@ router.post(
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+        return res.status(400).json({ success: false, errors: errors.array() });
       }
 
       const { reply } = req.body;
@@ -59,7 +59,7 @@ router.post(
       }
 
       // Send email reply to the user
-      await transporter.sendMail({
+      const mailOptions = {
         from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
         to: message.email,
         subject: `Re: ${message.subject}`,
@@ -69,10 +69,23 @@ router.post(
           <p>${reply}</p>
           <p>Best regards,<br/>Agrochain Ethiopia Team</p>
         `,
+      };
+
+      // Verify email configuration before sending
+      await new Promise((resolve, reject) => {
+        transporter.verify((err, success) => {
+          if (err) reject(err);
+          else resolve(success);
+        });
       });
+
+      // Send email
+      await transporter.sendMail(mailOptions);
 
       // Update message status
       message.status = 'replied';
+      message.reply = reply; // Store reply in message document
+      message.repliedAt = new Date();
       await message.save();
 
       res.json({
@@ -86,11 +99,17 @@ router.post(
           reply,
           status: message.status,
           createdAt: message.createdAt,
+          repliedAt: message.repliedAt,
         },
       });
     } catch (err) {
       console.error('Error replying to message:', err);
-      res.status(500).json({ success: false, error: 'Server error replying to message' });
+      res.status(500).json({ 
+        success: false, 
+        error: err.message.includes('nodemailer') 
+          ? 'Email service configuration error'
+          : 'Server error replying to message' 
+      });
     }
   }
 );
@@ -222,6 +241,64 @@ router.get('/products', auth, admin, async (req, res) => {
     res.status(500).json({ success: false, error: 'Server error fetching products' });
   }
 });
+
+// 🗑️ Delete a product
+router.delete(
+  '/products/:productId',
+  auth,
+  admin,
+  [
+    param('productId').notEmpty().withMessage('Product ID is required'),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
+      }
+
+      const product = await Product.findOne({ productId: req.params.productId });
+      if (!product) {
+        return res.status(404).json({ success: false, error: 'Product not found' });
+      }
+
+      // Find the user who posted the product
+      const user = await User.findOne({ userId: product.ownerUserId });
+      if (user) {
+        // Remove product from user's postedProducts (assuming it stores MongoDB _id)
+        user.postedProducts = user.postedProducts.filter(
+          (id) => id.toString() !== product._id.toString()
+        );
+        await user.save();
+
+        // Notify user about product deletion
+        await transporter.sendMail({
+          from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+          to: user.email,
+          subject: 'Your Product Has Been Removed',
+          html: `
+            <p>Dear ${user.fullName},</p>
+            <p>Your product "${product.title}" has been removed by the admin.</p>
+            <p>If you have any questions, please contact our support team.</p>
+            <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+          `,
+        });
+      }
+
+      // Delete the product
+      await product.deleteOne();
+
+      res.json({
+        success: true,
+        message: 'Product deleted successfully',
+        productId: req.params.productId,
+      });
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      res.status(500).json({ success: false, error: 'Server error deleting product' });
+    }
+  }
+);
 
 // 💰 Get all transactions
 router.get('/transactions', auth, admin, async (req, res) => {
