@@ -8,12 +8,17 @@ const messageSchema = new mongoose.Schema({
   attachments: [
     {
       filename: String,
-      path: String,
+      path: String, // Cloudinary URL
       mimetype: String,
-      size: Number
-    }
+      size: Number,
+    },
   ],
-  createdAt: { type: Date, default: Date.now }
+  status: {
+    type: String,
+    enum: ['pending', 'replied'],
+    default: 'pending',
+  },
+  createdAt: { type: Date, default: Date.now },
 });
 
 export default mongoose.model("Message", messageSchema);

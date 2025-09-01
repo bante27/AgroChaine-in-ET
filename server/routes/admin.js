@@ -1,14 +1,16 @@
 import express from 'express';
+import { body, validationResult } from 'express-validator';
 import auth from '../middleware/auth.js';
 import admin from '../middleware/adminMiddleware.js';
 import User from '../models/User.js';
 import Product from '../models/Product.js';
 import Transaction from '../models/Transaction.js';
+import Message from '../models/Message.js';
 import nodemailer from 'nodemailer';
 
 const router = express.Router();
 
-// Configure Nodemailer transporter (same as userRoutes.js)
+// Configure Nodemailer transporter
 const transporter = nodemailer.createTransport({
   service: 'Gmail',
   auth: {
@@ -21,6 +23,77 @@ transporter.verify((err, success) => {
   if (err) console.error('Nodemailer error:', err);
   else console.log('Nodemailer ready for admin routes');
 });
+
+// 📩 Get all messages sent to admin
+router.get('/messages', auth, admin, async (req, res) => {
+  try {
+    const messages = await Message.find()
+      .sort({ createdAt: -1 })
+      .select('name email subject message attachments status createdAt');
+    res.json({ success: true, messages });
+  } catch (err) {
+    console.error('Error fetching messages:', err);
+    res.status(500).json({ success: false, error: 'Server error fetching messages' });
+  }
+});
+
+// 📧 Reply to a message
+router.post(
+  '/messages/:messageId/reply',
+  auth,
+  admin,
+  [
+    body('reply').notEmpty().withMessage('Reply message is required'),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+      }
+
+      const { reply } = req.body;
+      const message = await Message.findById(req.params.messageId);
+      if (!message) {
+        return res.status(404).json({ success: false, error: 'Message not found' });
+      }
+
+      // Send email reply to the user
+      await transporter.sendMail({
+        from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+        to: message.email,
+        subject: `Re: ${message.subject}`,
+        html: `
+          <p>Hi ${message.name},</p>
+          <p>Thank you for your message. Here is our response:</p>
+          <p>${reply}</p>
+          <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+        `,
+      });
+
+      // Update message status
+      message.status = 'replied';
+      await message.save();
+
+      res.json({
+        success: true,
+        message: 'Reply sent successfully',
+        data: {
+          messageId: message._id,
+          name: message.name,
+          email: message.email,
+          subject: message.subject,
+          reply,
+          status: message.status,
+          createdAt: message.createdAt,
+        },
+      });
+    } catch (err) {
+      console.error('Error replying to message:', err);
+      res.status(500).json({ success: false, error: 'Server error replying to message' });
+    }
+  }
+);
 
 // 📝 Get pending government ID verifications
 router.get('/verifications/pending', auth, admin, async (req, res) => {
@@ -55,14 +128,19 @@ router.patch('/verify/:userId', auth, admin, async (req, res) => {
 
     // Notify user via email
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
       to: user.email,
       subject: `ID Verification ${status.charAt(0).toUpperCase() + status.slice(1)}`,
-      text: `Your government ID verification has been ${status}. ${
-        status === 'approved'
-          ? 'Your account is now fully verified.'
-          : 'Please upload valid ID documents and try again.'
-      }`,
+      html: `
+        <p>Dear ${user.fullName},</p>
+        <p>Your government ID verification has been ${status}.</p>
+        <p>${
+          status === 'approved'
+            ? 'Your account is now fully verified.'
+            : 'Please upload valid ID documents and try again.'
+        }</p>
+        <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+      `,
     });
 
     res.json({
