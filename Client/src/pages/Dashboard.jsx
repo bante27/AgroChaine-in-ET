@@ -16,34 +16,38 @@ import {
   Moon,
   Sun,
   Wallet,
-  Star,
   CheckCircle,
-  Clock,
+  Truck,
   XCircle,
+  Eye,
+  Calendar,
+  User,
+  Search,
+  Clock,
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import Card from '../components/Card';
-import Button from '../components/Button';
+import Button from '../components/common/Button';
+import Input from '../components/common/Input';
+import Modal from '../components/common/Modal';
 import VerificationModal from '../components/VerificationModal';
 import ProductUploadModal from '../components/ProductUploadModal';
 import ProfileImageUploadModal from '../components/ProfileImageUploadModal';
 import PaymentModal from '../components/PaymentModal';
-import Orders from './Orders';
 
 const Dashboard = () => {
-  const { user, isAuthenticated, loading, logout, setUser } = useAuth();
+  const { user, isAuthenticated, loading, logout, setUser, fetchUserProfile } = useAuth();
   const navigate = useNavigate();
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [showProfileImageModal, setShowProfileImageModal] = useState(false);
-  const [showOrdersSection, setShowOrdersSection] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [verificationStatus, setVerificationStatus] = useState(user?.verified ? 'verified' : 'unverified');
+  const [orders, setOrders] = useState([]);
+  const [verificationStatus, setVerificationStatus] = useState(user?.govIdStatus || 'unverified');
   const [profileData, setProfileData] = useState({
     fullName: '',
-    username: '',
     phone: '',
     address: '',
     location: '',
@@ -65,41 +69,130 @@ const Dashboard = () => {
   }, [theme]);
 
   // Fetch user profile
-  const fetchUserProfile = async () => {
+  const fetchUserProfileLocal = async () => {
     const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const response = await axios.get('http://localhost:5000/api/users/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser(response.data.user);
-        setProfileData({
-          fullName: response.data.user.fullName || '',
-          username: response.data.user.username || '',
-          phone: response.data.user.phone || '',
-          address: response.data.user.address || '',
-          location: response.data.user.location || '',
-        });
-        setVerificationStatus(response.data.user.verified ? 'verified' : 'unverified');
-        
-        // Update stats with data from profile response
-        updateStatsFromProfile(response.data.user);
-      } catch (error) {
-        console.error('Error fetching user profile:', {
-          message: error.message,
-          response: error.response ? {
-            status: error.response.status,
-            data: error.response.data,
-            headers: error.response.headers,
-          } : null,
-        });
-        localStorage.removeItem('token');
-        navigate('/login', { replace: true });
-        setError('Failed to fetch user profile');
-      }
-    } else {
+    if (!token) {
       console.error('No token found for profile fetch');
       navigate('/login', { replace: true });
+      setError('Please log in to continue');
+      return;
+    }
+    try {
+      const response = await axios.get('http://localhost:5000/api/users/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(response.data.user);
+      setProfileData({
+        fullName: response.data.user.fullName || '',
+        phone: response.data.user.phone || '',
+        address: response.data.user.address || '',
+        location: response.data.user.location || '',
+      });
+      setVerificationStatus(response.data.user.govIdStatus);
+      updateStatsFromProfile(response.data.user);
+      await fetchOrders(response.data.user.transactionHistory || []);
+    } catch (error) {
+      console.error('Error fetching user profile:', {
+        message: error.message,
+        response: error.response ? {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers,
+        } : null,
+      });
+      localStorage.removeItem('token');
+      navigate('/login', { replace: true });
+      setError('Failed to fetch user profile');
+    }
+  };
+
+  // Fetch orders with additional data (product name, buyer/seller names)
+  const fetchOrders = async (transactions = []) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No token found for fetching orders');
+        setOrders([]);
+        return;
+      }
+      const enrichedOrders = await Promise.all(
+        transactions.map(async (tx) => {
+          try {
+            // Validate transaction data
+            if (!tx.productId || !tx.buyerUserId || !tx.sellerUserId) {
+              console.warn(`Skipping transaction ${tx._id || 'unknown'} due to missing fields`, tx);
+              return {
+                ...tx,
+                productName: 'Unknown Product',
+                buyerName: 'Unknown Buyer',
+                sellerName: 'Unknown Seller',
+                totalPrice: tx.totalAmount || 0,
+              };
+            }
+
+            // Fetch product
+            let productName = 'Unknown Product';
+            try {
+              const productResponse = await axios.get(`http://localhost:5000/api/products/${tx.productId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              productName = productResponse.data.name || productResponse.data.title || 'Unknown Product';
+            } catch (productError) {
+              console.error(`Error fetching product ${tx.productId}:`, productError.response?.data || productError.message);
+            }
+
+            // Fetch buyer
+            let buyerName = 'Unknown Buyer';
+            try {
+              const buyerResponse = await axios.get(`http://localhost:5000/api/users/${tx.buyerUserId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              buyerName = buyerResponse.data.fullName || 'Unknown Buyer';
+            } catch (buyerError) {
+              console.error(`Error fetching buyer ${tx.buyerUserId}:`, buyerError.response?.data || buyerError.message);
+            }
+
+            // Fetch seller
+            let sellerName = 'Unknown Seller';
+            try {
+              const sellerResponse = await axios.get(`http://localhost:5000/api/users/${tx.sellerUserId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              sellerName = sellerResponse.data.fullName || 'Unknown Seller';
+            } catch (sellerError) {
+              console.error(`Error fetching seller ${tx.sellerUserId}:`, sellerError.response?.data || sellerError.message);
+            }
+
+            return {
+              ...tx,
+              productName,
+              buyerName,
+              sellerName,
+              totalPrice: tx.totalAmount || 0, // Ensure totalPrice is set
+            };
+          } catch (err) {
+            console.error(`Error processing transaction ${tx._id || 'unknown'}:`, err);
+            return {
+              ...tx,
+              productName: 'Unknown Product',
+              buyerName: 'Unknown Buyer',
+              sellerName: 'Unknown Seller',
+              totalPrice: tx.totalAmount || 0,
+            };
+          }
+        })
+      );
+      // Filter out null/undefined entries
+      setOrders(enrichedOrders.filter(order => order));
+    } catch (error) {
+      console.error('Error fetching enriched orders:', {
+        message: error.message,
+        response: error.response ? {
+          status: error.response.status,
+          data: error.response.data,
+        } : null,
+      });
+      setOrders(transactions); // Fallback to raw transactions
     }
   };
 
@@ -108,7 +201,7 @@ const Dashboard = () => {
     const soldProductsCount = userData.soldProducts?.length || 0;
     const totalOrdersCount = userData.transactionHistory?.length || 0;
     const customerRating = userData.customerRating || 0;
-    
+
     setStats([
       {
         title: 'Sold Products',
@@ -140,11 +233,84 @@ const Dashboard = () => {
     ]);
   };
 
+  // Orders logic
+  const handleDeliver = async (transactionId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `http://localhost:5000/api/transactions/${transactionId}/deliver`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data.success) {
+        toast.success('Product shipped successfully');
+        fetchUserProfile();
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to mark as delivered');
+    }
+  };
+
+  const handleDelivered = async (transactionId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `http://localhost:5000/api/transactions/confirm-delivery/${transactionId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data.success) {
+        toast.success('Delivery confirmed successfully');
+        fetchUserProfile();
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to confirm delivery');
+    }
+  };
+
+  const handleCancel = async (transactionId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `http://localhost:5000/api/transactions/${transactionId}/cancel`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data.success) {
+        toast.success('Order cancelled successfully');
+        fetchUserProfile();
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to cancel transaction');
+    }
+  };
+
+  const handleProductClick = (transactionId) => {
+    console.log({ transactionId, success: true });
+  };
+
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      completed: { color: 'bg-green-100 text-green-600 border-green-200', icon: CheckCircle },
+      shipped: { color: 'bg-blue-100 text-blue-600 border-blue-200', icon: Truck },
+      pending: { color: 'bg-yellow-100 text-yellow-600 border-yellow-200', icon: Clock },
+      canceled: { color: 'bg-red-100 text-red-600 border-red-200', icon: XCircle },
+    };
+    const config = statusConfig[status] || statusConfig.pending;
+    const Icon = config.icon;
+    return (
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${config.color}`}>
+        <Icon className="w-3 h-3 mr-1" />
+        {status?.charAt(0).toUpperCase() + status?.slice(1)}
+      </span>
+    );
+  };
+
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       navigate('/login', { replace: true });
     } else if (!loading) {
-      fetchUserProfile();
+      fetchUserProfileLocal();
     }
   }, [loading, isAuthenticated, navigate, setUser]);
 
@@ -152,24 +318,23 @@ const Dashboard = () => {
     if (user) {
       setProfileData({
         fullName: user.fullName || '',
-        username: user.username || '',
         phone: user.phone || '',
         address: user.address || '',
         location: user.location || '',
       });
-      setVerificationStatus(user.verified ? 'verified' : 'unverified');
+      setVerificationStatus(user.govIdStatus || 'unverified');
       updateStatsFromProfile(user);
     }
   }, [user]);
 
-  const recentActivities = user?.transactionHistory?.length
-    ? user.transactionHistory.map((tx, index) => ({
+  const recentActivities = orders.length
+    ? orders.map((tx, index) => ({
         id: index,
         type: tx.buyerUserId === user.userId ? 'purchase' : 'sale',
-        description: `${tx.buyerUserId === user.userId ? 'Purchased' : 'Sold'} ${tx.quantity} of product (ID: ${tx.productId})`,
-        amount: `${tx.totalPrice} ETB`,
+        description: `${tx.buyerUserId === user.userId ? 'Purchased' : 'Sold'} ${tx.quantity} of ${tx.productName}`,
+        amount: `${tx.totalPrice.toFixed(2)} ETB`,
         time: new Date(tx.date || Date.now()).toLocaleString(),
-        status: tx.status || 'completed',
+        status: tx.status || 'pending',
       }))
     : [
         {
@@ -191,18 +356,25 @@ const Dashboard = () => {
       color: 'blue',
     },
     {
-      title: 'View Orders',
-      description: 'Check your recent orders',
-      action: () => setShowOrdersSection(true),
-      icon: ShoppingCart,
-      color: 'cyan',
-    },
-    {
       title: 'Add Balance',
       description: 'Top up your wallet',
       action: () => setShowPaymentModal(true),
       icon: Wallet,
       color: 'indigo',
+    },
+    {
+      title: 'View Orders',
+      description: 'Manage your orders',
+      action: () => navigate('/orders'),
+      icon: ShoppingCart,
+      color: 'teal',
+    },
+    {
+      title: 'About',
+      description: 'Learn more about the platform',
+      action: () => navigate('/about'),
+      icon: Users,
+      color: 'purple',
     },
   ];
 
@@ -223,7 +395,7 @@ const Dashboard = () => {
       formData.append('name', data.name);
       formData.append('govIdFront', data.govIdFront);
       formData.append('govIdBack', data.govIdBack);
-      await axios.post('http://localhost:5000/api/users/verify', formData, {
+      await axios.post('http://localhost:5000/api/users/verify-id', formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
       setVerificationStatus('pending');
@@ -233,7 +405,7 @@ const Dashboard = () => {
         { fullName: data.name },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      fetchUserProfile();
+      fetchUserProfileLocal();
       toast.success('Government ID uploaded, pending verification');
     } catch (error) {
       toast.error(error.response?.data?.error || 'Verification failed');
@@ -262,7 +434,7 @@ const Dashboard = () => {
       await axios.post('http://localhost:5000/api/users/profile-pic', formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
-      fetchUserProfile();
+      fetchUserProfileLocal();
       toast.success('Profile image updated');
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to update profile image');
@@ -277,7 +449,7 @@ const Dashboard = () => {
         profileData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      fetchUserProfile();
+      fetchUserProfileLocal();
       toast.success('Profile updated successfully');
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to update profile');
@@ -293,7 +465,7 @@ const Dashboard = () => {
   };
 
   const handleSellClick = () => {
-    if (verificationStatus == 'verified') {
+    if (verificationStatus !== 'verified') {
       setShowVerificationModal(true);
     } else {
       setShowProductModal(true);
@@ -320,7 +492,7 @@ const Dashboard = () => {
           <Button
             onClick={() => {
               setError(null);
-              fetchUserProfile();
+              fetchUserProfileLocal();
             }}
             className="mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 px-4 text-sm shadow-lg hover:shadow-xl transition-all"
           >
@@ -377,9 +549,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white">{profileData.fullName || 'Complete Profile'}</h3>
-                  <p className="text-sm text-blue-600 dark:text-blue-400">@{profileData.username || 'username'}</p>
-                  <span
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">{profileData.fullName || 'Complete Profile'}</h3>                  <span
                     className={`inline-block text-xs px-3 py-1 rounded-full mt-1 ${
                       verificationStatus === 'verified'
                         ? 'bg-green-500/30 text-green-600 dark:text-green-400 border border-green-500/50'
@@ -408,7 +578,6 @@ const Dashboard = () => {
                 </div>
                 {[
                   { label: 'Full Name', key: 'fullName', type: 'text' },
-                  { label: 'Username', key: 'username', type: 'text' },
                   { label: 'Phone', key: 'phone', type: 'tel' },
                   { label: 'Address', key: 'address', type: 'text' },
                   { label: 'Location', key: 'location', type: 'text' },
@@ -536,6 +705,7 @@ const Dashboard = () => {
                 <Button
                   variant="outline"
                   className="text-sm border-blue-400/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 rounded-lg shadow-sm"
+                  onClick={() => navigate('/orders')}
                 >
                   View All
                 </Button>
@@ -564,9 +734,11 @@ const Dashboard = () => {
                         className={`inline-flex px-3 py-1 text-sm font-medium rounded-full mt-2 sm:mt-0 shadow-sm ${
                           activity.status === 'completed'
                             ? 'bg-green-500/30 text-green-600 dark:text-green-400 border border-green-500/50'
+                            : activity.status === 'shipped'
+                            ? 'bg-blue-500/30 text-blue-600 dark:text-blue-400 border border-blue-500/50'
                             : activity.status === 'pending'
                             ? 'bg-yellow-500/30 text-yellow-600 dark:text-yellow-400 border border-yellow-500/50'
-                            : 'bg-blue-500/30 text-blue-600 dark:text-blue-400 border border-blue-500/50'
+                            : 'bg-red-500/30 text-red-600 dark:text-red-400 border border-red-500/50'
                         }`}
                       >
                         {activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
@@ -651,36 +823,6 @@ const Dashboard = () => {
             </div>
           </Card>
         </motion.div>
-
-        <AnimatePresence>
-          {showOrdersSection && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center"
-            >
-              <motion.div
-                initial={{ scale: 0.95 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.95 }}
-                className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto shadow-2xl border border-blue-200/30 dark:border-blue-800/30"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Your Orders</h2>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowOrdersSection(false)}
-                    className="border-blue-400/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 rounded-lg shadow-sm"
-                  >
-                    Close
-                  </Button>
-                </div>
-                <Orders />
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
       <VerificationModal
@@ -702,7 +844,7 @@ const Dashboard = () => {
       <PaymentModal
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
-        onPaymentSuccess={fetchUserProfile}
+        onPaymentSuccess={fetchUserProfileLocal}
       />
 
       <LiveChat />

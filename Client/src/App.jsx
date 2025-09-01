@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import Marketplace from './pages/Marketplace';
 import ForgotPassword from './pages/ForgotPassword';
 import SellerProfile from './pages/SellerProfile';
+import Orders from './pages/Orders'; // Added Orders import
 
 // Context / Service Pages
 import KYCVerification from './contexts/KYCVerification';
@@ -52,13 +53,20 @@ function App() {
         <Route path="/financing" element={<AgroFinancing />} />
         <Route path="/faq" element={<FAQ />} />
 
-
         {/* Protected Routes */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders" // Added Orders route
+          element={
+            <ProtectedRoute>
+              <Orders />
             </ProtectedRoute>
           }
         />
