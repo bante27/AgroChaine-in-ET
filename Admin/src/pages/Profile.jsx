@@ -109,7 +109,7 @@ const AdminProfile = () => {
       <Card gradient className="p-6">
         <h3 className="text-lg font-semibold bg-gray-950  text-white mb-4">Admins</h3>
         <div className="overflow-x-auto">
-          <table className="min-w-full text-white bg-gray-950 border border-white/10 rounded-lg">
+          <table className="min-w-full text-white  border border-white/10 rounded-lg">
             <thead>
               <tr>
                 <th className="px-4 py-2 text-left">Name</th>

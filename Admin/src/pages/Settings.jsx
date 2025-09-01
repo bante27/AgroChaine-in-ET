@@ -13,7 +13,7 @@ const Verifications = () => {
   const [selectedVerification, setSelectedVerification] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
-  const [actionType, setActionType] = useState(null); // 'approve' or 'rejected'
+  const [actionType, setActionType] = useState(null); // 'approve' or 'reject'
 
   useEffect(() => {
     fetchVerifications();
@@ -178,7 +178,7 @@ const Verifications = () => {
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedVerification(verification);
-                    setActionType('rejected');
+                    setActionType('reject');
                     setShowActionModal(true);
                   }}
                   variant="danger"
@@ -275,7 +275,7 @@ const Verifications = () => {
               </Button>
               <Button
                 onClick={() => {
-                  setActionType('rejected');
+                  setActionType('reject');
                   setShowActionModal(true);
                 }}
                 variant="danger"
