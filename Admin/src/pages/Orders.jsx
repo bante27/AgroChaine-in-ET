@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Eye, Calendar, User, Search, Filter } from 'lucide-react';
+import {
+  ShoppingCart,
+  Eye,
+  Calendar,
+  User,
+  Search,
+  Filter,
+  CheckCircle,
+  Clock,
+  XCircle
+} from 'lucide-react';
+
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
