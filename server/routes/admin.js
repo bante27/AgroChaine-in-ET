@@ -139,7 +139,7 @@ router.patch('/verify/:userId', auth, admin, async (req, res) => {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    const status = action === 'approve' ? 'approved' : 'rejected';
+    const status = action === 'approve' ? 'verified' : 'rejected';
     user.govIdStatus = status;
     user.verified = action === 'approve';
 

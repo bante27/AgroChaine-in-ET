@@ -15,6 +15,10 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
     { value: 'dashen', label: 'Dashen Bank', icon: Banknote, color: 'purple' },
     { value: 'cbe', label: 'Commercial Bank of Ethiopia', icon: Banknote, color: 'blue' },
     { value: 'awash', label: 'Awash Bank', icon: Banknote, color: 'orange' },
+    { value: 'cbo', label: 'Cooperative Bank of Oromia', icon: Banknote, color: 'lime' },
+    { value: 'lion', label: 'Lion International Bank', icon: Banknote, color: 'red' },
+    { value: 'oromia', label: 'Oromia International Bank', icon: Banknote, color: 'yellow' },
+    { value: 'united', label: 'United Bank', icon: Banknote, color: 'indigo' },
   ];
 
   const handleSubmit = async (e) => {
@@ -39,7 +43,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
         },
         body: JSON.stringify({
           amount: parseFloat(amount),
-          paymentMethod: selectedMethod, // Pass selected method to backend if needed
+          paymentMethod: selectedMethod,
         }),
       });
 
@@ -94,7 +98,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Payment Method</label>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   {paymentMethods.map((method) => (
                     <button
                       key={method.value}
@@ -102,12 +106,12 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
                       onClick={() => setSelectedMethod(method.value)}
                       className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all duration-200 ${
                         selectedMethod === method.value
-                          ? `border-${method.color}-500 bg-${method.color}-50 dark:bg-${method.color}-900/30`
-                          : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                          ? `border-${method.color}-500 bg-${method.color}-50 dark:bg-${method.color}-900/30 text-${method.color}-700 dark:text-${method.color}-300`
+                          : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
                       }`}
                     >
-                      <method.icon className={`h-6 w-6 text-${method.color}-600 dark:text-${method.color}-400 mb-2`} />
-                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{method.label}</span>
+                      <method.icon className={`h-6 w-6 mb-2 ${selectedMethod === method.value ? `text-${method.color}-600 dark:text-${method.color}-400` : `text-${method.color}-500 dark:text-${method.color}-400`}`} />
+                      <span className="text-sm font-medium">{method.label}</span>
                     </button>
                   ))}
                 </div>
