@@ -29,7 +29,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const pendingUsers = new Map(); 
+const pendingUsers = new Map();
 
 transporter.verify((err, success) => {
   if (err) console.error('Nodemailer error:', err);
@@ -284,7 +284,6 @@ router.patch('/profile', auth, async (req, res) => {
 });
 
 // -------------------- Upload Profile Pic --------------------
-// -------------------- Upload Profile Pic --------------------
 router.post(
   '/profile-pic',
   auth,
@@ -296,9 +295,11 @@ router.post(
           .status(400)
           .json({ success: false, error: 'No file uploaded' });
 
+      // The CloudinaryStorage middleware already uploads the file to Cloudinary
+      // req.file.path contains the Cloudinary secure URL
       const updatedUser = await User.findOneAndUpdate(
         { userId: req.user.userId },
-        { profilePic: req.file.path }, // Use Cloudinary secure URL from req.file.path
+        { profilePic: req.file.path }, // Store Cloudinary secure URL
         { new: true, select: '-password -_id -__v' }
       );
 
@@ -335,8 +336,9 @@ router.post(
       if (!user)
         return res.status(404).json({ success: false, error: 'User not found' });
 
-      user.govIdFront = `/uploads/govIds/${req.files.govIdFront[0].filename}`;
-      user.govIdBack = `/uploads/govIds/${req.files.govIdBack[0].filename}`;
+      // Store Cloudinary secure URLs from req.files
+      user.govIdFront = req.files.govIdFront[0].path;
+      user.govIdBack = req.files.govIdBack[0].path;
       user.govIdStatus = 'pending';
       user.verified = false; // Ensure verified is false until approved
 
@@ -348,7 +350,7 @@ router.post(
         govIdBack: user.govIdBack,
       });
     } catch (err) {
-      console.error(err);
+      console.error('Error uploading government ID:', err);
       res
         .status(500)
         .json({ success: false, error: 'Server error uploading government ID' });
@@ -411,37 +413,39 @@ router.post(
   }
 );
 
-router.get("/:userId", async (req, res) => {
+// -------------------- Get User Profile by ID --------------------
+router.get('/:userId', async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.params.userId })
-      .select("-password -email -otp -otpExpires -govIdFront -govIdBack") // exclude sensitive/private info
-      .populate("postedProducts")
-      .populate("soldProducts")
-      .populate("boughtProducts")
-      .populate("savedProducts")
-      .populate("transactionHistory") // keep the full Transaction doc
-      .populate("closeCustomers", "userId fullName profilePic rank customerRating");
+      .select('-password -email -otp -otpExpires -govIdFront -govIdBack') // exclude sensitive/private info
+      .populate('postedProducts')
+      .populate('soldProducts')
+      .populate('boughtProducts')
+      .populate('savedProducts')
+      .populate('transactionHistory') // keep the full Transaction doc
+      .populate('closeCustomers', 'userId fullName profilePic rank customerRating');
 
     if (!user) {
-      return res.status(404).json({ success: false, error: "User not found" });
+      return res.status(404).json({ success: false, error: 'User not found' });
     }
 
     res.json({ success: true, user });
   } catch (error) {
-    console.error("Error fetching user profile:", error);
-    res.status(500).json({ success: false, error: "Server error fetching user profile" });
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ success: false, error: 'Server error fetching user profile' });
   }
 });
 
-router.post("/:userId/rate", auth, async (req, res) => {
+// -------------------- Rate User --------------------
+router.post('/:userId/rate', auth, async (req, res) => {
   try {
     const { rating } = req.body;
     if (!rating || rating < 1 || rating > 5) {
-      return res.status(400).json({ success: false, error: "Rating must be between 1 and 5" });
+      return res.status(400).json({ success: false, error: 'Rating must be between 1 and 5' });
     }
 
     const user = await User.findOne({ userId: req.params.userId });
-    if (!user) return res.status(404).json({ success: false, error: "User not found" });
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
 
     // Simple average rating update
     if (!user.customerRating || user.customerRating === 0) {
@@ -454,10 +458,10 @@ router.post("/:userId/rate", auth, async (req, res) => {
     }
 
     await user.save();
-    res.json({ success: true, message: "User rated successfully", user });
+    res.json({ success: true, message: 'User rated successfully', user });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: "Server error rating user" });
+    res.status(500).json({ success: false, error: 'Server error rating user' });
   }
 });
 
@@ -500,14 +504,21 @@ router.post(
 );
 
 // -------------------- Make Admin (for dev only) --------------------
-router.post("/make-admin/:userId", auth, async (req, res) => {
-  const user = await User.findOne({ userId: req.params.userId });
-  if (!user) return res.status(404).json({ success: false, error: "User not found" });
+router.post('/make-admin/:userId', auth, async (req, res) => {
+  try {
+    const user = await User.findOne({ userId: req.params.userId });
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
 
-  user.isAdmin = true;
-  await user.save();
+    user.isAdmin = true;
+    await user.save();
 
-  res.json({ success: true, message: "User promoted to admin", user });
+    res.json({ success: true, message: 'User promoted to admin', user });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ success: false, error: 'Server error promoting admin' });
+  }
 });
 
 export default router;
