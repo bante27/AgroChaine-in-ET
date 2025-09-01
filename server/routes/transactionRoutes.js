@@ -220,4 +220,52 @@ router.post("/confirm-delivery/:transactionId", auth, async (req, res) => {
   }
 });
 
+// Get all transactions related to the logged-in user (buyer or seller)
+router.get("/my", auth, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Find transactions where user is buyer or seller
+    const transactions = await Transaction.find({
+      $or: [{ buyerUserId: userId }, { sellerUserId: userId }],
+    }).sort({ createdAt: -1 }); // latest first
+
+    res.json({
+      success: true,
+      transactions,
+    });
+  } catch (error) {
+    console.error("Get user transactions error:", error);
+    res.status(500).json({ success: false, error: "Server error fetching transactions" });
+  }
+});
+
+// Get detailed info of a specific transaction by ID
+router.get("/:transactionId", auth, async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const userId = req.user.userId;
+
+    // Find the transaction
+    const transaction = await Transaction.findById(transactionId);
+    if (!transaction) {
+      return res.status(404).json({ success: false, error: "Transaction not found" });
+    }
+
+    // Check if user is either buyer or seller in this transaction
+    if (transaction.buyerUserId !== userId && transaction.sellerUserId !== userId) {
+      return res.status(403).json({ success: false, error: "Access denied to this transaction" });
+    }
+
+    res.json({
+      success: true,
+      transaction,
+    });
+  } catch (error) {
+    console.error("Get transaction detail error:", error);
+    res.status(500).json({ success: false, error: "Server error fetching transaction details" });
+  }
+});
+
+
 export default router;

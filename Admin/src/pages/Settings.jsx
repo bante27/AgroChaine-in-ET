@@ -262,17 +262,7 @@ const Verifications = () => {
                 <Check className="h-4 w-4" aria-hidden="true" />
                 Verify
               </Button>
-              <Button
-                onClick={() => {
-                  setActionType('approve');
-                  setShowActionModal(true);
-                }}
-                variant="success"
-                className="flex-1"
-                aria-label={`Approve verification for ${selectedVerification.fullName}`}
-              >
-                Approve Verification
-              </Button>
+      
               <Button
                 onClick={() => {
                   setActionType('reject');
