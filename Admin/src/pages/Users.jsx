@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Search,
   Filter,
@@ -13,9 +13,6 @@ import {
   Clock,
   XCircle,
 } from "lucide-react";
-import Button from "../components/common/Button";
-import Input from "../components/common/Input";
-import Modal from "../components/common/Modal";
 import axios from "axios";
 
 const Users = () => {
@@ -26,13 +23,28 @@ const Users = () => {
   const [showUserModal, setShowUserModal] = useState(false);
   const [verificationData, setVerificationData] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const modalRef = useRef(null);
 
   useEffect(() => {
     fetchUsers();
   }, []);
 
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape" && showUserModal) {
+        setShowUserModal(false);
+        setVerificationData(null);
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [showUserModal]);
+
   const fetchUsers = async () => {
     try {
+      setError(null);
       const token = localStorage.getItem("userToken");
       const res = await axios.get("http://localhost:5000/api/admin/users", {
         headers: { Authorization: `Bearer ${token}` },
@@ -40,6 +52,7 @@ const Users = () => {
       setUsers(res.data.users || []);
     } catch (err) {
       console.error("Error fetching users:", err);
+      setError(err.response?.data?.error || "Failed to fetch users");
     } finally {
       setLoading(false);
     }
@@ -47,6 +60,8 @@ const Users = () => {
 
   const fetchVerificationData = async (userId) => {
     try {
+      setVerificationLoading(true);
+      setError(null);
       const token = localStorage.getItem("userToken");
       const res = await axios.get("http://localhost:5000/api/admin/verifications/pending", {
         headers: { Authorization: `Bearer ${token}` },
@@ -55,12 +70,16 @@ const Users = () => {
       setVerificationData(verification || null);
     } catch (err) {
       console.error("Error fetching verification data:", err);
+      setError(err.response?.data?.error || "Failed to fetch verification data");
+    } finally {
+      setVerificationLoading(false);
     }
   };
 
-  const handleRestrictUser = async (userId) => {
+  const handleRestrictUser = async (userId, isRestricted) => {
     setActionLoading(true);
     try {
+      setError(null);
       const token = localStorage.getItem("userToken");
       await axios.post(
         `http://localhost:5000/api/admin/users/${userId}/restrict`,
@@ -73,8 +92,12 @@ const Users = () => {
         }
       );
       fetchUsers();
+      if (selectedUser?.userId === userId) {
+        setSelectedUser({ ...selectedUser, isRestricted: !isRestricted });
+      }
     } catch (err) {
-      console.error("Error restricting user:", err);
+      console.error("Error restricting/unrestricting user:", err);
+      setError(err.response?.data?.error || "Failed to restrict/unrestrict user");
     } finally {
       setActionLoading(false);
     }
@@ -83,20 +106,20 @@ const Users = () => {
   const getStatusBadge = (user, verificationData) => {
     if (user.isRestricted) {
       return (
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-red-500/20 text-red-400 border-red-500/30">
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">
           <XCircle className="w-3 h-3 mr-1" /> Restricted
         </span>
       );
     }
     if (user.verified) {
       return (
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
           <CheckCircle className="w-3 h-3 mr-1" /> Verified
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
         <Clock className="w-3 h-3 mr-1" /> {verificationData?.govIdStatus || "Unverified"}
       </span>
     );
@@ -110,257 +133,305 @@ const Users = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-96 bg-gray-950">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-emerald-400"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-cyan-400"></div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-950 rounded-2xl shadow-md min-h-[80vh] flex flex-col">
-      {/* Header */}
-      <div className="sticky top-0 z-20 bg-gray-800 p-4 border-b border-gray-700 rounded-t-2xl flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-2">
-          <UsersIcon className="h-6 w-6 text-emerald-400" />
-          <h2 className="text-lg md:text-xl font-semibold text-white">
-            User Management
-          </h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <Input
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            icon={Search}
-            className="w-48 md:w-64 bg-gray-700 border border-gray-600 text-white placeholder-gray-500"
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hover:bg-gray-700 text-gray-300"
-          >
-            <Filter className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-900 text-white p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-500/10 text-red-400 p-4 rounded-lg border border-red-500/20 shadow-md">
+            {error}
+          </div>
+        )}
 
-      {/* Table */}
-      <div className="flex-1 overflow-x-auto p-4">
-        <table className="w-full bg-gray-800 rounded-lg shadow-sm">
-          <thead>
-            <tr className="border-b border-gray-700 bg-gray-700/50">
-              <th className="text-left p-4 text-white/90">User</th>
-              <th className="text-left p-4 text-white/90">Contact</th>
-              <th className="text-left p-4 text-white/90">Status</th>
-              <th className="text-left p-4 text-white/90">Joined</th>
-              <th className="text-left p-4 text-white/90">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
-                <tr
-                  key={user.userId}
-                  className={`border-b border-gray-700 hover:bg-gray-700 ${
-                    user.isRestricted ? "bg-red-900/20" : ""
-                  }`}
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <UsersIcon className="h-8 w-8 text-cyan-400" />
+            <h2 className="text-2xl font-bold text-white">User Management</h2>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 w-64 sm:w-80 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-200"
+              />
+            </div>
+            <button
+              className="p-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
+              title="Filter"
+            >
+              <Filter className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="bg-gray-800 rounded-xl shadow-lg border border-cyan-500/20 overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-700/50 text-white/90">
+                <th className="text-left p-4 font-medium">User</th>
+                <th className="text-left p-4 font-medium">Contact</th>
+                <th className="text-left p-4 font-medium">Status</th>
+                <th className="text-left p-4 font-medium">Joined</th>
+                <th className="text-left p-4 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((user) => (
+                  <tr
+                    key={user.userId}
+                    className={`border-b border-gray-700 hover:bg-gray-700/50 transition-colors duration-200 ${
+                      user.isRestricted ? "bg-red-900/10" : ""
+                    }`}
+                  >
+                    <td className="p-4 flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-indigo-500 rounded-full flex items-center justify-center text-white">
+                        {user.profilePic ? (
+                          <img
+                            src={user.profilePic}
+                            alt={user.fullName}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <User className="h-5 w-5" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-white">{user.fullName}</p>
+                        <p className="text-sm text-gray-400">{user.email}</p>
+                      </div>
+                    </td>
+                    <td className="p-4 space-y-2 text-sm text-gray-300">
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-cyan-400" /> {user.phone || "-"}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-cyan-400" /> {user.address || "-"}
+                      </div>
+                    </td>
+                    <td className="p-4">{getStatusBadge(user, verificationData)}</td>
+                    <td className="p-4 flex items-center gap-2 text-gray-300">
+                      <Calendar className="h-4 w-4 text-cyan-400" />
+                      {new Date(user.registrationDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </td>
+                    <td className="p-4 flex gap-2">
+                      <button
+                        onClick={() => handleRestrictUser(user.userId, user.isRestricted)}
+                        className={`p-2 rounded-lg ${
+                          user.isRestricted
+                            ? "bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                            : "bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20"
+                        } transition-colors duration-200 flex items-center gap-1`}
+                        title={user.isRestricted ? "Unrestrict User" : "Restrict User"}
+                        disabled={actionLoading}
+                      >
+                        <ShieldAlert className="h-4 w-4" />
+                        {actionLoading && user.userId === selectedUser?.userId ? (
+                          <div className="animate-spin h-4 w-4 border-t-2 border-cyan-400 rounded-full"></div>
+                        ) : null}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedUser(user);
+                          fetchVerificationData(user.userId);
+                          setShowUserModal(true);
+                        }}
+                        className="p-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors duration-200"
+                        title="View Details"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="text-center p-6 text-gray-400">
+                    No users found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Modal */}
+        {showUserModal && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            role="dialog"
+            aria-labelledby="user-modal-title"
+            aria-modal="true"
+            ref={modalRef}
+          >
+            <div className="bg-gray-800 rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl border border-cyan-500/20">
+              <div className="flex justify-between items-center mb-6">
+                <h3 id="user-modal-title" className="text-xl font-bold text-white">
+                  User Details
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowUserModal(false);
+                    setVerificationData(null);
+                  }}
+                  className="p-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors duration-200"
+                  aria-label="Close modal"
                 >
-                  <td className="p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-full flex items-center justify-center text-white">
-                      {user.profilePic ? (
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+              {error && (
+                <div className="mb-4 bg-red-500/10 text-red-400 p-3 rounded-lg border border-red-500/20">
+                  {error}
+                </div>
+              )}
+              {selectedUser && (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-gradient-to-r from-cyan-400 to-indigo-500 rounded-full flex items-center justify-center text-white">
+                      {selectedUser.profilePic ? (
                         <img
-                          src={user.profilePic}
-                          alt={user.fullName}
-                          className="w-10 h-10 rounded-full object-cover"
+                          src={selectedUser.profilePic}
+                          alt={selectedUser.fullName}
+                          className="w-16 h-16 rounded-full object-cover"
                         />
                       ) : (
-                        <User className="h-5 w-5" />
+                        <User className="h-8 w-8" />
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-white">{user.fullName}</p>
-                      <p className="text-sm text-white/60">{user.email}</p>
+                      <h3 className="text-xl font-bold text-white">{selectedUser.fullName}</h3>
+                      <p className="text-gray-400">{selectedUser.email}</p>
+                      <div className="mt-2">{getStatusBadge(selectedUser, verificationData)}</div>
                     </div>
-                  </td>
-                  <td className="p-4 space-y-1 text-sm text-white/80">
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" /> {user.phone || "-"}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Phone</label>
+                      <div className="bg-gray-700 p-3 rounded-lg text-gray-300">
+                        {selectedUser.phone || "-"}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" /> {user.address || "-"}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Address</label>
+                      <div className="bg-gray-700 p-3 rounded-lg text-gray-300">
+                        {selectedUser.address || "-"}
+                      </div>
                     </div>
-                  </td>
-                  <td className="p-4">{getStatusBadge(user, verificationData)}</td>
-                  <td className="p-4 flex items-center gap-2 text-white/80">
-                    <Calendar className="h-4 w-4" />
-                    {new Date(user.registrationDate).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </td>
-                  <td className="p-4 flex gap-2">
-                    <Button
-                      onClick={() => handleRestrictUser(user.userId)}
-                      variant="danger"
-                      size="icon"
-                      title={user.isRestricted ? "Unrestrict User" : "Restrict User"}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Balance</label>
+                      <div className="bg-gray-700 p-3 rounded-lg text-gray-300">
+                        {selectedUser.balance} ({selectedUser.pendingBalance} pending)
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Rank</label>
+                      <div className="bg-gray-700 p-3 rounded-lg text-gray-300">
+                        {selectedUser.rank || "-"}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Admin Status</label>
+                      <div className="bg-gray-700 p-3 rounded-lg text-gray-300">
+                        {selectedUser.isAdmin ? "Admin" : "User"}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Posted Products</label>
+                      <div className="bg-gray-700 p-3 rounded-lg text-gray-300">
+                        {selectedUser.postedProducts?.length || 0}
+                      </div>
+                    </div>
+                  </div>
+
+                  {verificationLoading ? (
+                    <div className="flex items-center justify-center p-6">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-cyan-400"></div>
+                    </div>
+                  ) : verificationData ? (
+                    <div className="mt-6">
+                      <h4 className="text-lg font-semibold text-white mb-3">Government ID</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">ID Front</label>
+                          <img
+                            src={verificationData.govIdFront}
+                            alt="Government ID Front"
+                            className="w-full h-auto rounded-lg border border-gray-700"
+                          />
+                          <a
+                            href={verificationData.govIdFront}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-cyan-400 hover:underline mt-2 block"
+                          >
+                            View Full Size
+                          </a>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">ID Back</label>
+                          <img
+                            src={verificationData.govIdBack}
+                            alt="Government ID Back"
+                            className="w-full h-auto rounded-lg border border-gray-700"
+                          />
+                          <a
+                            href={verificationData.govIdBack}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-cyan-400 hover:underline mt-2 block"
+                          >
+                            View Full Size
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-6 text-gray-400">No verification data available.</div>
+                  )}
+
+                  <div className="flex gap-2 mt-6">
+                    <button
+                      onClick={() => handleRestrictUser(selectedUser.userId, selectedUser.isRestricted)}
+                      className={`flex-1 p-3 rounded-lg ${
+                        selectedUser.isRestricted
+                          ? "bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                          : "bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20"
+                      } transition-colors duration-200 flex items-center justify-center gap-2`}
                       disabled={actionLoading}
                     >
                       <ShieldAlert className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setSelectedUser(user);
-                        fetchVerificationData(user.userId);
-                        setShowUserModal(true);
-                      }}
-                      variant="secondary"
-                      size="icon"
-                      title="View Details"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="5" className="text-center p-4 text-white/80">
-                  No users found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Modal */}
-      <Modal
-        isOpen={showUserModal}
-        onClose={() => {
-          setShowUserModal(false);
-          setVerificationData(null);
-        }}
-        title="User Details"
-        size="lg"
-      >
-        {selectedUser && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-full flex items-center justify-center text-white">
-                {selectedUser.profilePic ? (
-                  <img
-                    src={selectedUser.profilePic}
-                    alt={selectedUser.fullName}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                ) : (
-                  <User className="h-8 w-8" />
-                )}
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">{selectedUser.fullName}</h3>
-                <p className="text-white/60">{selectedUser.email}</p>
-                <div className="mt-2">{getStatusBadge(selectedUser, verificationData)}</div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium text-white/90">Phone</label>
-                <div className="bg-gray-700 p-3 rounded-lg text-white/80">
-                  {selectedUser.phone || "-"}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-white/90">Address</label>
-                <div className="bg-gray-700 p-3 rounded-lg text-white/80">
-                  {selectedUser.address || "-"}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-white/90">Balance</label>
-                <div className="bg-gray-700 p-3 rounded-lg text-white/80">
-                  {selectedUser.balance} ({selectedUser.pendingBalance} pending)
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-white/90">Rank</label>
-                <div className="bg-gray-700 p-3 rounded-lg text-white/80">
-                  {selectedUser.rank || "-"}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-white/90">Admin Status</label>
-                <div className="bg-gray-700 p-3 rounded-lg text-white/80">
-                  {selectedUser.isAdmin ? "Admin" : "User"}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-white/90">Posted Products</label>
-                <div className="bg-gray-700 p-3 rounded-lg text-white/80">
-                  {selectedUser.postedProducts?.length || 0}
-                </div>
-              </div>
-            </div>
-
-            {verificationData && (
-              <div className="mt-6">
-                <h4 className="text-lg font-semibold text-white mb-3">Government ID</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-white/90 mb-2">ID Front</label>
-                    <img
-                      src={verificationData.govIdFront}
-                      alt="Government ID Front"
-                      className="w-full h-auto rounded-lg border border-white/20"
-                    />
-                    <a
-                      href={verificationData.govIdFront}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-emerald-400 hover:underline mt-2 block"
-                    >
-                      View Full Size
-                    </a>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-white/90 mb-2">ID Back</label>
-                    <img
-                      src={verificationData.govIdBack}
-                      alt="Government ID Back"
-                      className="w-full h-auto rounded-lg border border-white/20"
-                    />
-                    <a
-                      href={verificationData.govIdBack}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-emerald-400 hover:underline mt-2 block"
-                    >
-                      View Full Size
-                    </a>
+                      {actionLoading ? (
+                        <div className="animate-spin h-4 w-4 border-t-2 border-cyan-400 rounded-full"></div>
+                      ) : (
+                        selectedUser.isRestricted ? "Unrestrict User" : "Restrict User"
+                      )}
+                    </button>
                   </div>
                 </div>
-              </div>
-            )}
-
-            <div className="flex gap-2 mt-6">
-              <Button
-                onClick={() => handleRestrictUser(selectedUser.userId)}
-                variant="danger"
-                className="flex-1"
-                disabled={actionLoading}
-              >
-                <ShieldAlert className="h-4 w-4 mr-2" />
-                {selectedUser.isRestricted ? "Unrestrict User" : "Restrict User"}
-              </Button>
+              )}
             </div>
           </div>
         )}
-      </Modal>
-    </div>
-  );
+      </div>
+    </div>);
 };
 
 export default Users;

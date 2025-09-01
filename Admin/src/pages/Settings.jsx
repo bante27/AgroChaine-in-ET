@@ -24,8 +24,8 @@ const Verifications = () => {
       const token = localStorage.getItem('userToken');
       const response = await fetch('http://localhost:5000/api/admin/verifications/pending', {
         headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -48,8 +48,8 @@ const Verifications = () => {
       const response = await fetch(`http://localhost:5000/api/admin/verify/${userId}`, {
         method: 'PATCH',
         headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ action }),
@@ -81,6 +81,15 @@ const Verifications = () => {
     );
   }
 
+  // Keyboard handler for cards (Enter or Space opens details modal)
+  const onCardKeyDown = (e, verification) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setSelectedVerification(verification);
+      setShowDetailsModal(true);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <Table
@@ -94,17 +103,30 @@ const Verifications = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               icon={Search}
               className="w-64"
+              aria-label="Search verifications"
             />
           </div>,
         ]}
       >
         <div className="space-y-4">
           {filteredVerifications.map((verification) => (
-            <Card key={verification._id} gradient className="p-6">
+            <Card
+              key={verification._id}
+              gradient
+              className="p-6 cursor-pointer"
+              role="button"
+              tabIndex={0}
+              aria-label={`View verification details for ${verification.fullName}`}
+              onClick={() => {
+                setSelectedVerification(verification);
+                setShowDetailsModal(true);
+              }}
+              onKeyDown={(e) => onCardKeyDown(e, verification)}
+            >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-full flex items-center justify-center">
-                    <UserCheck className="h-6 w-6 text-white" />
+                    <UserCheck className="h-6 w-6 text-white" aria-hidden="true" />
                   </div>
                   <div>
                     <h3 className="text-white font-semibold">{verification.fullName}</h3>
@@ -114,7 +136,8 @@ const Verifications = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium border bg-yellow-500/20 text-yellow-400 border-yellow-500/30`}
+                    className="px-3 py-1 rounded-full text-xs font-medium border bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                    aria-label={`Verification status: ${verification.govIdStatus}`}
                   >
                     {verification.govIdStatus}
                   </span>
@@ -123,41 +146,47 @@ const Verifications = () => {
 
               <div className="mt-4 flex gap-2">
                 <Button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setSelectedVerification(verification);
                     setShowDetailsModal(true);
                   }}
                   variant="primary"
                   size="sm"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 flex-1"
+                  aria-label={`View details of ${verification.fullName}`}
                 >
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-4 w-4" aria-hidden="true" />
                   View Details
                 </Button>
                 <Button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setSelectedVerification(verification);
                     setActionType('approve');
                     setShowActionModal(true);
                   }}
                   variant="success"
                   size="sm"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 flex-1"
+                  aria-label={`Approve verification for ${verification.fullName}`}
                 >
-                  <CheckCircle className="h-4 w-4" />
+                  <CheckCircle className="h-4 w-4" aria-hidden="true" />
                   Approve
                 </Button>
                 <Button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setSelectedVerification(verification);
                     setActionType('rejected');
                     setShowActionModal(true);
                   }}
                   variant="danger"
                   size="sm"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 flex-1"
+                  aria-label={`Reject verification for ${verification.fullName}`}
                 >
-                  <XCircle className="h-4 w-4" />
+                  <XCircle className="h-4 w-4" aria-hidden="true" />
                   Reject
                 </Button>
               </div>
@@ -226,11 +255,11 @@ const Verifications = () => {
                   setShowActionModal(true);
                 }}
                 variant="success"
-                className="flex-1"
+                className="flex-1 flex items-center gap-2"
                 size="sm"
-                className="flex items-center gap-2"
+                aria-label={`Verify ${selectedVerification.fullName}`}
               >
-                <Check className="h-4 w-4" />
+                <Check className="h-4 w-4" aria-hidden="true" />
                 Verify
               </Button>
               <Button
@@ -240,6 +269,7 @@ const Verifications = () => {
                 }}
                 variant="success"
                 className="flex-1"
+                aria-label={`Approve verification for ${selectedVerification.fullName}`}
               >
                 Approve Verification
               </Button>
@@ -250,6 +280,7 @@ const Verifications = () => {
                 }}
                 variant="danger"
                 className="flex-1"
+                aria-label={`Reject verification for ${selectedVerification.fullName}`}
               >
                 Reject Verification
               </Button>
@@ -276,6 +307,7 @@ const Verifications = () => {
                 onClick={() => handleVerificationAction(selectedVerification.userId, actionType)}
                 variant={actionType === 'approve' ? 'success' : 'danger'}
                 className="flex-1"
+                aria-label={`${actionType === 'approve' ? 'Approve' : 'Reject'} verification for ${selectedVerification.fullName}`}
               >
                 {actionType === 'approve' ? 'Approve' : 'Reject'}
               </Button>
