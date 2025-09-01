@@ -2,33 +2,63 @@ import React, { useState, useEffect } from 'react';
 import { Users, Package, ShoppingCart, MessageSquare, TrendingUp, Calendar } from 'lucide-react';
 import StatCard from '../components/common/StatCard';
 import Card from '../components/common/Card';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext'; // For token and user data
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
-    users: { total: 0, verified: 0, pending: 0, canceled: 0 },
-    products: { total: 0, forSale: 0, sold: 0, totalValue: 0 },
-    orders: { total: 0, pending: 0, completed: 0, canceled: 0, revenue: 0 },
-    messages: { total: 0, unread: 0, high: 0 }
+    users: { total: 0, verified: 0 }, // Self-only
+    products: { bought: 0, saved: 0, totalValue: 0 },
+    orders: { total: 0, completed: 0, revenue: 0 },
+    messages: { total: 0, unread: 0 }
   });
   const [loading, setLoading] = useState(true);
+  const { token, user } = useAuth(); // Get token and user from AuthContext
 
   useEffect(() => {
-    const fetchDashboardStats = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const response = await fetch('/api/admin/dashboard-stats'); // later from your server/
-        if (response.ok) {
-          const data = await response.json();
-          setStats(data);
-        }
+        // Fetch user profile
+        const profileResponse = await axios.get('http://localhost:5000/api/users/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const userData = profileResponse.data.user;
+
+        // Fetch user products (assuming user-specific products)
+        const productsResponse = await axios.get('http://localhost:5000/api/products', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const userProducts = productsResponse.data.products;
+
+        // Fetch user orders
+        const ordersResponse = await axios.get('http://localhost:5000/api/orders', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const userOrders = ordersResponse.data.orders;
+
+        setStats({
+          users: { total: 1, verified: userData.verified ? 1 : 0 }, // Self-only
+          products: {
+            bought: userData.boughtProducts?.length || 0,
+            saved: userData.savedProducts?.length || 0,
+            totalValue: userData.boughtProducts?.reduce((sum, p) => sum + (p.price || 0), 0) || 0,
+          },
+          orders: {
+            total: userOrders.length,
+            completed: userOrders.filter(o => o.status === 'completed').length,
+            revenue: userOrders.reduce((sum, o) => sum + (o.amount || 0), 0),
+          },
+          messages: { total: 0, unread: 0 }, // Placeholder; requires message model
+        });
       } catch (error) {
-        console.error('Error fetching dashboard stats:', error);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDashboardStats();
-  }, []);
+    if (token) fetchDashboardData();
+  }, [token]);
 
   const ProgressBar = ({ label, value, total, color = 'green' }) => (
     <div className="flex items-center justify-between mb-3">
@@ -56,32 +86,31 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        
         {/* Stats Overview */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
-            title="Total Users"
-            value={stats.users.total}
+            title="Your Profile"
+            value={stats.users.verified ? 'Verified' : 'Pending'}
             icon={Users}
             color="from-emerald-500 to-emerald-600"
-            subtitle={`${stats.users.verified} verified`}
-            trend="12"
+            subtitle={`You have ${stats.users.total} account`}
+            trend="0"
           />
           <StatCard
-            title="Products"
-            value={stats.products.total}
+            title="Products Bought"
+            value={stats.products.bought}
             icon={Package}
             color="from-blue-500 to-blue-600"
-            subtitle={`$${stats.products.totalValue.toLocaleString()} value`}
-            trend="8"
+            subtitle={`$${stats.products.totalValue.toLocaleString()} spent`}
+            trend="0"
           />
           <StatCard
-            title="Total Orders"
+            title="Orders"
             value={stats.orders.total}
             icon={ShoppingCart}
             color="from-purple-500 to-purple-600"
-            subtitle={`$${stats.orders.revenue.toLocaleString()} revenue`}
-            trend="15"
+            subtitle={`$${stats.orders.revenue.toLocaleString()} total`}
+            trend="0"
           />
           <StatCard
             title="Messages"
@@ -89,35 +118,33 @@ const Dashboard = () => {
             icon={MessageSquare}
             color="from-pink-500 to-pink-600"
             subtitle={`${stats.messages.unread} unread`}
-            trend="5"
+            trend="0"
           />
         </div>
 
         {/* Charts and Analytics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* User Distribution */}
+          {/* Product Activity */}
           <Card gradient className="p-6">
             <div className="flex items-center gap-3 mb-6">
-              <Users className="h-6 w-6 text-emerald-400" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">User Status Distribution</h3>
+              <Package className="h-6 w-6 text-blue-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Your Product Activity</h3>
             </div>
             <div className="space-y-4">
-              <ProgressBar label="Verified Users" value={stats.users.verified} total={stats.users.total} color="green" />
-              <ProgressBar label="Pending Users" value={stats.users.pending} total={stats.users.total} color="yellow" />
-              <ProgressBar label="Canceled Users" value={stats.users.canceled} total={stats.users.total} color="red" />
+              <ProgressBar label="Bought Products" value={stats.products.bought} total={stats.products.bought + stats.products.saved} color="green" />
+              <ProgressBar label="Saved Products" value={stats.products.saved} total={stats.products.bought + stats.products.saved} color="yellow" />
             </div>
           </Card>
 
           {/* Order Status */}
           <Card gradient className="p-6">
             <div className="flex items-center gap-3 mb-6">
-              <ShoppingCart className="h-6 w-6 text-blue-400" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Order Status Overview</h3>
+              <ShoppingCart className="h-6 w-6 text-purple-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Order Status</h3>
             </div>
             <div className="space-y-4">
               <ProgressBar label="Completed Orders" value={stats.orders.completed} total={stats.orders.total} color="green" />
-              <ProgressBar label="Pending Orders" value={stats.orders.pending} total={stats.orders.total} color="yellow" />
-              <ProgressBar label="Canceled Orders" value={stats.orders.canceled} total={stats.orders.total} color="red" />
+              <ProgressBar label="Pending Orders" value={stats.orders.total - stats.orders.completed} total={stats.orders.total} color="yellow" />
             </div>
           </Card>
         </div>

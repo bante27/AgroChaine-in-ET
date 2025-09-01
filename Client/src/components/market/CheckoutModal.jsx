@@ -21,6 +21,7 @@ const CheckoutModal = ({
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Initialize quantities
   useEffect(() => {
     const initialQuantities = cartItems.reduce(
       (acc, item) => ({ ...acc, [item.productId]: item.quantity || 1 }),
@@ -32,6 +33,7 @@ const CheckoutModal = ({
   const deliveryDate = new Date();
   deliveryDate.setDate(deliveryDate.getDate() + 7);
 
+  // Compute totals
   const subtotal = cartItems.reduce(
     (acc, item) => acc + (item.price || 0) * (itemQuantities[item.productId] || 1),
     0
@@ -44,67 +46,68 @@ const CheckoutModal = ({
     setItemQuantities({ ...itemQuantities, [productId]: qty });
   };
 
- const handleOrder = async () => {
-  if (!token) {
-    toast.error("Please login to place the order", {
-      style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
-    });
-    onLogin?.();
-    return;
-  }
-
-  if (!deliveryAddress.trim()) {
-    toast.error("Please enter a delivery address", {
-      style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
-    });
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    for (let item of cartItems) {
-      const payload = {
-        productId: String(item.productId),
-        quantity: itemQuantities[item.productId] || 1,
-        deliveryAddress: deliveryAddress.trim(),
-      };
-
-      const { data } = await axios.post(
-        "http://localhost:5000/api/transactions/buy",
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (data.success) {
-        const txn = data.transaction;
-        toast.success(
-          `Purchased "${item.title}" successfully!\n` +
-            `Total: ${txn.totalPrice + (txn.platformFeeBuyer || 0)} ETB\n` +
-            `Platform Fee: ${txn.platformFeeBuyer || 0} ETB\n` +
-            `Net to Seller: ${txn.netSellerAmount || 0} ETB\n` +
-            `Delivery: ${txn.deliveryAddress || deliveryDate.toLocaleDateString()}`,
-          { style: { background: "#10b981", color: "#fff", borderRadius: "8px" } }
-        );
-      } else {
-        toast.error(data.error || `Failed to purchase ${item.title}`, {
-          style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
-        });
-      }
+  const handleOrder = async () => {
+    if (!token) {
+      toast.error("Please login to place the order", {
+        style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
+      });
+      onLogin?.();
+      return;
     }
 
-    onOrderSuccess?.();
-    onClose();
-  } catch (error) {
-    console.error("Order Error:", error.response?.data || error.message);
-    toast.error(error.response?.data?.error || "Server error during purchase", {
-      style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+    if (!deliveryAddress.trim()) {
+      toast.error("Please enter a delivery address", {
+        style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
+      });
+      return;
+    }
 
+    try {
+      setLoading(true);
+
+      for (let item of cartItems) {
+        const productId = String(item.productId); // always send custom productId
+
+        const payload = {
+          productId,
+          quantity: itemQuantities[productId] || 1,
+          deliveryAddress: deliveryAddress.trim(),
+        };
+
+        const { data } = await axios.post(
+          "http://localhost:5000/api/transactions/buy",
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (data.success) {
+          const txn = data.transaction;
+          toast.success(
+            `Purchased "${item.title}" successfully!\n` +
+              `Total: ${txn.totalPrice + (txn.platformFeeBuyer || 0)} ETB\n` +
+              `Platform Fee: ${txn.platformFeeBuyer || 0} ETB\n` +
+              `Net to Seller: ${txn.netSellerAmount || 0} ETB\n` +
+              `Delivery: ${txn.deliveryAddress || deliveryDate.toLocaleDateString()}`,
+            { style: { background: "#10b981", color: "#fff", borderRadius: "8px" } }
+          );
+        } else {
+          toast.error(data.error || `Failed to purchase ${item.title}`, {
+            style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
+          });
+        }
+      }
+
+      onOrderSuccess?.();
+      onClose();
+    } catch (error) {
+      console.error("Order Error:", error.response?.data || error.message);
+      toast.error(error.response?.data?.error || "Server error during purchase", {
+        style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -165,10 +168,7 @@ const CheckoutModal = ({
                 </div>
               </div>
               <p className="font-bold text-emerald-700">
-                {(item.price * (itemQuantities[item.productId] || 1)).toFixed(
-                  2
-                )}{" "}
-                ETB
+                {(item.price * (itemQuantities[item.productId] || 1)).toFixed(2)} ETB
               </p>
             </div>
           ))}
@@ -235,11 +235,7 @@ const CheckoutModal = ({
             }`}
             disabled={loading}
           >
-            {loading
-              ? "Processing..."
-              : token
-              ? "Place Order"
-              : "Login to Continue"}
+            {loading ? "Processing..." : token ? "Place Order" : "Login to Continue"}
           </Button>
           <Button
             onClick={onClose}

@@ -21,7 +21,7 @@ const Input = ({
         <input
           className={`w-full bg-white/10 border border-white/20 rounded-xl ${
             Icon ? 'pl-10' : 'pl-4'
-          } pr-4 py-3 text-white placeholder-white/60 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition-all duration-200 ${className}`}
+          } pr-4 py-3 text-gray-600 placeholder-white/60 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition-all duration-200 ${className}`}
           {...props}
         />
       </div>

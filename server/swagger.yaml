@@ -1001,7 +1001,7 @@ paths:
   ######################
   # ADMIN
   ######################
-  /api/users:
+  /api/admin/users:
     get:
       tags: [Admin]
       summary: Get all users (admin only)
@@ -1033,7 +1033,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /api/users/{userId}/restrict:
+  /api/admin/users/{userId}/restrict:
     post:
       tags: [Admin]
       summary: Restrict or unrestrict a user (admin only)
@@ -1077,7 +1077,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /api/products:
+  /api/admin/products:
     get:
       tags: [Admin]
       summary: Get all products (admin only)
@@ -1109,7 +1109,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /api/transactions:
+  /api/admin/transactions:
     get:
       tags: [Admin]
       summary: Get all transactions (admin only)
@@ -1141,7 +1141,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /api/users/suspicious:
+  /api/admin/users/suspicious:
     get:
       tags: [Admin]
       summary: Get suspicious users (admin only)
@@ -1173,7 +1173,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /api/verifications/pending:
+  /api/admin/verifications/pending:
     get:
       tags: [Admin]
       summary: Get pending government ID verifications (admin only)

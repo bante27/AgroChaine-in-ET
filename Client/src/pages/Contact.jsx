@@ -227,7 +227,7 @@ const Contact = () => {
     },
     {
       question: 'Can I use the platform in multiple languages?',
-      answer: 'Yes, AgroChain Ethiopia supports Amharic, English, and Oromifa, with plans to add more languages in the future.',
+      answer: 'Yes, AgroChain Ethiopia supports Amharic, English, with plans to add more languages in the future.',
     },
     {
       question: 'What is the cost to join the platform?',
@@ -500,7 +500,7 @@ const Contact = () => {
               <br />
               <span className="text-yellow-400">A</span>sked
               <br />
-              <span className="text-teal-300">Q</span>uestions
+              <span className="text-pink-100">Q</span>uestions
             </h2>
             <p className="text-lg text-gray-300 max-w-2xl mx-auto mt-2 bg-white/20 rounded-lg p-3 shadow-md">
               Discover answers to your questions about AgroChain Ethiopia.
@@ -574,20 +574,14 @@ const Contact = () => {
             className="flex flex-col sm:flex-row gap-6 justify-center"
           >
             <Link
-              to="/register"
+              to="/Login"
               className="bg-teal-500 text-white px-6 py-3 rounded-full font-semibold text-lg hover:bg-teal-600 hover:shadow-2xl transition-all duration-300 deep-shadow hover-lift pulse-animation inline-flex items-center gap-3"
               aria-label="Get started with AgroChain"
             >
               Get Started Now
               <ArrowRight className="h-5 w-5" />
             </Link>
-            <Link
-              to="/services"
-              className="border-2 border-white text-white px-6 py-3 rounded-full font-semibold text-lg hover:bg-white/10 hover:shadow-lg transition-all duration-300 deep-shadow hover-lift inline-flex items-center gap-3"
-              aria-label="Explore our services"
-            >
-              Explore Services
-            </Link>
+            
           </motion.div>
         </div>
       </section>

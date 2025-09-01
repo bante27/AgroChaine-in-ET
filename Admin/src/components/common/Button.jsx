@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Button = ({ 
   children, 
   variant = 'primary', 
@@ -8,6 +6,7 @@ const Button = ({
   disabled = false,
   onClick,
   type = 'button',
+  loading = false,
   ...props 
 }) => {
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
@@ -34,11 +33,11 @@ const Button = ({
     <button
       type={type}
       className={classes}
-      disabled={disabled}
+      disabled={disabled || loading}
       onClick={onClick}
       {...props}
     >
-      {children}
+      {loading ? 'Loading...' : children}
     </button>
   );
 };

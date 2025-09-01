@@ -1,8 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
@@ -11,7 +10,15 @@ import Orders from './pages/Orders';
 import Messages from './pages/Messages';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
-import Login from './pages/Login';
+import Login from './pages/Login'; // ✅ Your login page
+import './styles/admin.css';
+
+// PrivateRoute wrapper to protect admin pages
+const PrivateRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return null; // Or a loader
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
 
 function App() {
   return (
@@ -19,7 +26,7 @@ function App() {
       <ThemeProvider>
         <Router>
           <Routes>
-            {/* Public route */}
+            {/* Login page */}
             <Route path="/login" element={<Login />} />
 
             {/* Protected admin routes */}
@@ -36,7 +43,7 @@ function App() {
             <Route
               path="/users"
               element={
-                <PrivateRoute adminOnly={true}>
+                <PrivateRoute>
                   <Layout>
                     <Users />
                   </Layout>
@@ -94,8 +101,8 @@ function App() {
               }
             />
 
-            {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            {/* Catch-all: redirect to login if route not found */}
+            <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         </Router>
       </ThemeProvider>

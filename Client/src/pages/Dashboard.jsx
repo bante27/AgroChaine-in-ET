@@ -293,7 +293,7 @@ const Dashboard = () => {
   };
 
   const handleSellClick = () => {
-    if (verificationStatus !== 'verified') {
+    if (verificationStatus == 'verified') {
       setShowVerificationModal(true);
     } else {
       setShowProductModal(true);

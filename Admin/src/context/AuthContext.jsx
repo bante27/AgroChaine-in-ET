@@ -4,79 +4,95 @@ const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('userToken'));
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!token);
+  const [role, setRole] = useState("guest"); // default role
 
+  // Validate token on app load
   useEffect(() => {
-    // Check for stored auth token and validate
     const checkAuth = async () => {
-      const token = localStorage.getItem('adminToken');
-      if (token) {
-        try {
-          // Validate token with backend
-          const response = await fetch('/api/admin/validate', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const userData = await response.json();
-            setUser(userData);
-          } else {
-            localStorage.removeItem('adminToken');
-          }
-        } catch (error) {
-          localStorage.removeItem('adminToken');
-        }
+      const storedToken = localStorage.getItem('userToken');
+      if (storedToken) {
+        setLoading(false);
+        setIsAuthenticated(true);
+        setRole("admin");
+        return;
       }
-      setLoading(false);
+
+      try {
+        const res = await fetch('http://localhost:5000/api/users/validate', {
+          headers: { Authorization: `Bearer ${storedToken}` },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+          setIsAuthenticated(true);
+          //setRole(data.user.isAdmin ? "admin" : "user"); // fallback = user
+        } else {
+          localStorage.removeItem('userToken');
+          setIsAuthenticated(false);
+          setRole("guest");
+        }
+      } catch (err) {
+        console.error('Auth validation error:', err);
+        localStorage.removeItem('userToken');
+        setIsAuthenticated(false);
+        setRole("guest");
+      } finally {
+        setLoading(false);
+      }
     };
 
     checkAuth();
   }, []);
 
+  // Login function
   const login = async (credentials) => {
     try {
-      const response = await fetch('/api/admin/login', {
+      const res = await fetch('http://localhost:5000/api/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials)
+        body: JSON.stringify(credentials),
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('adminToken', data.token);
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        localStorage.setItem('userToken', data.token);
+        setToken(data.token);
         setUser(data.user);
-        return { success: true };
+        setIsAuthenticated(true);
+        setRole(data.user.isAdmin ? "admin" : "user"); 
+        return { success: true, user: data.user };
       } else {
-        const error = await response.json();
-        return { success: false, error: error.message };
+        return { success: false, error: data.error || 'Login failed' };
       }
-    } catch (error) {
+    } catch (err) {
       return { success: false, error: 'Network error' };
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('adminToken');
+    localStorage.removeItem('userToken');
+    setToken(null);
     setUser(null);
-  };
-
-  const value = {
-    user,
-    login,
-    logout,
-    loading
+    setIsAuthenticated(false);
+    setRole("guest");
   };
 
   return (
-    <AuthContext.Provider value={value}>
-      {children}
+    <AuthContext.Provider
+      value={{ user, token, role, login, logout, loading, isAuthenticated }}
+    >
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

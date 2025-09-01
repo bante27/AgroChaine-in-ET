@@ -26,7 +26,7 @@ const Modal = ({
         
         <div className={`relative w-full ${sizes[size]} bg-gradient-to-br from-gray-900 to-slate-800 rounded-2xl border border-white/20 shadow-2xl ${className}`}>
           <div className="flex items-center justify-between p-6 border-b border-white/10">
-            <h3 className="text-xl font-bold text-white">{title}</h3>
+            <h3 className="text-xl font-bold text-gray-600">{title}</h3>
             <Button
               onClick={onClose}
               variant="ghost"
