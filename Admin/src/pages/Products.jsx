@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Eye, Trash2, Search } from 'lucide-react';
-import Button from '../components/common/Button';
-import Input from '../components/common/Input';
-import Modal from '../components/common/Modal';
-import Card from '../components/common/Card';
+import {
+  Package,
+  Eye,
+  Trash2,
+  Search,
+  CheckCircle,
+  XCircle,
+  Clock,
+} from 'lucide-react';
 import axios from 'axios';
 
 const Products = () => {
@@ -12,20 +16,24 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [error, setError] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const token = localStorage.getItem('userToken');
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
   const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const response = await axios.get('http://localhost:5000/api/admin/products', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setProducts(response.data.products || []);
-      setError(null);
-    } catch (error) {
-      console.error('Error fetching products:', error);
+    } catch (err) {
+      console.error('Error fetching products:', err);
       setError('Failed to fetch products. Please try again later.');
     } finally {
       setLoading(false);
@@ -34,20 +42,23 @@ const Products = () => {
 
   const handleDeleteProduct = async (productId) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
+      setDeleting(true);
+      setError(null);
       try {
         const response = await axios.delete(`http://localhost:5000/api/admin/products/${productId}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (response.data.success) {
-          fetchProducts(); // Refresh products list
-          setSelectedProduct(null); // Close modal if open
-          setError(null);
+          await fetchProducts();
+          setSelectedProduct(null);
         } else {
           setError(response.data.error || 'Failed to delete product.');
         }
-      } catch (error) {
-        console.error('Error deleting product:', error);
-        setError(error.response?.data?.error || 'Failed to delete product. Please try again.');
+      } catch (err) {
+        console.error('Error deleting product:', err);
+        setError(err.response?.data?.error || 'Failed to delete product. Please try again.');
+      } finally {
+        setDeleting(false);
       }
     }
   };
@@ -59,203 +70,185 @@ const Products = () => {
   );
 
   const getStatusBadge = (status) => {
-    return status === 'active' ? (
-      <span className="bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-500/30 px-3 py-1 rounded-full text-xs font-medium">
-        Active
-      </span>
-    ) : (
-      <span className="bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-500/30 px-3 py-1 rounded-full text-xs font-medium">
-        {status === 'sold out' ? 'Sold Out' : 'Removed'}
-      </span>
-    );
+    const baseClasses = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border';
+    switch (status) {
+      case 'active':
+        return (
+          <span className={`${baseClasses} bg-cyan-500/10 text-cyan-400 border-cyan-500/20`}>
+            <CheckCircle className="w-3 h-3 mr-1" /> Active
+          </span>
+        );
+      case 'sold out':
+        return (
+          <span className={`${baseClasses} bg-yellow-500/10 text-yellow-400 border-yellow-500/20`}>
+            <Clock className="w-3 h-3 mr-1" /> Sold Out
+          </span>
+        );
+      default:
+        return (
+          <span className={`${baseClasses} bg-red-500/10 text-red-400 border-red-500/20`}>
+            <XCircle className="w-3 h-3 mr-1" /> Removed
+          </span>
+        );
+    }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-96 bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-emerald-400"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-cyan-400"></div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-md min-h-[80vh] flex flex-col">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-20 bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700 rounded-t-2xl flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-2">
-          <Package className="h-6 w-6 text-emerald-500" />
-          <h2 className="text-lg md:text-xl font-semibold text-gray-800 dark:text-gray-100">
-            Product Management
-          </h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <Input
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            icon={Search}
-            className="w-48 md:w-64 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500"
-          />
-        </div>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="p-4 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30 rounded-xl mx-4 mt-4">
-          {error}
-        </div>
-      )}
-
-      {/* Product Cards */}
-      <div className="flex-1 overflow-x-auto p-4">
-        {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map((product) => (
-              <Card
-                key={product.productId}
-                className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 group"
-              >
-                <div className="aspect-w-16 aspect-h-9 mb-4">
-                  <img
-                    src={product.images?.[0] || 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=400'}
-                    alt={product.title}
-                    className="w-full h-48 object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <h3 className="text-gray-900 dark:text-gray-100 font-semibold text-lg mb-1">
-                      {product.title}
-                    </h3>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">by {product.ownerName}</p>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                      ${product.price?.toFixed(2)}
-                    </span>
-                    {getStatusBadge(product.status)}
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <Package className="h-4 w-4" />
-                      {product.quantityAvailable || 0} KG in stock
-                    </span>
-                    <span className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-lg">
-                      {product.type}
-                    </span>
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      onClick={() => setSelectedProduct(product)}
-                      variant="secondary"
-                      size="sm"
-                      className="flex-1 flex items-center gap-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                      View
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteProduct(product.productId)}
-                      variant="danger"
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
+    <div className="min-h-screen bg-gray-900 text-white p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <Package className="h-8 w-8 text-cyan-400" />
+            <h1 className="text-2xl font-bold">Product Management</h1>
           </div>
-        ) : (
-          <div className="text-center p-4 text-gray-700 dark:text-gray-300">
-            No products found.
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 w-64 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-200"
+            />
+          </div>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-500/10 text-red-400 p-4 rounded-lg border border-red-500/20 shadow-md">
+            {error}
           </div>
         )}
-      </div>
 
-      {/* Product Details Modal */}
-      <Modal
-        isOpen={!!selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        title="Product Details"
-        size="lg"
-      >
-        {selectedProduct && (
-          <div className="space-y-6">
-            <div className="flex gap-6">
-              <img
-                src={selectedProduct.images?.[0] || 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=400'}
-                alt={selectedProduct.title}
-                className="w-48 h-48 object-cover rounded-xl"
-              />
-              <div className="flex-1 space-y-4">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                    {selectedProduct.title}
-                  </h3>
-                  <p className="text-gray-500 dark:text-gray-400">by {selectedProduct.ownerName}</p>
+        {/* Product List */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map((product) => (
+              <div
+                key={product.productId}
+                className="bg-gray-800 rounded-xl p-4 border border-cyan-500/10 shadow hover:shadow-lg transition-shadow duration-300"
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-lg font-semibold text-white">{product.title}</h3>
+                  <span className="text-sm text-gray-400">${product.price?.toFixed(2)}</span>
                 </div>
-
-                <div className="space-y-2">
-                  <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                    ${selectedProduct.price?.toFixed(2)}
-                  </div>
-                  {getStatusBadge(selectedProduct.status)}
+                <p className="text-sm text-gray-400 mb-2">by {product.ownerName}</p>
+                <div className="mb-3">{getStatusBadge(product.status)}</div>
+                <div className="text-sm text-gray-300 mb-3">
+                  {product.quantityAvailable || 0} KG in stock
+                  <br />
+                  Type: {product.type}
                 </div>
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-500 dark:text-gray-400">Type: </span>
-                    <span className="text-gray-900 dark:text-gray-100">{selectedProduct.type}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 dark:text-gray-400">Stock: </span>
-                    <span className="text-gray-900 dark:text-gray-100">{selectedProduct.quantityAvailable || 0} KG</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 dark:text-gray-400">Sold: </span>
-                    <span className="text-gray-900 dark:text-gray-100">{selectedProduct.soldQuantity || 0} KG</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 dark:text-gray-400">Likes: </span>
-                    <span className="text-gray-900 dark:text-gray-100">{selectedProduct.likesCount || 0}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 dark:text-gray-400">Average Rating: </span>
-                    <span className="text-gray-900 dark:text-gray-100">{selectedProduct.averageRating || 0} / 5</span>
-                  </div>
-                  <div className="col-span-2">
-                    <span className="text-gray-500 dark:text-gray-400">Origin Address: </span>
-                    <span className="text-gray-900 dark:text-gray-100">{selectedProduct.originAddress || '-'}</span>
-                  </div>
-                  <div className="col-span-2">
-                    <span className="text-gray-500 dark:text-gray-400">Description: </span>
-                    <span className="text-gray-900 dark:text-gray-100">{selectedProduct.description || '-'}</span>
-                  </div>
-                  <div className="col-span-2">
-                    <span className="text-gray-500 dark:text-gray-400">Comment: </span>
-                    <span className="text-gray-900 dark:text-gray-100">{selectedProduct.comment || '-'}</span>
-                  </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectedProduct(product)}
+                    className="flex-1 p-2 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors duration-200 flex items-center justify-center gap-2 text-sm"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View
+                  </button>
+                  <button
+                    onClick={() => handleDeleteProduct(product.productId)}
+                    disabled={deleting}
+                    className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors duration-200 flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </button>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="col-span-full text-center text-gray-400 py-12">
+              {searchTerm ? 'No products match your search.' : 'No products found.'}
             </div>
+          )}
+        </div>
 
-            <div className="flex gap-2">
-              <Button
-                onClick={() => handleDeleteProduct(selectedProduct.productId)}
-                variant="danger"
-              >
-                Delete Product
-              </Button>
+        {/* Product Modal */}
+        {selectedProduct && (
+          <div
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="product-modal-title"
+          >
+            <div className="bg-gray-800 max-w-2xl w-full p-6 rounded-xl border border-cyan-500/20 shadow-lg overflow-y-auto max-h-[90vh]">
+              <div className="flex justify-between items-center mb-4">
+                <h2 id="product-modal-title" className="text-xl font-bold text-white">
+                  Product Details
+                </h2>
+                <button
+                  onClick={() => setSelectedProduct(null)}
+                  className="p-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  aria-label="Close product details"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4 text-sm text-gray-300">
+                <div>
+                  <strong className="text-white">Title:</strong> {selectedProduct.title}
+                </div>
+                <div>
+                  <strong className="text-white">Owner:</strong> {selectedProduct.ownerName}
+                </div>
+                <div>
+                  <strong className="text-white">Price:</strong> ${selectedProduct.price?.toFixed(2)}
+                </div>
+                <div>
+                  <strong className="text-white">Status:</strong> {getStatusBadge(selectedProduct.status)}
+                </div>
+                <div>
+                  <strong className="text-white">Type:</strong> {selectedProduct.type}
+                </div>
+                <div>
+                  <strong className="text-white">Stock:</strong> {selectedProduct.quantityAvailable || 0} KG
+                </div>
+                <div>
+                  <strong className="text-white">Sold:</strong> {selectedProduct.soldQuantity || 0} KG
+                </div>
+                <div>
+                  <strong className="text-white">Likes:</strong> {selectedProduct.likesCount || 0}
+                </div>
+                <div>
+                  <strong className="text-white">Average Rating:</strong> {selectedProduct.averageRating || 0} / 5
+                </div>
+                <div>
+                  <strong className="text-white">Origin Address:</strong> {selectedProduct.originAddress || '-'}
+                </div>
+                <div>
+                  <strong className="text-white">Description:</strong> {selectedProduct.description || '-'}
+                </div>
+                <div>
+                  <strong className="text-white">Comment:</strong> {selectedProduct.comment || '-'}
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => handleDeleteProduct(selectedProduct.productId)}
+                  disabled={deleting}
+                  className="p-2 px-4 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {deleting ? 'Deleting...' : 'Delete Product'}
+                </button>
+              </div>
             </div>
           </div>
         )}
-      </Modal>
+      </div>
     </div>
   );
 };

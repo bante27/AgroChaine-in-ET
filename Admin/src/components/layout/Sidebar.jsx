@@ -17,10 +17,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/' },
     { id: 'users', label: 'Users', icon: Users, path: '/users' },
     { id: 'products', label: 'Products', icon: Package, path: '/products' },
-    { id: 'orders', label: 'Orders', icon: ShoppingCart, path: '/orders' },
-    { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/messages', badge: 3 },
-    { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
-    { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
+    { id: 'Transactions', label: 'Transactions', icon: ShoppingCart, path: '/orders' },
+    { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/messages',},
+    { id: 'Admins', label: 'Admins', icon: User, path: '/profile' },
+    { id: 'Verifications', label: 'Verifications', icon: Settings, path: '/settings' },
   ];
 
   const handleLogout = () => {

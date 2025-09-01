@@ -54,20 +54,6 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
             {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
 
-          {/* Notifications */}
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-white/20"
-            >
-              <Bell className="h-6 w-6" />
-            </Button>
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-              3
-            </span>
-          </div>
-
           {/* Refresh */}
           <Button 
             onClick={handleRefresh} 
