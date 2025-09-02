@@ -3,6 +3,24 @@ import { Users, Package, ShoppingCart, MessageSquare, TrendingUp, Calendar } fro
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
+// Custom ETB Icon Component
+const ETBIcon = ({ className }) => (
+  <svg
+    className={className}
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <text x="6" y="18" fontSize="16" fontFamily="Arial, sans-serif"></text>
+    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" />
+  </svg>
+);
+
 const Dashboard = () => {
   const { token } = useAuth();
   const [stats, setStats] = useState({
@@ -10,6 +28,7 @@ const Dashboard = () => {
     products: { total: 0, totalValue: 0 },
     transactions: { total: 0, completed: 0, revenue: 0 },
     messages: { total: 0, unread: 0 },
+    platformRevenue: 0,
   });
   const [loading, setLoading] = useState(true);
   const [recentActivity, setRecentActivity] = useState([]);
@@ -39,6 +58,7 @@ const Dashboard = () => {
         const messages = messagesResponse.data.messages || [];
 
         const totalValue = products.reduce((sum, p) => sum + (p.price || 0), 0);
+        const platformRevenue = transactions.reduce((sum, t) => sum + (t.serviceFee || t.totalPrice * 0.05), 0);
 
         setStats({
           users: {
@@ -58,6 +78,7 @@ const Dashboard = () => {
             total: messages.length,
             unread: messages.filter((msg) => msg.status === 'unread').length,
           },
+          platformRevenue: platformRevenue.toFixed(2),
         });
 
         const messageActivities = messages.slice(0, 5).map((msg) => ({
@@ -163,7 +184,7 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
           <StatCard
             title="Total Users"
             value={stats.users.total}
@@ -184,6 +205,13 @@ const Dashboard = () => {
             icon={ShoppingCart}
             color="purple"
             subtitle={`$${stats.transactions.revenue.toLocaleString()} revenue`}
+          />
+          <StatCard
+            title="Platform Revenue"
+            value={`ETB ${stats.platformRevenue}`}
+            icon={ETBIcon}
+            color="emerald"
+            subtitle="Total service fees (5%)"
           />
           <StatCard
             title="Total Messages"

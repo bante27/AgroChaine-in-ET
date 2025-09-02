@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Users, 
@@ -12,20 +12,35 @@ import {
 } from 'lucide-react';
 import Button from '../common/Button';
 
+
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
+  const navigate = useNavigate();
+
+
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/' },
     { id: 'users', label: 'Users', icon: Users, path: '/users' },
     { id: 'products', label: 'Products', icon: Package, path: '/products' },
     { id: 'Transactions', label: 'Transactions', icon: ShoppingCart, path: '/orders' },
-    { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/messages',},
+    { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/messages' },
     { id: 'Admins', label: 'Admins', icon: User, path: '/profile' },
     { id: 'Verifications', label: 'Verifications', icon: Settings, path: '/settings' },
   ];
 
   const handleLogout = () => {
-    // Handle logout logic
-    console.log('Logout clicked');
+    try {
+      // Clear all tokens and data from localStorage
+      // Note: Use localStorage.removeItem('userToken') to remove only specific keys if needed
+      localStorage.clear();
+      console.log('Logged out and localStorage cleared');
+      console.log('Attempting to navigate to /login');
+      navigate('/login');
+
+      // Fallback: Use window.location if navigate fails
+      window.location.href = '/l';
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   return (

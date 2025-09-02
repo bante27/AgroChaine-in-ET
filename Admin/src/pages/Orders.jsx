@@ -10,7 +10,6 @@ import {
   Clock,
   XCircle
 } from 'lucide-react';
-
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
@@ -24,6 +23,8 @@ const Orders = () => {
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showProductModal, setShowProductModal] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -38,10 +39,16 @@ const Orders = () => {
       const updatedOrders = await Promise.all(transactions.map(async (order) => {
         const buyerData = await fetchUserData(order.buyerUserId);
         const sellerData = await fetchUserData(order.sellerUserId);
+        const productData = await fetchProductData(order.productId);
         return {
           ...order,
           buyerName: buyerData?.fullName || order.buyerUserId,
           sellerName: sellerData?.fullName || order.sellerUserId,
+          productName: productData?.title || order.productId,
+          productLink: productData?._id ? `/products/${productData._id}` : '#',
+          productData: productData,
+          // Calculate service fee if not provided by backend (5% of totalPrice)
+          serviceFee: order.serviceFee || (order.totalPrice * 0.05).toFixed(2)
         };
       }));
       setOrders(updatedOrders);
@@ -67,16 +74,37 @@ const Orders = () => {
     }
   };
 
+  const fetchProductData = async (productId) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/products/${productId}`, {
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('userToken')}`,
+        },
+      });
+      return response.data.product;
+    } catch (error) {
+      console.error('Error fetching product data:', error);
+      return null;
+    }
+  };
+
   const handleUserClick = async (userId) => {
     const userData = await fetchUserData(userId);
     setSelectedUser(userData);
     setShowUserModal(true);
   };
 
+  const handleProductClick = (productData) => {
+    setSelectedProduct(productData);
+    setShowProductModal(true);
+  };
+
   const filteredOrders = orders.filter(order =>
     order._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.buyerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.sellerName?.toLowerCase().includes(searchTerm.toLowerCase())
+    order.sellerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.productName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusBadge = (status) => {
@@ -85,10 +113,10 @@ const Orders = () => {
       pending: { color: 'bg-yellow-100 text-yellow-600 border-yellow-200', icon: Clock },
       canceled: { color: 'bg-red-100 text-red-600 border-red-200', icon: XCircle }
     };
-    
+   
     const config = statusConfig[status] || statusConfig.pending;
     const Icon = config.icon;
-    
+   
     return (
       <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${config.color}`}>
         <Icon className="w-3 h-3 mr-1" />
@@ -132,7 +160,6 @@ const Orders = () => {
           </Button>
         </div>
       </div>
-
       {/* Table */}
       <div className="flex-1 overflow-x-auto p-4">
         <table className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-sm">
@@ -186,7 +213,12 @@ const Orders = () => {
                   </td>
                   <td className="p-4">
                     <div>
-                      <span className="text-gray-900 dark:text-gray-100">{order.productId}</span>
+                      <span
+                        className="text-gray-900 dark:text-gray-100 cursor-pointer hover:underline"
+                        onClick={() => handleProductClick(order.productData)}
+                      >
+                        {order.productName}
+                      </span>
                       <p className="text-gray-500 dark:text-gray-400 text-sm">{order.quantity} items</p>
                     </div>
                   </td>
@@ -229,7 +261,6 @@ const Orders = () => {
           </tbody>
         </table>
       </div>
-
       {/* Order Details Modal */}
       <Modal
         isOpen={showOrderModal}
@@ -260,6 +291,10 @@ const Orders = () => {
                     <span className="text-emerald-400 font-bold">${selectedOrder.totalPrice?.toFixed(2)}</span>
                   </div>
                   <div>
+                    <span className="text-gray-500 dark:text-gray-400">Service Fee (5%): </span>
+                    <span className="text-gray-900 dark:text-gray-100">${selectedOrder.serviceFee}</span>
+                  </div>
+                  <div>
                     <span className="text-gray-500 dark:text-gray-400">Platform Fee (Buyer): </span>
                     <span className="text-gray-900 dark:text-gray-100">${selectedOrder.platformFeeBuyer?.toFixed(2)}</span>
                   </div>
@@ -269,7 +304,6 @@ const Orders = () => {
                   </div>
                 </div>
               </div>
-              
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Transaction Details</h3>
                 <div className="space-y-2">
@@ -292,8 +326,13 @@ const Orders = () => {
                     </span>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Product ID: </span>
-                    <span className="text-gray-900 dark:text-gray-100">{selectedOrder.productId}</span>
+                    <span className="text-gray-500 dark:text-gray-400">Product: </span>
+                    <span
+                      className="text-gray-900 dark:text-gray-100 cursor-pointer hover:underline"
+                      onClick={() => handleProductClick(selectedOrder.productData)}
+                    >
+                      {selectedOrder.productName}
+                    </span>
                   </div>
                   <div>
                     <span className="text-gray-500 dark:text-gray-400">Quantity: </span>
@@ -313,7 +352,6 @@ const Orders = () => {
           </div>
         )}
       </Modal>
-
       {/* User Details Modal */}
       <Modal
         isOpen={showUserModal}
@@ -340,7 +378,6 @@ const Orders = () => {
                 <p className="text-gray-500 dark:text-gray-400">{selectedUser.email}</p>
               </div>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Username</label>
@@ -391,7 +428,6 @@ const Orders = () => {
                 </div>
               </div>
             </div>
-
             {selectedUser.govIdFront && selectedUser.govIdBack && (
               <div className="mt-6">
                 <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Government ID</h4>
@@ -431,6 +467,97 @@ const Orders = () => {
                 </div>
               </div>
             )}
+          </div>
+        )}
+      </Modal>
+      {/* Product Details Modal */}
+      <Modal
+        isOpen={showProductModal}
+        onClose={() => setShowProductModal(false)}
+        title="Product Details"
+        size="lg"
+      >
+        {selectedProduct && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              {selectedProduct.images && selectedProduct.images.length > 0 ? (
+                <img
+                  src={selectedProduct.images[0]}
+                  alt={selectedProduct.title}
+                  className="w-16 h-16 rounded-lg object-cover border border-gray-300 dark:border-gray-600"
+                />
+              ) : (
+                <div className="w-16 h-16 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-lg flex items-center justify-center text-white">
+                  <span className="text-xl font-bold">{selectedProduct.title?.charAt(0)}</span>
+                </div>
+              )}
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{selectedProduct.title}</h3>
+                <p className="text-gray-500 dark:text-gray-400">Product ID: {selectedProduct.productId}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Description</label>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-gray-900 dark:text-gray-100">
+                  {selectedProduct.description || '-'}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Price</label>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-gray-900 dark:text-gray-100">
+                  ${selectedProduct.price?.toFixed(2)}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Type</label>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-gray-900 dark:text-gray-100">
+                  {selectedProduct.type || '-'}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Origin Address</label>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-gray-900 dark:text-gray-100">
+                  {selectedProduct.originAddress || '-'}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Quantity Available</label>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-gray-900 dark:text-gray-100">
+                  {selectedProduct.quantityAvailable || 0}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Sold Quantity</label>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-gray-900 dark:text-gray-100">
+                  {selectedProduct.soldQuantity || 0}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-gray-900 dark:text-gray-100">
+                  {selectedProduct.status || '-'}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Average Rating</label>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-gray-900 dark:text-gray-100">
+                  {selectedProduct.averageRating || 0}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Likes Count</label>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-gray-900 dark:text-gray-100">
+                  {selectedProduct.likesCount || 0}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Owner</label>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-gray-900 dark:text-gray-100">
+                  {selectedProduct.ownerName || selectedProduct.ownerUserId || '-'}
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </Modal>

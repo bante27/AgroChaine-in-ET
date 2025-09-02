@@ -8,132 +8,159 @@ const router = express.Router();
 
 const SERVICE_FEE_PERCENT = 5; // 5% from buyer and seller
 
-// Create a purchase (buy a product)
+// Middleware to restrict unverified users
+const restrictUnverifiedUsers = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ userId: req.user.userId });
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    if (user.govIdStatus !== 'verified') {
+      return res.status(403).json({
+        success: false,
+        error: 'Action restricted: Government ID verification pending or not completed',
+      });
+    }
+    next();
+  } catch (err) {
+    console.error('Error checking verification status:', err);
+    res.status(500).json({ success: false, error: 'Server error checking verification status' });
+  }
+};
+
 // Create a purchase (buy a product) using custom productId
-                router.post("/buy", auth, async (req, res) => {
-                  try {
-                    const { productId, quantity, deliveryAddress } = req.body;
-                    const buyerUserId = req.user.userId;
+router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
+  try {
+    const buyer = await User.findOne({ userId: req.user.userId });
+    if (buyer.isRestricted) {
+      return res.status(403).json({ success: false, error: "Restricted users cannot make purchases" });
+    }
 
-                    // Validate request
-                    if (!productId || !quantity || !deliveryAddress) {
-                      return res.status(400).json({
-                        success: false,
-                        error: "Product ID, quantity, and delivery address are required",
-                      });
-                    }
+    const { productId, quantity, deliveryAddress } = req.body;
+    const buyerUserId = req.user.userId;
 
-                    // Find product by custom productId instead of Mongo _id
-                    const product = await Product.findOne({ productId });
-                    if (!product) {
-                      return res.status(404).json({ success: false, error: "Product not found" });
-                    }
+    // Validate request
+    if (!productId || !quantity || !deliveryAddress) {
+      return res.status(400).json({
+        success: false,
+        error: "Product ID, quantity, and delivery address are required",
+      });
+    }
 
-                    // Prevent buying your own product
-                    if (product.ownerUserId.toString() === buyerUserId) {
-                      return res.status(400).json({ success: false, error: "Cannot buy your own product" });
-                    }
+    // Find product by custom productId instead of Mongo _id
+    const product = await Product.findOne({ productId });
+    if (!product) {
+      return res.status(404).json({ success: false, error: "Product not found" });
+    }
 
-                    // Check quantity availability
-                    if (product.quantityAvailable < quantity) {
-                      return res.status(400).json({ success: false, error: "Not enough quantity available" });
-                    }
+    // Prevent buying your own product
+    if (product.ownerUserId.toString() === buyerUserId) {
+      return res.status(400).json({ success: false, error: "Cannot buy your own product" });
+    }
 
-                    const totalPrice = product.price * quantity;
+    // Check quantity availability
+    if (product.quantityAvailable < quantity) {
+      return res.status(400).json({ success: false, error: "Not enough quantity available" });
+    }
 
-                    // Calculate service fees
-                    const buyerFee = (SERVICE_FEE_PERCENT / 100) * totalPrice;
-                    const sellerFee = (SERVICE_FEE_PERCENT / 100) * totalPrice;
-                    const totalChargeToBuyer = totalPrice + buyerFee;
-                    const netAmountToSeller = totalPrice - sellerFee;
+    const totalPrice = product.price * quantity;
 
-                    // Fetch buyer and seller
-                    const buyer = await User.findOne({ userId: buyerUserId });
-                    const seller = await User.findOne({ userId: product.ownerUserId });
+    // Calculate service fees
+    const buyerFee = (SERVICE_FEE_PERCENT / 100) * totalPrice;
+    const sellerFee = (SERVICE_FEE_PERCENT / 100) * totalPrice;
+    const totalChargeToBuyer = totalPrice + buyerFee;
+    const netAmountToSeller = totalPrice - sellerFee;
 
-                    if (!buyer || !seller) {
-                      return res.status(404).json({ success: false, error: "Buyer or seller not found" });
-                    }
+    // Fetch seller
+    const seller = await User.findOne({ userId: product.ownerUserId });
 
-                    // Check buyer balance
-                    if (buyer.balance < totalChargeToBuyer) {
-                      return res.status(400).json({ success: false, error: "Insufficient balance (includes 5% fee)" });
-                    }
+    if (!seller) {
+      return res.status(404).json({ success: false, error: "Seller not found" });
+    }
 
-                    // Hold buyer funds
-                    buyer.balance -= totalChargeToBuyer;
-                    buyer.pendingBalance += totalChargeToBuyer;
-                    await buyer.save();
+    // Check buyer balance
+    if (buyer.balance < totalChargeToBuyer) {
+      return res.status(400).json({ success: false, error: "Insufficient balance (includes 5% fee)" });
+    }
 
-                    // Update product stock
-                    product.quantityAvailable -= quantity;
-                    product.soldQuantity += quantity;
-                    if (product.quantityAvailable === 0) product.status = "sold out";
-                    await product.save();
+    // Hold buyer funds
+    buyer.balance -= totalChargeToBuyer;
+    buyer.pendingBalance += totalChargeToBuyer;
+    await buyer.save();
 
-                    // Create transaction
-                    const transaction = new Transaction({
-                      buyerUserId,
-                      sellerUserId: product.ownerUserId,
-                      productId: product._id, // still store Mongo _id for internal tracking
-                      quantity,
-                      totalPrice,
-                      deliveryAddress,
-                      status: "pending",
-                      paymentHeld: true,
-                      platformFeeBuyer: buyerFee,
-                      platformFeeSeller: sellerFee,
-                      netSellerAmount: netAmountToSeller,
-                      serviceFeePercent: SERVICE_FEE_PERCENT,
-                    });
+    // Update product stock
+    product.quantityAvailable -= quantity;
+    product.soldQuantity += quantity;
+    if (product.quantityAvailable === 0) product.status = "sold out";
+    await product.save();
 
-                    await transaction.save();
+    // Create transaction
+    const transaction = new Transaction({
+      buyerUserId,
+      sellerUserId: product.ownerUserId,
+      productId: product._id, // still store Mongo _id for internal tracking
+      quantity,
+      totalPrice,
+      deliveryAddress,
+      status: "pending",
+      paymentHeld: true,
+      platformFeeBuyer: buyerFee,
+      platformFeeSeller: sellerFee,
+      netSellerAmount: netAmountToSeller,
+      serviceFeePercent: SERVICE_FEE_PERCENT,
+    });
 
-                    // Update buyer and seller relationships
-                    await User.updateOne(
-                      { userId: buyerUserId },
-                      { 
-                        $addToSet: { 
-                          boughtProducts: product._id, 
-                          closeCustomers: seller._id,
-                          transactionHistory: transaction._id,
-                        },
-                        $inc: { rank: 0.5 }
-                      }
-                    );
+    await transaction.save();
 
-                    await User.updateOne(
-                      { userId: product.ownerUserId },
-                      { 
-                        $addToSet: { 
-                          soldProducts: product._id, 
-                          closeCustomers: buyer._id,
-                          transactionHistory: transaction._id,
-                        },
-                        $inc: { rank: 0.5 }
-                      }
-                    );
+    // Update buyer and seller relationships
+    await User.updateOne(
+      { userId: buyerUserId },
+      { 
+        $addToSet: { 
+          boughtProducts: product._id, 
+          closeCustomers: seller._id,
+          transactionHistory: transaction._id,
+        },
+        $inc: { rank: 0.5 }
+      }
+    );
 
-                    res.json({
-                      success: true,
-                      message: "Purchase successful. Awaiting delivery confirmation.",
-                      transaction,
-                    });
+    await User.updateOne(
+      { userId: product.ownerUserId },
+      { 
+        $addToSet: { 
+          soldProducts: product._id, 
+          closeCustomers: buyer._id,
+          transactionHistory: transaction._id,
+        },
+        $inc: { rank: 0.5 }
+      }
+    );
 
-                  } catch (error) {
-                    console.error("Transaction error:", error); // log full error
-                    res.status(500).json({ success: false, error: "Server error during transaction" });
-                  }
-                });
+    res.json({
+      success: true,
+      message: "Purchase successful. Awaiting delivery confirmation.",
+      transaction,
+    });
 
+  } catch (error) {
+    console.error("Transaction error:", error); // log full error
+    res.status(500).json({ success: false, error: "Server error during transaction" });
+  }
+});
 
 // Mark transaction as shipped (seller action)
-router.post("/mark-shipped/:transactionId", auth, async (req, res) => {
+router.post("/mark-shipped/:transactionId", auth, restrictUnverifiedUsers, async (req, res) => {
   try {
+    const seller = await User.findOne({ userId: req.user.userId });
+    if (seller.isRestricted) {
+      return res.status(403).json({ success: false, error: "Restricted users cannot mark transactions as shipped" });
+    }
+
     const { transactionId } = req.params;
     const sellerUserId = req.user.userId;
 
-    // Find the transactionz
+    // Find the transaction
     const transaction = await Transaction.findById(transactionId);
     if (!transaction) {
       return res.status(404).json({ success: false, error: "Transaction not found" });
@@ -165,8 +192,13 @@ router.post("/mark-shipped/:transactionId", auth, async (req, res) => {
 });
 
 // Confirm delivery of a transaction (buyer action)
-router.post("/confirm-delivery/:transactionId", auth, async (req, res) => {
+router.post("/confirm-delivery/:transactionId", auth, restrictUnverifiedUsers, async (req, res) => {
   try {
+    const buyer = await User.findOne({ userId: req.user.userId });
+    if (buyer.isRestricted) {
+      return res.status(403).json({ success: false, error: "Restricted users cannot confirm delivery" });
+    }
+
     const { transactionId } = req.params;
     const buyerUserId = req.user.userId;
 
@@ -186,12 +218,11 @@ router.post("/confirm-delivery/:transactionId", auth, async (req, res) => {
       return res.status(400).json({ success: false, error: "Transaction cannot be confirmed in current status" });
     }
 
-    // Fetch buyer and seller
-    const buyer = await User.findOne({ userId: transaction.buyerUserId });
+    // Fetch seller
     const seller = await User.findOne({ userId: transaction.sellerUserId });
 
-    if (!buyer || !seller) {
-      return res.status(404).json({ success: false, error: "Buyer or seller not found" });
+    if (!seller) {
+      return res.status(404).json({ success: false, error: "Seller not found" });
     }
 
     // Update transaction
@@ -266,6 +297,5 @@ router.get("/:transactionId", auth, async (req, res) => {
     res.status(500).json({ success: false, error: "Server error fetching transaction details" });
   }
 });
-
 
 export default router;
