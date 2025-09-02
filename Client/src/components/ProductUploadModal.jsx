@@ -70,22 +70,22 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-2">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
       <motion.div
-        initial={{ opacity: 0, scale: 0.85, y: 30 }}
+        initial={{ opacity: 0, scale: 0.9, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.85, y: 30 }}
-        transition={{ duration: 0.35, type: "spring" }}
-        className="bg-gradient-to-br from-gray-900 to-black rounded-3xl p-8 sm:p-6 w-full sm:max-w-md md:max-w-lg shadow-[0_0_20px_rgba(0,0,0,0.9)] border border-gray-800 overflow-y-auto max-h-[90vh]"
+        exit={{ opacity: 0, scale: 0.9, y: 30 }}
+        transition={{ duration: 0.3, type: "spring" }}
+        className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-5 sm:p-6 w-full max-w-lg overflow-y-auto max-h-[90vh]"
       >
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-6 text-center tracking-wide drop-shadow-lg">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
           Upload Product
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-5" encType="multipart/form-data">
+        <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
           {/* Product Title */}
           <div>
-            <label className="block text-xs font-semibold text-gray-400 mb-1 tracking-wide uppercase">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Product Title
             </label>
             <input
@@ -95,13 +95,13 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
               placeholder="Enter product title"
               required
               disabled={isLoading}
-              className="w-full rounded-2xl bg-gray-900 border border-gray-700 text-white placeholder-gray-500 px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-green-500 shadow-inner transition"
+              className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
 
           {/* Type */}
           <div>
-            <label className="block text-xs font-semibold text-gray-400 mb-1 tracking-wide uppercase">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Type
             </label>
             <select
@@ -109,9 +109,9 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
               onChange={(e) => setProduct({ ...product, type: e.target.value })}
               required
               disabled={isLoading}
-              className="w-full rounded-2xl bg-gray-900 border border-gray-700 text-white px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-green-500 shadow-inner transition"
+              className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             >
-              <option value="" className="text-gray-500">Select Type</option>
+              <option value="">Select Type</option>
               <option value="vegetable">Vegetable</option>
               <option value="fruit">Fruit</option>
               <option value="grain">Grain</option>
@@ -122,7 +122,7 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
 
           {/* Price */}
           <div>
-            <label className="block text-xs font-semibold text-gray-400 mb-1 tracking-wide uppercase">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Price (ETB)
             </label>
             <input
@@ -132,7 +132,7 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
               placeholder="0.00"
               required
               disabled={isLoading}
-              className="w-full rounded-2xl bg-gray-900 border border-gray-700 text-white px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-green-500 shadow-inner transition"
+              className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               min="0"
               step="0.01"
             />
@@ -140,7 +140,7 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
 
           {/* Quantity */}
           <div>
-            <label className="block text-xs font-semibold text-gray-400 mb-1 tracking-wide uppercase">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Quantity (kg)
             </label>
             <input
@@ -150,7 +150,7 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
               placeholder="0"
               required
               disabled={isLoading}
-              className="w-full rounded-2xl bg-gray-900 border border-gray-700 text-white px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-green-500 shadow-inner transition"
+              className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               min="0"
               step="0.01"
             />
@@ -158,7 +158,7 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
 
           {/* Origin Address */}
           <div>
-            <label className="block text-xs font-semibold text-gray-400 mb-1 tracking-wide uppercase">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Origin Address
             </label>
             <input
@@ -168,13 +168,13 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
               placeholder="Enter origin address"
               required
               disabled={isLoading}
-              className="w-full rounded-2xl bg-gray-900 border border-gray-700 text-white px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-green-500 shadow-inner transition"
+              className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
 
           {/* Images */}
           <div>
-            <label className="block text-xs font-semibold text-gray-400 mb-1 tracking-wide uppercase">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Images (max 6)
             </label>
             <input
@@ -183,13 +183,13 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
               multiple
               onChange={handleFileChange}
               disabled={isLoading}
-              className="w-full rounded-2xl bg-gray-900 border border-gray-700 text-white px-4 py-2 text-sm font-semibold cursor-pointer shadow-inner file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-600 file:text-white file:font-bold file:hover:bg-green-700 transition"
+              className="w-full text-sm text-gray-600 dark:text-gray-300 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-green-600 file:text-white hover:file:bg-green-700 cursor-pointer"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-semibold text-gray-400 mb-1 tracking-wide uppercase">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Description
             </label>
             <textarea
@@ -198,24 +198,24 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
               placeholder="Describe your product..."
               disabled={isLoading}
               rows={4}
-              className="w-full rounded-2xl bg-gray-900 border border-gray-700 text-white px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-green-500 shadow-inner resize-none transition"
+              className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
             />
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 pt-3">
             <Button
               variant="outline"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 border-gray-600 text-gray-400 hover:text-green-500 hover:border-green-500 transition font-semibold"
+              className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-green-500 hover:text-green-600"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-extrabold transition"
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold"
             >
               {isLoading ? "Uploading..." : "Upload"}
             </Button>

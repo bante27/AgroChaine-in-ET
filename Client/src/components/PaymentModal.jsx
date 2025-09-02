@@ -1,63 +1,56 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CreditCard, Smartphone, Banknote } from 'lucide-react';
-import Button from './Button';
-import toast from 'react-hot-toast';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Smartphone, Banknote, Wallet } from "lucide-react";
+import Button from "./Button";
+import toast from "react-hot-toast";
 
 const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
-  const [amount, setAmount] = useState('');
-  const [selectedMethod, setSelectedMethod] = useState('abyssinia');
+  const [amount, setAmount] = useState("");
+  const [selectedMethod, setSelectedMethod] = useState("cbe");
   const [loading, setLoading] = useState(false);
 
   const paymentMethods = [
-    { value: 'abyssinia', label: 'Abyssinia Bank', icon: Banknote, color: 'teal' },
-    { value: 'safaricom', label: 'Safaricom M-Pesa', icon: Smartphone, color: 'green' },
-    { value: 'dashen', label: 'Dashen Bank', icon: Banknote, color: 'purple' },
-    { value: 'cbe', label: 'Commercial Bank of Ethiopia', icon: Banknote, color: 'blue' },
-    { value: 'awash', label: 'Awash Bank', icon: Banknote, color: 'orange' },
-    { value: 'cbo', label: 'Cooperative Bank of Oromia', icon: Banknote, color: 'lime' },
-    { value: 'lion', label: 'Lion International Bank', icon: Banknote, color: 'red' },
-    { value: 'oromia', label: 'Oromia International Bank', icon: Banknote, color: 'yellow' },
-    { value: 'united', label: 'United Bank', icon: Banknote, color: 'indigo' },
+    { value: "cbe", label: "Commercial Bank of Ethiopia", icon: Banknote, color: "blue" },
+    { value: "dashen", label: "Dashen Bank", icon: Banknote, color: "purple" },
+    { value: "abyssinia", label: "Abyssinia Bank", icon: Banknote, color: "teal" },
+    { value: "telebirr", label: "Telebirr", icon: Wallet, color: "yellow" },
+    { value: "safaricom", label: "Safaricom M-Pesa", icon: Smartphone, color: "green" },
+    { value: "dashen", label: "Dashen Bank", icon: Banknote, color: "purple" },
+    
   ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!amount || parseFloat(amount) <= 0) {
-      toast.error('Please enter a valid amount greater than 0 ETB');
+      toast.error("Please enter a valid amount greater than 0 ETB");
       return;
     }
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Authentication required. Please log in.');
-      }
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Authentication required. Please log in.");
 
-      const response = await fetch('http://localhost:5000/api/users/add-balance', {
-        method: 'POST',
+      const response = await fetch("http://localhost:5000/api/users/add-balance", {
+        method: "POST",
         headers: {
-          'accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          accept: "application/json",
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          amount: parseFloat(amount),
-          paymentMethod: selectedMethod,
-        }),
+        body: JSON.stringify({ amount: parseFloat(amount), paymentMethod: selectedMethod }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Payment request failed');
+        throw new Error(errorData.message || "Payment request failed");
       }
 
       const data = await response.json();
-      toast.success(`Successfully added ${amount} ETB via ${selectedMethod.toUpperCase()}`);
+      toast.success(`+${amount} ETB added via ${selectedMethod.toUpperCase()}`);
       onPaymentSuccess(data.balance);
       onClose();
     } catch (error) {
-      toast.error(error.message || 'Payment failed. Please try again later.');
+      toast.error(error.message || "Payment failed. Try again.");
     } finally {
       setLoading(false);
     }
@@ -70,75 +63,81 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
           onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl border border-gray-200 dark:border-gray-700"
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            className="bg-white dark:bg-gray-800 rounded-xl p-4 w-full max-w-sm shadow-xl border border-gray-200 dark:border-gray-700"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Add Balance</h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 text-center">
+              Add Balance
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Amount */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amount (ETB)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Amount (ETB)
+                </label>
                 <input
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 text-sm"
                   placeholder="Enter amount"
                   min="1"
                   step="0.01"
                   required
                 />
               </div>
+
+              {/* Payment Methods */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Payment Method</label>
-                <div className="grid grid-cols-3 gap-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Payment Method
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {paymentMethods.map((method) => (
                     <button
                       key={method.value}
                       type="button"
                       onClick={() => setSelectedMethod(method.value)}
-                      className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all duration-200 ${
+                      className={`flex flex-col items-center p-3 rounded-lg border-2 text-xs sm:text-sm transition-all ${
                         selectedMethod === method.value
                           ? `border-${method.color}-500 bg-${method.color}-50 dark:bg-${method.color}-900/30 text-${method.color}-700 dark:text-${method.color}-300`
-                          : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                          : "border-gray-200 dark:border-gray-600 hover:border-gray-400 text-gray-900 dark:text-gray-100"
                       }`}
                     >
-                      <method.icon className={`h-6 w-6 mb-2 ${selectedMethod === method.value ? `text-${method.color}-600 dark:text-${method.color}-400` : `text-${method.color}-500 dark:text-${method.color}-400`}`} />
-                      <span className="text-sm font-medium">{method.label}</span>
+                      <method.icon
+                        className={`h-5 w-5 mb-1 ${
+                          selectedMethod === method.value
+                            ? `text-${method.color}-600 dark:text-${method.color}-400`
+                            : `text-${method.color}-500 dark:text-${method.color}-400`
+                        }`}
+                      />
+                      {method.label}
                     </button>
                   ))}
                 </div>
               </div>
+
+              {/* Submit */}
               <Button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors disabled:bg-blue-400"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-blue-400"
                 disabled={loading}
               >
-                {loading ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    Processing...
-                  </span>
-                ) : 'Pay Now'}
+                {loading ? "Processing..." : "Pay Now"}
               </Button>
             </form>
+
             <Button
               variant="outline"
-              className="w-full mt-4 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 py-2 rounded-lg"
+              className="w-full mt-3 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 py-2 rounded-lg text-sm"
               onClick={onClose}
             >
               Cancel

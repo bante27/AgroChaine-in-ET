@@ -19,10 +19,6 @@ import {
   CheckCircle,
   Truck,
   XCircle,
-  Eye,
-  Calendar,
-  User,
-  Search,
   Clock,
 } from 'lucide-react';
 import axios from 'axios';
@@ -37,73 +33,6 @@ import ProductUploadModal from '../components/ProductUploadModal';
 import ProfileImageUploadModal from '../components/ProfileImageUploadModal';
 import PaymentModal from '../components/PaymentModal';
 
-const OrderDetailsModal = ({ isOpen, onClose, order }) => {
-  if (!order) return null;
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Order Details</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Product</label>
-            <p className="text-gray-900 dark:text-white">{order.productName || 'Unknown Product'}</p>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Quantity</label>
-            <p className="text-gray-900 dark:text-white">{order.quantity || 'N/A'}</p>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Total Price</label>
-            <p className="text-gray-900 dark:text-white">{order.totalPrice ? order.totalPrice.toFixed(2) : '0.00'} ETB</p>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Buyer</label>
-            <p className="text-gray-900 dark:text-white">{order.buyerName || 'Unknown Buyer'}</p>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Seller</label>
-            <p className="text-gray-900 dark:text-white">{order.sellerName || 'Unknown Seller'}</p>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Delivery Address</label>
-            <p className="text-gray-900 dark:text-white">{order.deliveryAddress || 'N/A'}</p>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Status</label>
-            <span
-              className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${
-                order.status === 'completed'
-                  ? 'bg-green-500/30 text-green-600 dark:text-green-400'
-                  : order.status === 'shipped'
-                  ? 'bg-blue-500/30 text-blue-600 dark:text-blue-400'
-                  : order.status === 'pending'
-                  ? 'bg-yellow-500/30 text-yellow-600 dark:text-yellow-400'
-                  : 'bg-red-500/30 text-red-600 dark:text-red-400'
-              }`}
-            >
-              {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Unknown'}
-            </span>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Date</label>
-            <p className="text-gray-900 dark:text-white">{new Date(order.date || Date.now()).toLocaleString()}</p>
-          </div>
-        </div>
-        <div className="mt-6 flex justify-end">
-          <Button
-            onClick={onClose}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 px-4 text-sm"
-          >
-            Close
-          </Button>
-        </div>
-      </div>
-    </Modal>
-  );
-};
-
-
 const Dashboard = () => {
   const { user, isAuthenticated, loading, logout, setUser, fetchUserProfile } = useAuth();
   const navigate = useNavigate();
@@ -111,9 +40,7 @@ const Dashboard = () => {
   const [showProductModal, setShowProductModal] = useState(false);
   const [showProfileImageModal, setShowProfileImageModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showOrderModal, setShowOrderModal] = useState(false);
   const [showAllOrdersModal, setShowAllOrdersModal] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
   const [orders, setOrders] = useState([]);
   const [verificationStatus, setVerificationStatus] = useState(user?.govIdStatus || 'unverified');
   const [profileData, setProfileData] = useState({
@@ -355,11 +282,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleProductClick = (order) => {
-    setSelectedOrder(order);
-    setShowOrderModal(true);
-  };
-
   const getStatusBadge = (status) => {
     const statusConfig = {
       completed: { color: 'bg-green-100 text-green-600 border-green-200', icon: CheckCircle },
@@ -402,7 +324,7 @@ const Dashboard = () => {
     ? orders.map((tx, index) => ({
         id: index,
         type: tx.buyerUserId === user.userId ? 'purchase' : 'sale',
-        description: `${tx.buyerUserId === user.userId ? 'Purchased' : 'Sold'} ${tx.quantity} of ${tx.produId}`,
+        description: `${tx.buyerUserId === user.userId ? 'Purchased' : 'Sold'} ${tx.quantity} of ID: ${tx.productId}`,
         amount: `${tx.totalPrice.toFixed(2)} ETB`,
         time: new Date(tx.date || Date.now()).toLocaleString(),
         status: tx.status || 'pending',
@@ -434,7 +356,6 @@ const Dashboard = () => {
       icon: Wallet,
       color: 'indigo',
     },
-    
     {
       title: 'About',
       description: 'Learn more about the platform',
@@ -471,7 +392,7 @@ const Dashboard = () => {
       formData.append('name', data.name);
       formData.append('govIdFront', data.govIdFront);
       formData.append('govIdBack', data.govIdBack);
-      formData.append('role', data.role); // Assuming role (buyer/seller) is included in data
+      formData.append('role', data.role);
       await axios.post('http://localhost:5000/api/users/verify-id', formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
@@ -572,7 +493,7 @@ const Dashboard = () => {
   if (error && !user) {
     return (
       <div className="min-h-screen bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <div className="text-center py-10 text-2xl text-red-500 bg-red-100/80 dark:bg-red-900/80 rounded-2xl p-8 border border-red-200 dark:border-red-800 shadow-2xl backdrop-blur-md">
+        <div className="text-center py-10 text-lg sm:text-xl text-red-500 bg-red-100/80 dark:bg-red-900/80 rounded-2xl p-6 sm:p-8 border border-red-200 dark:border-red-800 shadow-2xl backdrop-blur-md">
           {error}
           <Button
             onClick={() => {
@@ -594,12 +515,12 @@ const Dashboard = () => {
       <div ref={profileRef} className="fixed top-4 right-4 z-50">
         <button
           onClick={() => setIsProfileOpen(!isProfileOpen)}
-          className="flex items-center justify-center w-12 h-12 rounded-full overflow-hidden border-2 border-blue-400/50 dark:border-blue-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 backdrop-blur-sm bg-white/10"
+          className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-blue-400/50 dark:border-blue-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 backdrop-blur-sm bg-white/10"
         >
           {user?.profilePic ? (
             <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
           ) : (
-            <span className="text-base font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-700 w-full h-full flex items-center justify-center">
+            <span className="text-sm sm:text-base font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-700 w-full h-full flex items-center justify-center">
               {user?.fullName?.[0] || 'U'}
             </span>
           )}
@@ -612,14 +533,14 @@ const Dashboard = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               transition={{ duration: 0.3, type: 'spring' }}
-              className="absolute right-0 mt-3 w-80 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/30 dark:border-blue-800/30 overflow-hidden"
+              className="absolute right-0 mt-3 w-72 sm:w-80 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/30 dark:border-blue-800/30 overflow-hidden"
             >
               <div className="flex items-center space-x-4 p-4 border-b border-blue-200/50 dark:border-blue-800/50 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-800 dark:to-gray-700">
-                <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-blue-400/50 dark:border-blue-600/50 group">
+                <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-blue-400/50 dark:border-blue-600/50 group">
                   {user?.profilePic ? (
                     <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-lg font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-700 w-full h-full flex items-center justify-center">
+                    <span className="text-base sm:text-lg font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-700 w-full h-full flex items-center justify-center">
                       {user?.fullName?.[0] || 'U'}
                     </span>
                   )}
@@ -630,11 +551,11 @@ const Dashboard = () => {
                       setShowProfileImageModal(true);
                     }}
                   >
-                    <Camera className="w-6 h-6 text-white" />
+                    <Camera className="w-5 h-5 sm:w-6 sm:w-6 text-white" />
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white">{profileData.fullName || 'Complete Profile'}</h3>
+                  <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">{profileData.fullName || 'Complete Profile'}</h3>
                   <span
                     className={`inline-block text-xs px-3 py-1 rounded-full mt-1 ${
                       verificationStatus === 'verified'
@@ -722,45 +643,45 @@ const Dashboard = () => {
         </AnimatePresence>
       </div>
 
-      <div className="p-6 md:p-8 lg:p-12 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 md:p-8 lg:p-12 max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, type: 'spring' }}
-          className="mb-12 text-center"
+          className="mb-8 sm:mb-12 text-center"
         >
-          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 mb-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 mb-4">
             Welcome back, {user?.fullName || 'User'}!
           </h1>
-          <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300">Your modern agricultural marketplace dashboard</p>
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300">Your modern agricultural marketplace dashboard</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, type: 'spring' }}
-          className="mb-12 flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center"
+          className="mb-8 sm:mb-12 flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center"
         >
           <Button
             onClick={handleBuyClick}
             size="large"
-            className="flex items-center justify-center space-x-3 min-w-[180px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-sm"
+            className="flex items-center justify-center space-x-3 min-w-[160px] sm:min-w-[180px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-sm"
           >
-            <ShoppingCart className="h-5 w-5" />
+            <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
             <span>Buy Products</span>
           </Button>
           <Button
             onClick={handleSellClick}
             size="large"
-            className="flex items-center justify-center space-x-3 min-w-[180px] bg-gradient-to-r from-gray-600 to-teal-600 hover:from-rose-700 hover:to-teal-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-sm"
+            className="flex items-center justify-center space-x-3 min-w-[160px] sm:min-w-[180px] bg-gradient-to-r from-gray-600 to-teal-600 hover:from-rose-700 hover:to-teal-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-sm"
           >
-            <Upload className="h-5 w-5" />
+            <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
             <span>Sell Products</span>
           </Button>
         </motion.div>
 
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
@@ -772,17 +693,17 @@ const Dashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 + 0.5, type: 'spring' }}
             >
-              <Card className="group relative overflow-hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-blue-200/30 dark:border-blue-800/30">
+              <Card className="group relative overflow-hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl p-4 sm:p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-blue-200/30 dark:border-blue-800/30">
                 <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
                 <div
-                  className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${stat.gradient} mb-4 shadow-md group-hover:shadow-lg transition-all`}
+                  className={`inline-flex p-3 sm:p-4 rounded-xl bg-gradient-to-br ${stat.gradient} mb-4 shadow-md group-hover:shadow-lg transition-all`}
                 >
-                  <stat.icon className="h-8 w-8 text-white" />
+                  <stat.icon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                 </div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{stat.title}</p>
-                <p className="text-2xl font-extrabold text-gray-900 dark:text-white mb-2">{stat.value}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{stat.title}</p>
+                <p className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white mb-2">{stat.value}</p>
                 <div
-                  className={`flex items-center text-sm font-medium ${
+                  className={`flex items-center text-xs sm:text-sm font-medium ${
                     stat.trend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}
                 >
@@ -794,19 +715,19 @@ const Dashboard = () => {
           ))}
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.6, type: 'spring' }}
             className="lg:col-span-2"
           >
-            <Card className="p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-lg border border-blue-200/30 dark:border-blue-800/30">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Recent Activity</h2>
+            <Card className="p-4 sm:p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-lg border border-blue-200/30 dark:border-blue-800/30">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Recent Activity</h2>
                 <Button
                   variant="outline"
-                  className="text-sm border-blue-400/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 rounded-lg shadow-sm"
+                  className="text-xs sm:text-sm border-blue-400/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 rounded-lg shadow-sm"
                   onClick={() => setShowAllOrdersModal(true)}
                 >
                   View All
@@ -819,20 +740,19 @@ const Dashboard = () => {
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-blue-100/10 dark:bg-blue-900/10 rounded-xl hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-800/20 shadow-sm hover:shadow-md cursor-pointer"
-                    onClick={() => handleProductClick(activity.order)}
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-blue-100/10 dark:bg-blue-900/10 rounded-xl hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-800/20 shadow-sm hover:shadow-md"
                   >
                     <div className="flex items-center space-x-4 mb-3 sm:mb-0">
                       <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md">
-                        <Activity className="h-5 w-5 text-white" />
+                        <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{activity.description}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{activity.time}</p>
+                        <p className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">{activity.description}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{activity.time}</p>
                       </div>
                     </div>
-                    <div className="text-left sm:text-right w-full sm:w-auto flex items-center space-x-2">
-                      {activity.amount && <p className="font-bold text-gray-900 dark:text-white">{activity.amount}</p>}
+                    <div className="text-left sm:text-right w-full sm:w-auto flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                      {activity.amount && <p className="font-bold text-gray-900 dark:text-white text-sm sm:text-base">{activity.amount}</p>}
                       {getStatusBadge(activity.status)}
                       {activity.order && (
                         <>
@@ -842,7 +762,7 @@ const Dashboard = () => {
                                 e.stopPropagation();
                                 handleDeliver(activity.order._id);
                               }}
-                              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1 px-2 text-xs"
+                              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1 px-2 text-xs sm:text-sm"
                             >
                               Mark Shipped
                             </Button>
@@ -853,7 +773,7 @@ const Dashboard = () => {
                                 e.stopPropagation();
                                 handleDelivered(activity.order._id);
                               }}
-                              className="bg-green-600 hover:bg-green-700 text-white rounded-lg py-1 px-2 text-xs"
+                              className="bg-green-600 hover:bg-green-700 text-white rounded-lg py-1 px-2 text-xs sm:text-sm"
                             >
                               Confirm Delivery
                             </Button>
@@ -864,7 +784,7 @@ const Dashboard = () => {
                                 e.stopPropagation();
                                 handleCancel(activity.order._id);
                               }}
-                              className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-2 text-xs"
+                              className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-2 text-xs sm:text-sm"
                             >
                               Cancel
                             </Button>
@@ -883,8 +803,8 @@ const Dashboard = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.8, type: 'spring' }}
           >
-            <Card className="p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-lg border border-blue-200/30 dark:border-blue-800/30">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Quick Actions</h2>
+            <Card className="p-4 sm:p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-lg border border-blue-200/30 dark:border-blue-800/30">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Quick Actions</h2>
               <div className="space-y-4">
                 {quickActions.map((action, index) => (
                   <motion.button
@@ -896,13 +816,13 @@ const Dashboard = () => {
                   >
                     <div className="flex items-center space-x-3">
                       <div className={`p-2 rounded-lg bg-${action.color}-100/30 dark:bg-${action.color}-900/30 group-hover:bg-${action.color}-200/40 dark:group-hover:bg-${action.color}-800/40 transition-colors shadow-sm`}>
-                        <action.icon className={`h-5 w-5 text-${action.color}-500 group-hover:text-${action.color}-600 dark:group-hover:text-${action.color}-400`} />
+                        <action.icon className={`h-4 w-4 sm:h-5 sm:w-5 text-${action.color}-500 group-hover:text-${action.color}-600 dark:group-hover:text-${action.color}-400`} />
                       </div>
                       <div>
-                        <h3 className={`text-base font-bold text-gray-900 dark:text-white group-hover:text-${action.color}-400 dark:group-hover:text-${action.color}-300 transition-colors`}>
+                        <h3 className={`text-sm sm:text-base font-bold text-gray-900 dark:text-white group-hover:text-${action.color}-400 dark:group-hover:text-${action.color}-300 transition-colors`}>
                           {action.title}
                         </h3>
-                        <p className={`text-sm text-gray-600 dark:text-gray-400 group-hover:text-${action.color}-300 dark:group-hover:text-${action.color}-200 transition-colors`}>
+                        <p className={`text-xs sm:text-sm text-gray-600 dark:text-gray-400 group-hover:text-${action.color}-300 dark:group-hover:text-${action.color}-200 transition-colors`}>
                           {action.description}
                         </p>
                       </div>
@@ -919,34 +839,34 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.0, type: 'spring' }}
         >
-          <Card className="p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-lg border border-blue-200/30 dark:border-blue-800/30">
-            <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Sales Overview</h2>
+          <Card className="p-4 sm:p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-lg border border-blue-200/30 dark:border-blue-800/30">
+            <div className="flex flex-col sm:flex-row items-center justify-between mb-4 sm:mb-6 gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Sales Overview</h2>
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
-                  className="text-sm border-blue-400/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 rounded-lg shadow-sm"
+                  className="text-xs sm:text-sm border-blue-400/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 rounded-lg shadow-sm"
                 >
                   7 Days
                 </Button>
                 <Button
                   variant="outline"
-                  className="text-sm border-blue-400/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 rounded-lg shadow-sm"
+                  className="text-xs sm:text-sm border-blue-400/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 rounded-lg shadow-sm"
                 >
                   30 Days
                 </Button>
-                <Button className="text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm">
+                <Button className="text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm">
                   90 Days
                 </Button>
               </div>
             </div>
-            <div className="h-64 sm:h-80 bg-blue-100/10 dark:bg-blue-900/10 rounded-2xl flex items-center justify-center border border-blue-200/20 dark:border-blue-800/20 overflow-hidden shadow-inner">
-              <div className="text-center p-6">
-                <div className="inline-flex p-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-6 shadow-2xl">
-                  <TrendingUp className="h-12 w-12 text-white" />
+            <div className="h-48 sm:h-64 md:h-80 bg-blue-100/10 dark:bg-blue-900/10 rounded-2xl flex items-center justify-center border border-blue-200/20 dark:border-blue-800/20 overflow-hidden shadow-inner">
+              <div className="text-center p-4 sm:p-6">
+                <div className="inline-flex p-4 sm:p-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 sm:mb-6 shadow-2xl">
+                  <TrendingUp className="h-8 w-8 sm:h-12 sm:w-12 text-white" />
                 </div>
-                <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">Sales Analytics Coming Soon</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Advanced insights and interactive charts will be available</p>
+                <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">Sales Analytics Coming Soon</p>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Advanced insights and interactive charts will be available</p>
               </div>
             </div>
           </Card>
@@ -974,8 +894,44 @@ const Dashboard = () => {
         onClose={() => setShowPaymentModal(false)}
         onPaymentSuccess={fetchUserProfileLocal}
       />
-      
-
+      <Modal
+        isOpen={showAllOrdersModal}
+        onClose={() => setShowAllOrdersModal(false)}
+      >
+        <div className="p-4 sm:p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl max-w-2xl w-full mx-auto">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">All Orders</h2>
+          <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 dark:scrollbar-thumb-blue-600 scrollbar-track-blue-100 dark:scrollbar-track-blue-900">
+            {recentActivities.map((activity, index) => (
+              <div
+                key={index}
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-blue-100/10 dark:bg-blue-900/10 rounded-xl hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-800/20 shadow-sm hover:shadow-md"
+              >
+                <div className="flex items-center space-x-4 mb-3 sm:mb-0">
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md">
+                    <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">{activity.description}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{activity.time}</p>
+                  </div>
+                </div>
+                <div className="text-left sm:text-right w-full sm:w-auto flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                  {activity.amount && <p className="font-bold text-gray-900 dark:text-white text-sm sm:text-base">{activity.amount}</p>}
+                  {getStatusBadge(activity.status)}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 sm:mt-6 flex justify-end">
+            <Button
+              onClick={() => setShowAllOrdersModal(false)}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 px-4 text-sm"
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      </Modal>
       <LiveChat />
     </div>
   );
