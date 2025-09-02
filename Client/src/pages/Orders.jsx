@@ -148,7 +148,7 @@ const Orders = () => {
       switch (status) {
         case 'delivered':
           response = await axios.post(
-            `http://localhost:5000/api/transactions/confirm-delivery/${orderId}`,
+            `http://localhost:5000/api//confirm-delivery/:transactionId/${orderId}`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           );
