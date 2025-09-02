@@ -12,6 +12,7 @@ import {
   CheckCircle,
   Clock,
   XCircle,
+  UserPlus,
 } from "lucide-react";
 import axios from "axios";
 
@@ -103,6 +104,33 @@ const Users = () => {
     }
   };
 
+  const handleMakeAdmin = async (userId, isAdmin) => {
+    setActionLoading(true);
+    try {
+      setError(null);
+      const token = localStorage.getItem("userToken");
+      await axios.post(
+        `http://localhost:5000/api/users/make-admin/${userId}`,
+        {},
+        {
+          headers: {
+            accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      fetchUsers();
+      if (selectedUser?.userId === userId) {
+        setSelectedUser({ ...selectedUser, isAdmin: !isAdmin });
+      }
+    } catch (err) {
+      console.error("Error making/removing admin:", err);
+      setError(err.response?.data?.error || "Failed to make/remove admin");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const getStatusBadge = (user, verificationData) => {
     if (user.isRestricted) {
       return (
@@ -148,7 +176,6 @@ const Users = () => {
             {error}
           </div>
         )}
-
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
@@ -174,7 +201,6 @@ const Users = () => {
             </button>
           </div>
         </div>
-
         {/* Table */}
         <div className="bg-gray-800 rounded-xl shadow-lg border border-cyan-500/20 overflow-hidden">
           <table className="w-full">
@@ -247,6 +273,21 @@ const Users = () => {
                         ) : null}
                       </button>
                       <button
+                        onClick={() => handleMakeAdmin(user.userId, user.isAdmin)}
+                        className={`p-2 rounded-lg ${
+                          user.isAdmin
+                            ? "bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"
+                            : "bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20"
+                        } transition-colors duration-200 flex items-center gap-1`}
+                        title={user.isAdmin ? "Remove Admin" : "Make Admin"}
+                        disabled={actionLoading}
+                      >
+                        <UserPlus className="h-4 w-4" />
+                        {actionLoading && user.userId === selectedUser?.userId ? (
+                          <div className="animate-spin h-4 w-4 border-t-2 border-cyan-400 rounded-full"></div>
+                        ) : null}
+                      </button>
+                      <button
                         onClick={() => {
                           setSelectedUser(user);
                           fetchVerificationData(user.userId);
@@ -270,7 +311,6 @@ const Users = () => {
             </tbody>
           </table>
         </div>
-
         {/* Modal */}
         {showUserModal && (
           <div
@@ -321,7 +361,6 @@ const Users = () => {
                       <div className="mt-2">{getStatusBadge(selectedUser, verificationData)}</div>
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-1">Phone</label>
@@ -360,7 +399,6 @@ const Users = () => {
                       </div>
                     </div>
                   </div>
-
                   {verificationLoading ? (
                     <div className="flex items-center justify-center p-6">
                       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-cyan-400"></div>
@@ -406,7 +444,6 @@ const Users = () => {
                   ) : (
                     <div className="mt-6 text-gray-400">No verification data available.</div>
                   )}
-
                   <div className="flex gap-2 mt-6">
                     <button
                       onClick={() => handleRestrictUser(selectedUser.userId, selectedUser.isRestricted)}
@@ -424,6 +461,22 @@ const Users = () => {
                         selectedUser.isRestricted ? "Unrestrict User" : "Restrict User"
                       )}
                     </button>
+                    <button
+                      onClick={() => handleMakeAdmin(selectedUser.userId, selectedUser.isAdmin)}
+                      className={`flex-1 p-3 rounded-lg ${
+                        selectedUser.isAdmin
+                          ? "bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"
+                          : "bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20"
+                      } transition-colors duration-200 flex items-center justify-center gap-2`}
+                      disabled={actionLoading}
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      {actionLoading ? (
+                        <div className="animate-spin h-4 w-4 border-t-2 border-cyan-400 rounded-full"></div>
+                      ) : (
+                        selectedUser.isAdmin ? "Remove Admin" : "Make Admin"
+                      )}
+                    </button>
                   </div>
                 </div>
               )}
@@ -431,7 +484,8 @@ const Users = () => {
           </div>
         )}
       </div>
-    </div>);
+    </div>
+  );
 };
 
 export default Users;
