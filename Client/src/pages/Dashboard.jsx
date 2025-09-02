@@ -37,6 +37,73 @@ import ProductUploadModal from '../components/ProductUploadModal';
 import ProfileImageUploadModal from '../components/ProfileImageUploadModal';
 import PaymentModal from '../components/PaymentModal';
 
+const OrderDetailsModal = ({ isOpen, onClose, order }) => {
+  if (!order) return null;
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <div className="p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Order Details</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Product</label>
+            <p className="text-gray-900 dark:text-white">{order.productName || 'Unknown Product'}</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Quantity</label>
+            <p className="text-gray-900 dark:text-white">{order.quantity || 'N/A'}</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Total Price</label>
+            <p className="text-gray-900 dark:text-white">{order.totalPrice ? order.totalPrice.toFixed(2) : '0.00'} ETB</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Buyer</label>
+            <p className="text-gray-900 dark:text-white">{order.buyerName || 'Unknown Buyer'}</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Seller</label>
+            <p className="text-gray-900 dark:text-white">{order.sellerName || 'Unknown Seller'}</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Delivery Address</label>
+            <p className="text-gray-900 dark:text-white">{order.deliveryAddress || 'N/A'}</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Status</label>
+            <span
+              className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${
+                order.status === 'completed'
+                  ? 'bg-green-500/30 text-green-600 dark:text-green-400'
+                  : order.status === 'shipped'
+                  ? 'bg-blue-500/30 text-blue-600 dark:text-blue-400'
+                  : order.status === 'pending'
+                  ? 'bg-yellow-500/30 text-yellow-600 dark:text-yellow-400'
+                  : 'bg-red-500/30 text-red-600 dark:text-red-400'
+              }`}
+            >
+              {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Unknown'}
+            </span>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Date</label>
+            <p className="text-gray-900 dark:text-white">{new Date(order.date || Date.now()).toLocaleString()}</p>
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end">
+          <Button
+            onClick={onClose}
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 px-4 text-sm"
+          >
+            Close
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+
 const Dashboard = () => {
   const { user, isAuthenticated, loading, logout, setUser, fetchUserProfile } = useAuth();
   const navigate = useNavigate();
@@ -44,6 +111,9 @@ const Dashboard = () => {
   const [showProductModal, setShowProductModal] = useState(false);
   const [showProfileImageModal, setShowProfileImageModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [showAllOrdersModal, setShowAllOrdersModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [orders, setOrders] = useState([]);
   const [verificationStatus, setVerificationStatus] = useState(user?.govIdStatus || 'unverified');
   const [profileData, setProfileData] = useState({
@@ -106,8 +176,8 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch orders with additional data (product name, buyer/seller names)
-  const fetchOrders = async (transactions = []) => {
+  // Fetch orders with additional data
+  const fetchOrders = async (transactionIds = []) => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -115,10 +185,14 @@ const Dashboard = () => {
         setOrders([]);
         return;
       }
+      const response = await axios.get('http://localhost:5000/api/transactions/my', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const transactions = response.data.transactions || [];
+
       const enrichedOrders = await Promise.all(
         transactions.map(async (tx) => {
           try {
-            // Validate transaction data
             if (!tx.productId || !tx.buyerUserId || !tx.sellerUserId) {
               console.warn(`Skipping transaction ${tx._id || 'unknown'} due to missing fields`, tx);
               return {
@@ -126,22 +200,20 @@ const Dashboard = () => {
                 productName: 'Unknown Product',
                 buyerName: 'Unknown Buyer',
                 sellerName: 'Unknown Seller',
-                totalPrice: tx.totalAmount || 0,
+                totalPrice: tx.totalPrice || 0,
               };
             }
 
-            // Fetch product
             let productName = 'Unknown Product';
             try {
               const productResponse = await axios.get(`http://localhost:5000/api/products/${tx.productId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
-              productName = productResponse.data.name || productResponse.data.title || 'Unknown Product';
+              productName = productResponse.data.title || productResponse.data.name || 'Unknown Product';
             } catch (productError) {
               console.error(`Error fetching product ${tx.productId}:`, productError.response?.data || productError.message);
             }
 
-            // Fetch buyer
             let buyerName = 'Unknown Buyer';
             try {
               const buyerResponse = await axios.get(`http://localhost:5000/api/users/${tx.buyerUserId}`, {
@@ -152,7 +224,6 @@ const Dashboard = () => {
               console.error(`Error fetching buyer ${tx.buyerUserId}:`, buyerError.response?.data || buyerError.message);
             }
 
-            // Fetch seller
             let sellerName = 'Unknown Seller';
             try {
               const sellerResponse = await axios.get(`http://localhost:5000/api/users/${tx.sellerUserId}`, {
@@ -168,7 +239,7 @@ const Dashboard = () => {
               productName,
               buyerName,
               sellerName,
-              totalPrice: tx.totalAmount || 0, // Ensure totalPrice is set
+              totalPrice: tx.totalPrice || 0,
             };
           } catch (err) {
             console.error(`Error processing transaction ${tx._id || 'unknown'}:`, err);
@@ -177,12 +248,11 @@ const Dashboard = () => {
               productName: 'Unknown Product',
               buyerName: 'Unknown Buyer',
               sellerName: 'Unknown Seller',
-              totalPrice: tx.totalAmount || 0,
+              totalPrice: tx.totalPrice || 0,
             };
           }
         })
       );
-      // Filter out null/undefined entries
       setOrders(enrichedOrders.filter(order => order));
     } catch (error) {
       console.error('Error fetching enriched orders:', {
@@ -192,7 +262,7 @@ const Dashboard = () => {
           data: error.response.data,
         } : null,
       });
-      setOrders(transactions); // Fallback to raw transactions
+      setOrders([]);
     }
   };
 
@@ -238,13 +308,13 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `http://localhost:5000/api/transactions/${transactionId}/deliver`,
+        `http://localhost:5000/api/transactions/mark-shipped/${transactionId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (response.data.success) {
         toast.success('Product shipped successfully');
-        fetchUserProfile();
+        fetchUserProfileLocal();
       }
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to mark as delivered');
@@ -261,7 +331,7 @@ const Dashboard = () => {
       );
       if (response.data.success) {
         toast.success('Delivery confirmed successfully');
-        fetchUserProfile();
+        fetchUserProfileLocal();
       }
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to confirm delivery');
@@ -272,21 +342,22 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `http://localhost:5000/api/transactions/${transactionId}/cancel`,
+        `http://localhost:5000/api/transactions/cancel/${transactionId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (response.data.success) {
         toast.success('Order cancelled successfully');
-        fetchUserProfile();
+        fetchUserProfileLocal();
       }
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to cancel transaction');
     }
   };
 
-  const handleProductClick = (transactionId) => {
-    console.log({ transactionId, success: true });
+  const handleProductClick = (order) => {
+    setSelectedOrder(order);
+    setShowOrderModal(true);
   };
 
   const getStatusBadge = (status) => {
@@ -331,10 +402,11 @@ const Dashboard = () => {
     ? orders.map((tx, index) => ({
         id: index,
         type: tx.buyerUserId === user.userId ? 'purchase' : 'sale',
-        description: `${tx.buyerUserId === user.userId ? 'Purchased' : 'Sold'} ${tx.quantity} of ${tx.productName}`,
+        description: `${tx.buyerUserId === user.userId ? 'Purchased' : 'Sold'} ${tx.quantity} of ${tx.produId}`,
         amount: `${tx.totalPrice.toFixed(2)} ETB`,
         time: new Date(tx.date || Date.now()).toLocaleString(),
         status: tx.status || 'pending',
+        order: tx,
       }))
     : [
         {
@@ -347,7 +419,7 @@ const Dashboard = () => {
         },
       ];
 
-  const quickActions = [
+  let quickActions = [
     {
       title: 'Add Product',
       description: 'List a new product for sale',
@@ -362,13 +434,7 @@ const Dashboard = () => {
       icon: Wallet,
       color: 'indigo',
     },
-    {
-      title: 'View Orders',
-      description: 'Manage your orders',
-      action: () => navigate('/orders'),
-      icon: ShoppingCart,
-      color: 'teal',
-    },
+    
     {
       title: 'About',
       description: 'Learn more about the platform',
@@ -377,6 +443,16 @@ const Dashboard = () => {
       color: 'purple',
     },
   ];
+
+  if (verificationStatus !== 'verified') {
+    quickActions.unshift({
+      title: 'Verify Account',
+      description: 'Verify your ID to buy and sell',
+      action: () => setShowVerificationModal(true),
+      icon: CheckCircle,
+      color: 'green',
+    });
+  }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -395,6 +471,7 @@ const Dashboard = () => {
       formData.append('name', data.name);
       formData.append('govIdFront', data.govIdFront);
       formData.append('govIdBack', data.govIdBack);
+      formData.append('role', data.role); // Assuming role (buyer/seller) is included in data
       await axios.post('http://localhost:5000/api/users/verify-id', formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
@@ -457,19 +534,27 @@ const Dashboard = () => {
   };
 
   const handleBuyClick = () => {
+    if (verificationStatus === 'rejected') {
+      toast.error('Your account verification was rejected. Contact support.');
+      return;
+    }
     if (verificationStatus !== 'verified') {
       setShowVerificationModal(true);
-    } else {
-      navigate('/marketplace');
+      return;
     }
+    navigate('/marketplace');
   };
 
   const handleSellClick = () => {
+    if (verificationStatus === 'rejected') {
+      toast.error('Your account verification was rejected. Contact support.');
+      return;
+    }
     if (verificationStatus !== 'verified') {
       setShowVerificationModal(true);
-    } else {
-      setShowProductModal(true);
+      return;
     }
+    setShowProductModal(true);
   };
 
   if (loading) {
@@ -549,12 +634,15 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white">{profileData.fullName || 'Complete Profile'}</h3>                  <span
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">{profileData.fullName || 'Complete Profile'}</h3>
+                  <span
                     className={`inline-block text-xs px-3 py-1 rounded-full mt-1 ${
                       verificationStatus === 'verified'
                         ? 'bg-green-500/30 text-green-600 dark:text-green-400 border border-green-500/50'
                         : verificationStatus === 'pending'
                         ? 'bg-yellow-500/30 text-yellow-600 dark:text-yellow-400 border border-yellow-500/50'
+                        : verificationStatus === 'rejected'
+                        ? 'bg-red-500/30 text-red-600 dark:text-red-400 border border-red-500/50'
                         : 'bg-red-500/30 text-red-600 dark:text-red-400 border border-red-500/50'
                     }`}
                   >
@@ -574,6 +662,20 @@ const Dashboard = () => {
                   <div className="flex items-center space-x-2 w-full px-3 py-2 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-sm shadow-inner">
                     <Wallet className="h-4 w-4 text-blue-500 dark:text-blue-400" />
                     <p>{user?.balance?.toFixed(2) || '0.00'} ETB</p>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Pending Balance</label>
+                  <div className="flex items-center space-x-2 w-full px-3 py-2 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-sm shadow-inner">
+                    <Wallet className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />
+                    <p>{user?.pendingBalance?.toFixed(2) || '0.00'} ETB</p>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Total Balance</label>
+                  <div className="flex items-center space-x-2 w-full px-3 py-2 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-sm shadow-inner">
+                    <Wallet className="h-4 w-4 text-green-500 dark:text-green-400" />
+                    <p>{((user?.balance || 0) + (user?.pendingBalance || 0)).toFixed(2)} ETB</p>
                   </div>
                 </div>
                 {[
@@ -650,7 +752,7 @@ const Dashboard = () => {
           <Button
             onClick={handleSellClick}
             size="large"
-            className="flex items-center justify-center space-x-3 min-w-[180px] bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-sm"
+            className="flex items-center justify-center space-x-3 min-w-[180px] bg-gradient-to-r from-gray-600 to-teal-600 hover:from-rose-700 hover:to-teal-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-sm"
           >
             <Upload className="h-5 w-5" />
             <span>Sell Products</span>
@@ -705,7 +807,7 @@ const Dashboard = () => {
                 <Button
                   variant="outline"
                   className="text-sm border-blue-400/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 rounded-lg shadow-sm"
-                  onClick={() => navigate('/orders')}
+                  onClick={() => setShowAllOrdersModal(true)}
                 >
                   View All
                 </Button>
@@ -717,7 +819,8 @@ const Dashboard = () => {
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-blue-100/10 dark:bg-blue-900/10 rounded-xl hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-800/20 shadow-sm hover:shadow-md"
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-blue-100/10 dark:bg-blue-900/10 rounded-xl hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-800/20 shadow-sm hover:shadow-md cursor-pointer"
+                    onClick={() => handleProductClick(activity.order)}
                   >
                     <div className="flex items-center space-x-4 mb-3 sm:mb-0">
                       <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md">
@@ -728,21 +831,46 @@ const Dashboard = () => {
                         <p className="text-sm text-gray-600 dark:text-gray-400">{activity.time}</p>
                       </div>
                     </div>
-                    <div className="text-left sm:text-right w-full sm:w-auto">
+                    <div className="text-left sm:text-right w-full sm:w-auto flex items-center space-x-2">
                       {activity.amount && <p className="font-bold text-gray-900 dark:text-white">{activity.amount}</p>}
-                      <span
-                        className={`inline-flex px-3 py-1 text-sm font-medium rounded-full mt-2 sm:mt-0 shadow-sm ${
-                          activity.status === 'completed'
-                            ? 'bg-green-500/30 text-green-600 dark:text-green-400 border border-green-500/50'
-                            : activity.status === 'shipped'
-                            ? 'bg-blue-500/30 text-blue-600 dark:text-blue-400 border border-blue-500/50'
-                            : activity.status === 'pending'
-                            ? 'bg-yellow-500/30 text-yellow-600 dark:text-yellow-400 border border-yellow-500/50'
-                            : 'bg-red-500/30 text-red-600 dark:text-red-400 border border-red-500/50'
-                        }`}
-                      >
-                        {activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
-                      </span>
+                      {getStatusBadge(activity.status)}
+                      {activity.order && (
+                        <>
+                          {activity.order.status === 'pending' && activity.order.sellerUserId === user.userId && (
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeliver(activity.order._id);
+                              }}
+                              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1 px-2 text-xs"
+                            >
+                              Mark Shipped
+                            </Button>
+                          )}
+                          {activity.order.status === 'shipped' && activity.order.buyerUserId === user.userId && (
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelivered(activity.order._id);
+                              }}
+                              className="bg-green-600 hover:bg-green-700 text-white rounded-lg py-1 px-2 text-xs"
+                            >
+                              Confirm Delivery
+                            </Button>
+                          )}
+                          {activity.order.status === 'pending' && (
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCancel(activity.order._id);
+                              }}
+                              className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-2 text-xs"
+                            >
+                              Cancel
+                            </Button>
+                          )}
+                        </>
+                      )}
                     </div>
                   </motion.div>
                 ))}
@@ -846,6 +974,7 @@ const Dashboard = () => {
         onClose={() => setShowPaymentModal(false)}
         onPaymentSuccess={fetchUserProfileLocal}
       />
+      
 
       <LiveChat />
     </div>
