@@ -16,7 +16,7 @@ const ETBIcon = ({ className }) => (
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <text x="6" y="18" fontSize="16" fontFamily="Arial, sans-serif">ብር</text>
+    <text x="6" y="18" fontSize="16" fontFamily="Arial, sans-serif"></text>
     <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" />
   </svg>
 );
@@ -208,7 +208,7 @@ const Dashboard = () => {
           />
           <StatCard
             title="Platform Revenue"
-            value={`ብር ${stats.platformRevenue}`}
+            value={`ETB ${stats.platformRevenue}`}
             icon={ETBIcon}
             color="emerald"
             subtitle="Total service fees (5%)"

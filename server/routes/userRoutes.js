@@ -46,6 +46,26 @@ const checkEmailCredentials = (req, res, next) => {
   next();
 };
 
+// Middleware to restrict unverified users
+const restrictUnverifiedUsers = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ userId: req.user.userId });
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    if (user.govIdStatus !== 'verified') {
+      return res.status(403).json({
+        success: false,
+        error: 'Action restricted: Government ID verification pending or not completed',
+      });
+    }
+    next();
+  } catch (err) {
+    console.error('Error checking verification status:', err);
+    res.status(500).json({ success: false, error: 'Server error checking verification status' });
+  }
+};
+
 // -------------------- Registration --------------------
 router.post(
   '/register',
@@ -386,7 +406,8 @@ router.get('/profile', auth, async (req, res) => {
   }
 });
 
-router.patch('/profile', auth, async (req, res) => {
+// -------------------- Update Profile (Restricted) --------------------
+router.patch('/profile', auth, restrictUnverifiedUsers, async (req, res) => {
   try {
     const allowedFields = ['username', 'location'];
     const updates = {};
@@ -420,10 +441,11 @@ router.patch('/profile', auth, async (req, res) => {
   }
 });
 
-// -------------------- Upload Profile Pic --------------------
+// -------------------- Upload Profile Pic (Restricted) --------------------
 router.post(
   '/profile-pic',
   auth,
+  restrictUnverifiedUsers,
   profilePicUpload.single('profilePic'),
   async (req, res) => {
     try {
@@ -515,8 +537,8 @@ router.get('/:userId', async (req, res) => {
   }
 });
 
-// -------------------- Rate User --------------------
-router.post('/:userId/rate', auth, async (req, res) => {
+// -------------------- Rate User (Restricted) --------------------
+router.post('/:userId/rate', auth, restrictUnverifiedUsers, async (req, res) => {
   try {
     const { rating } = req.body;
     if (!rating || rating < 1 || rating > 5) {
@@ -542,10 +564,11 @@ router.post('/:userId/rate', auth, async (req, res) => {
   }
 });
 
-// -------------------- Add Balance --------------------
+// -------------------- Add Balance (Restricted) --------------------
 router.post(
   '/add-balance',
   auth,
+  restrictUnverifiedUsers,
   [body('amount').isFloat({ gt: 0 }).withMessage('Amount must be greater than 0')],
   async (req, res) => {
     const errors = validationResult(req);

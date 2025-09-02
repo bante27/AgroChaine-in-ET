@@ -8,8 +8,28 @@ const router = express.Router();
 
 const SERVICE_FEE_PERCENT = 5; // 5% from buyer and seller
 
+// Middleware to restrict unverified users
+const restrictUnverifiedUsers = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ userId: req.user.userId });
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    if (user.govIdStatus !== 'verified') {
+      return res.status(403).json({
+        success: false,
+        error: 'Action restricted: Government ID verification pending or not completed',
+      });
+    }
+    next();
+  } catch (err) {
+    console.error('Error checking verification status:', err);
+    res.status(500).json({ success: false, error: 'Server error checking verification status' });
+  }
+};
+
 // Create a purchase (buy a product) using custom productId
-router.post("/buy", auth, async (req, res) => {
+router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
   try {
     const buyer = await User.findOne({ userId: req.user.userId });
     if (buyer.isRestricted) {
@@ -130,7 +150,7 @@ router.post("/buy", auth, async (req, res) => {
 });
 
 // Mark transaction as shipped (seller action)
-router.post("/mark-shipped/:transactionId", auth, async (req, res) => {
+router.post("/mark-shipped/:transactionId", auth, restrictUnverifiedUsers, async (req, res) => {
   try {
     const seller = await User.findOne({ userId: req.user.userId });
     if (seller.isRestricted) {
@@ -172,7 +192,7 @@ router.post("/mark-shipped/:transactionId", auth, async (req, res) => {
 });
 
 // Confirm delivery of a transaction (buyer action)
-router.post("/confirm-delivery/:transactionId", auth, async (req, res) => {
+router.post("/confirm-delivery/:transactionId", auth, restrictUnverifiedUsers, async (req, res) => {
   try {
     const buyer = await User.findOne({ userId: req.user.userId });
     if (buyer.isRestricted) {
