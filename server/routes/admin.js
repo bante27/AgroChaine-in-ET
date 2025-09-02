@@ -325,4 +325,48 @@ router.get('/users/suspicious', auth, admin, async (req, res) => {
   }
 });
 
+// -------------------- Make Admin (for dev only) --------------------
+router.post('/make-admin/:userId', auth, async (req, res) => {
+  try {
+    const user = await User.findOne({ userId: req.params.userId });
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
+    user.isAdmin = true;
+    await user.save();
+
+    res.json({ success: true, message: 'User promoted to admin', user });
+  } catch (err) {
+    console.error('Error promoting admin:', err);
+    res
+      .status(500)
+      .json({ success: false, error: 'Server error promoting admin' });
+  }
+});
+
+router.get("/platform-fees", auth, async (req, res) => {
+  try {
+    const fees = await PlatformFee.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalFees: { $sum: "$feeAmount" },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const totalFees = fees.length > 0 ? fees[0].totalFees : 0;
+    const feeCount = fees.length > 0 ? fees[0].count : 0;
+
+    res.json({
+      success: true,
+      totalFees,
+      feeCount,
+    });
+  } catch (error) {
+    console.error("Error fetching platform fees:", error);
+    res.status(500).json({ success: false, error: "Server error fetching platform fees" });
+  }
+});
+
 export default router;

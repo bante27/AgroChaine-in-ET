@@ -33,9 +33,17 @@ export const AuthProvider = ({ children }) => {
         });
 
         if (res.data.success && res.data.user) {
-          setUser(res.data.user);
-          setIsAuthenticated(true);
-          setRole(res.data.user.isAdmin ? 'admin' : 'user');
+          // Only set auth state if user is admin
+          if (res.data.user.isAdmin) {
+            setUser(res.data.user);
+            setIsAuthenticated(true);
+            setRole('admin');
+          } else {
+            localStorage.removeItem('userToken');
+            setToken(null);
+            setIsAuthenticated(false);
+            setRole('guest');
+          }
         } else {
           localStorage.removeItem('userToken');
           setToken(null);
@@ -59,27 +67,30 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = async (credentials) => {
     try {
-      const res = await fetch('http://localhost:5000/api/users/login', {
-        method: 'POST',
+      const res = await axios.post('http://localhost:5000/api/users/login', credentials, {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials),
       });
 
-      const data = await res.json();
+      const data = res.data;
 
-      if (res.ok && data.success) {
-        localStorage.setItem('userToken', data.token);
-        setToken(data.token);
-        setUser(data.user);
-        setIsAuthenticated(true);
-        setRole(data.user.isAdmin ? 'admin' : 'user');
-        return { success: true, user: data.user };
+      if (res.status === 200 && data.success) {
+        // Only allow login for admin users
+        if (data.user.isAdmin) {
+          localStorage.setItem('userToken', data.token);
+          setToken(data.token);
+          setUser(data.user);
+          setIsAuthenticated(true);
+          setRole('admin');
+          return { success: true, user: data.user };
+        } else {
+          return { success: false, error: 'Access denied: Only admins can log in' };
+        }
       } else {
         return { success: false, error: data.error || 'Login failed' };
       }
     } catch (err) {
       console.error('Login error:', err);
-      return { success: false, error: 'Network error' };
+      return { success: false, error: err.response?.data?.error || 'Network error' };
     }
   };
 
