@@ -2,7 +2,9 @@ import express from "express";
 import auth from "../middleware/auth.js";
 import Product from "../models/Product.js";
 import User from "../models/User.js";
-import { productImageUpload } from "../middleware/cloudinaryUpload.js"; // Ensure this points to the Cloudinary middleware
+import PlatformFee from "../models/PlatformFee.js";
+import { productImageUpload } from "../middleware/cloudinaryUpload.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
@@ -13,14 +15,18 @@ const generateProductId = () =>
 // ---------------- Add a product ----------------
 router.post("/", auth, productImageUpload.array("images", 5), async (req, res) => {
   try {
+    const user = await User.findOne({ userId: req.user.userId });
+    if (user.isRestricted) {
+      return res.status(403).json({ success: false, error: "Restricted users cannot add products" });
+    }
+
     const { title, price, originAddress, type, quantity, description, comment } = req.body;
 
     if (!title || !price || !originAddress || !type || !quantity) {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
 
-    // Use Cloudinary secure_url for images
-    const images = req.files ? req.files.map(f => f.path) : []; // f.path is the Cloudinary secure_url
+    const images = req.files ? req.files.map(f => f.path) : [];
     const productId = generateProductId();
 
     const newProduct = new Product({
@@ -33,14 +39,13 @@ router.post("/", auth, productImageUpload.array("images", 5), async (req, res) =
       quantityAvailable: quantity,
       description,
       comment,
-      images, // Store Cloudinary URLs
+      images,
       ownerUserId: req.user.userId,
       ownerName: req.user.fullName,
     });
 
     await newProduct.save();
 
-    // Add this new product ID to the user's postedProducts array
     await User.findOneAndUpdate(
       { userId: req.user.userId },
       { $push: { postedProducts: newProduct._id } }
@@ -83,13 +88,27 @@ router.get("/", async (req, res) => {
 });
 
 // --------------- Get single product ----------------
-router.get("/:productId", async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
-    const product = await Product.findOne({ productId: req.params.productId });
-    if (!product) return res.status(404).json({ success: false, error: "Product not found" });
+    const { id } = req.params;
+
+    let product;
+
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      product = await Product.findById(id);
+    }
+
+    if (!product) {
+      product = await Product.findOne({ productId: id });
+    }
+
+    if (!product) {
+      return res.status(404).json({ success: false, error: "Product not found" });
+    }
+
     res.json({ success: true, product });
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching product:", error);
     res.status(500).json({ success: false, error: "Server error fetching product" });
   }
 });
@@ -97,6 +116,11 @@ router.get("/:productId", async (req, res) => {
 // --------------- Add a review to a product ----------------
 router.post("/:productId/review", auth, async (req, res) => {
   try {
+    const user = await User.findOne({ userId: req.user.userId });
+    if (user.isRestricted) {
+      return res.status(403).json({ success: false, error: "Restricted users cannot add reviews" });
+    }
+
     const { comment } = req.body;
 
     if (!comment) {
@@ -129,6 +153,11 @@ router.post("/:productId/review", auth, async (req, res) => {
 // --------------- Like a product ----------------
 router.post("/:productId/like", auth, async (req, res) => {
   try {
+    const user = await User.findOne({ userId: req.user.userId });
+    if (user.isRestricted) {
+      return res.status(403).json({ success: false, error: "Restricted users cannot like products" });
+    }
+
     const product = await Product.findOne({ productId: req.params.productId });
     if (!product) {
       return res.status(404).json({ success: false, error: "Product not found" });
@@ -138,7 +167,6 @@ router.post("/:productId/like", auth, async (req, res) => {
     product.updatedAt = new Date();
     await product.save();
 
-    // Add product to user's saved list
     await User.findOneAndUpdate(
       { userId: req.user.userId },
       { $addToSet: { savedProducts: product._id } }
@@ -154,6 +182,11 @@ router.post("/:productId/like", auth, async (req, res) => {
 // --------------- Unlike a product ----------------
 router.post("/:productId/unlike", auth, async (req, res) => {
   try {
+    const user = await User.findOne({ userId: req.user.userId });
+    if (user.isRestricted) {
+      return res.status(403).json({ success: false, error: "Restricted users cannot unlike products" });
+    }
+
     const product = await Product.findOne({ productId: req.params.productId });
     if (!product) {
       return res.status(404).json({ success: false, error: "Product not found" });
@@ -165,7 +198,6 @@ router.post("/:productId/unlike", auth, async (req, res) => {
       await product.save();
     }
 
-    // Remove product from saved list
     await User.findOneAndUpdate(
       { userId: req.user.userId },
       { $pull: { savedProducts: product._id } }
@@ -175,6 +207,33 @@ router.post("/:productId/unlike", auth, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: "Server error unliking product" });
+  }
+});
+
+// --------------- Get total platform fees ----------------
+router.get("/platform-fees", auth, async (req, res) => {
+  try {
+    const fees = await PlatformFee.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalFees: { $sum: "$feeAmount" },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const totalFees = fees.length > 0 ? fees[0].totalFees : 0;
+    const feeCount = fees.length > 0 ? fees[0].count : 0;
+
+    res.json({
+      success: true,
+      totalFees,
+      feeCount,
+    });
+  } catch (error) {
+    console.error("Error fetching platform fees:", error);
+    res.status(500).json({ success: false, error: "Server error fetching platform fees" });
   }
 });
 
