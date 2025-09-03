@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import Button from '../common/Button';
@@ -7,12 +6,12 @@ import { Search } from 'lucide-react';
 
 const ProductsDisplay = ({ products, viewMode, page, totalPages, onPageChange, onProductClick, onAddToCart, onBuyNow }) => {
   return (
-    <section className="section-padding  text-white">
+    <section className="section-padding text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
           <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-teal-200 shadow-text">
-            {products.length} Products Found
+            {products.length > 0 ? `${products.length} Products Found` : "No Products Found"}
           </h2>
           <div className="flex items-center gap-3">
             <Button
@@ -24,7 +23,9 @@ const ProductsDisplay = ({ products, viewMode, page, totalPages, onPageChange, o
             >
               Previous
             </Button>
-            <span className="text-sm md:text-base text-gray-300">Page {page} of {totalPages}</span>
+            <span className="text-sm md:text-base text-gray-300">
+              Page {page} of {totalPages}
+            </span>
             <Button
               variant="outline"
               size="small"
@@ -75,6 +76,8 @@ const ProductsDisplay = ({ products, viewMode, page, totalPages, onPageChange, o
           </motion.div>
         )}
       </div>
+
+      {/* Custom styles */}
       <style>
         {`
           .shadow-text {
@@ -89,7 +92,7 @@ const ProductsDisplay = ({ products, viewMode, page, totalPages, onPageChange, o
           }
           @media (max-width: 640px) {
             h2 {
-              text-xl md:text-2xl;
+              font-size: 1.25rem;
             }
             .grid {
               grid-template-columns: 1fr;

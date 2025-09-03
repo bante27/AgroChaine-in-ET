@@ -57,21 +57,21 @@ const ProductCard = ({ product, viewMode, onClick, onAddToCart, onBuyNow }) => {
         {/* Product Info */}
         <div>
           <div className="flex items-start justify-between mb-2">
-            <h3 className="text-[15px] font-semibold text-gray-900 line-clamp-2 capitalize drop-shadow-sm">
+            <h3 className="text-[15px] md:text-[14px] sm:text-[13px] font-semibold text-gray-900 line-clamp-2 capitalize drop-shadow-sm">
               {product.title}
             </h3>
-            <div className="flex items-center text-yellow-500 text-[12px]">
+            <div className="flex items-center text-yellow-500 text-[12px] sm:text-[10px]">
               <Star className="h-4 w-4 fill-yellow-400 mr-1" />
               {product.averageRating || 0} ({product.reviews?.length || 0})
             </div>
           </div>
 
-          <div className="flex items-center text-gray-600 text-[11px] mb-1">
+          <div className="flex items-center text-gray-600 text-[11px] sm:text-[9px] mb-1">
             <MapPin className="h-3 w-3 mr-1" />
             {product.originAddress || 'Unknown'}
           </div>
 
-          <p className="text-[11px] text-blue-700">
+          <p className="text-[11px] sm:text-[9px] text-blue-700">
             by <span className="font-medium text-gray-900">{product.ownerName || 'Seller'}</span>
           </p>
         </div>
@@ -79,13 +79,13 @@ const ProductCard = ({ product, viewMode, onClick, onAddToCart, onBuyNow }) => {
         {/* Price and Action Buttons */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 gap-2">
           <div>
-            <span className="text-[16px] font-bold text-gray-900">
+            <span className="text-[16px] sm:text-[14px] font-bold text-gray-900">
               {product.price} ETB
             </span>
-            <span className="text-gray-500 ml-1 text-[10px]">/kg</span>
+            <span className="text-gray-500 ml-1 text-[10px] sm:text-[9px]">/kg</span>
           </div>
 
-          <div className="flex gap-2 flex-wrap text-[11px]">
+          <div className="flex gap-2 flex-wrap text-[11px] sm:text-[9px]">
             {/* View Button */}
             <Button
               variant="outline"
@@ -126,6 +126,26 @@ const ProductCard = ({ product, viewMode, onClick, onAddToCart, onBuyNow }) => {
           </div>
         </div>
       </div>
+
+      {/* Mobile-specific styles */}
+      <style>
+        {`
+          @media (max-width: 640px) {
+            img {
+              height: 120px !important;
+            }
+            h3 {
+              font-size: 0.75rem !important;
+            }
+            p, span {
+              font-size: 0.65rem !important;
+            }
+            .flex > div > span {
+              font-size: 0.65rem !important;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };

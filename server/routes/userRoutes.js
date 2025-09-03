@@ -119,7 +119,8 @@ router.post(
         to: email,
         subject: 'Your OTP Code',
         html: `
-          <p>Dear ${fullName},</p>
+          <p>Dear  ${fullName},</p>
+          <p>Well Come to Agrochain Ethiopia</p>
           <p>Your OTP is <strong>${otp}</strong>. It expires in 5 minutes.</p>
           <p>Best regards,<br/>Agrochain Ethiopia Team</p>
         `,

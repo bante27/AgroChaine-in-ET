@@ -23,7 +23,7 @@ const ForgotPassword = () => {
   }, [timer]);
 
   const handleEmailSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!email) return toast.error("Please enter your email");
 
     setIsLoading(true);
@@ -39,6 +39,21 @@ const ForgotPassword = () => {
     }
   };
 
+  const handleResendOtp = async () => {
+    if (!email) return toast.error("Enter your email first");
+
+    setIsLoading(true);
+    try {
+      await axios.post("http://localhost:5000/api/users/forgot-password", { email });
+      toast.success("OTP resent to your email");
+      setTimer(300);
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to resend OTP");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleOtpSubmit = (e) => {
     e.preventDefault();
     if (!otp) return toast.error("Please enter the OTP");
@@ -48,10 +63,8 @@ const ForgotPassword = () => {
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
 
-    if (!newPassword || !confirmPassword)
-      return toast.error("Please fill all fields");
-    if (newPassword !== confirmPassword)
-      return toast.error("Passwords don't match");
+    if (!newPassword || !confirmPassword) return toast.error("Please fill all fields");
+    if (newPassword !== confirmPassword) return toast.error("Passwords don't match");
 
     setIsLoading(true);
     try {
@@ -80,92 +93,100 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-lg mt-16 border border-gray-100">
-      <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
-        {step === 1 && "Forgot Password"}
-        {step === 2 && "Enter OTP"}
-        {step === 3 && "Reset Password"}
-      </h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-4">
+      <div className="max-w-md w-full bg-white p-4 rounded-2xl shadow-lg border border-gray-100">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+          {step === 1 && "Forgot Password"}
+          {step === 2 && "Enter OTP"}
+          {step === 3 && "Reset Password"}
+        </h2>
 
-      {/* Step 1: Enter Email */}
-      {step === 1 && (
-        <form onSubmit={handleEmailSubmit} className="space-y-5">
-          <input
-            type="email"
-            placeholder="Enter your email address"
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg shadow-md transition"
-          >
-            {isLoading ? "Sending..." : "Send OTP"}
-          </button>
-        </form>
-      )}
-
-      {/* Step 2: Enter OTP */}
-      {step === 2 && (
-        <form onSubmit={handleOtpSubmit} className="space-y-5">
-          <input
-            type="text"
-            placeholder="Enter OTP code"
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700 tracking-widest text-center font-mono"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-          />
-          {timer > 0 ? (
-            <p className="text-sm text-gray-500 text-center">
-              OTP expires in <span className="font-semibold">{formatTimer(timer)}</span>
-            </p>
-          ) : (
+        {/* Step 1: Enter Email */}
+        {step === 1 && (
+          <form onSubmit={handleEmailSubmit} className="space-y-4">
+            <input
+              type="email"
+              placeholder="Enter your email address"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
             <button
-              type="button"
-              className="text-blue-600 underline w-full text-center"
-              onClick={handleEmailSubmit}
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 rounded-lg shadow-md transition"
             >
-              Resend OTP
+              {isLoading ? "Sending..." : "Send OTP"}
             </button>
-          )}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg shadow-md transition"
-          >
-            {isLoading ? "Verifying..." : "Verify OTP"}
-          </button>
-        </form>
-      )}
+          </form>
+        )}
 
-      {/* Step 3: Reset Password */}
-      {step === 3 && (
-        <form onSubmit={handlePasswordSubmit} className="space-y-5">
-          <input
-            type="password"
-            placeholder="New password"
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:outline-none text-gray-700"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Confirm new password"
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:outline-none text-gray-700"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg shadow-md transition"
-          >
-            {isLoading ? "Resetting..." : "Reset Password"}
-          </button>
-        </form>
-      )}
+        {/* Step 2: Enter OTP */}
+        {step === 2 && (
+          <form onSubmit={handleOtpSubmit} className="space-y-4">
+            <input
+              type="text"
+              placeholder="Enter OTP code"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700 tracking-widest text-center font-mono"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+            />
+
+            {timer > 0 ? (
+              <p className="text-sm text-center">
+                OTP expires in{" "}
+                <span className="font-semibold text-red-500">{formatTimer(timer)}</span>
+              </p>
+            ) : (
+              <p className="text-sm text-center">
+                Didn’t receive OTP?{" "}
+                <button
+                  type="button"
+                  className="text-blue-600 underline hover:text-blue-800"
+                  onClick={handleResendOtp}
+                >
+                  Resend OTP
+                </button>
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 rounded-lg shadow-md transition"
+            >
+              {isLoading ? "Verifying..." : "Verify OTP"}
+            </button>
+          </form>
+        )}
+
+        {/* Step 3: Reset Password */}
+        {step === 3 && (
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <input
+              type="password"
+              placeholder="New password"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:outline-none text-gray-700"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Confirm new password"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:outline-none text-gray-700"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 rounded-lg shadow-md transition"
+            >
+              {isLoading ? "Resetting..." : "Reset Password"}
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   );
 };
