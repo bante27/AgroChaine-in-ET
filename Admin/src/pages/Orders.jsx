@@ -76,7 +76,7 @@ const Orders = () => {
 
   const fetchProductData = async (productId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/products/${productId}`, {
+      const response = await axios.get(`http://localhost:5000/api/admin/${productId}`, {
         headers: {
           accept: 'application/json',
           Authorization: `Bearer ${localStorage.getItem('userToken')}`,

@@ -24,7 +24,7 @@ transporter.verify((err, success) => {
   else console.log('Nodemailer ready for admin routes');
 });
 
-// 📩 Get all messages sent to admin
+// Get all messages sent to admin
 router.get('/messages', auth, admin, async (req, res) => {
   try {
     const messages = await Message.find()
@@ -37,7 +37,7 @@ router.get('/messages', auth, admin, async (req, res) => {
   }
 });
 
-// 📧 Reply to a message
+// Reply to a message
 router.post(
   '/messages/:messageId/reply',
   auth,
