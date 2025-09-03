@@ -1,5 +1,4 @@
-// src/components/ProductUploadModal.jsx
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import Button from "./Button";
@@ -15,6 +14,24 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
     images: [],
   });
   const [isLoading, setIsLoading] = useState(false);
+  const modalRef = useRef(null);
+
+  // Handle click outside to close modal
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen, onClose]);
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
@@ -70,15 +87,16 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm">
       <motion.div
+        ref={modalRef}
         initial={{ opacity: 0, scale: 0.9, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 30 }}
         transition={{ duration: 0.3, type: "spring" }}
-        className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-5 sm:p-6 w-full max-w-lg overflow-y-auto max-h-[90vh]"
+        className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 w-full max-w-[95vw] sm:max-w-lg overflow-y-auto max-h-[90vh]"
       >
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
+        <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
           Upload Product
         </h2>
 

@@ -10,13 +10,14 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
   const [loading, setLoading] = useState(false);
 
   const paymentMethods = [
-    { value: "cbe", label: "Commercial Bank of Ethiopia", icon: Banknote, color: "blue" },
-    { value: "dashen", label: "Dashen Bank", icon: Banknote, color: "purple" },
-    { value: "abyssinia", label: "Abyssinia Bank", icon: Banknote, color: "teal" },
-    { value: "telebirr", label: "Telebirr", icon: Wallet, color: "yellow" },
-    { value: "safaricom", label: "Safaricom M-Pesa", icon: Smartphone, color: "green" },
-    { value: "dashen", label: "Dashen Bank", icon: Banknote, color: "purple" },
-    
+    { value: "cbe", label: "Commercial Bank of Ethiopia", icon: Banknote, active: "border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" },
+    { value: "dashen", label: "Dashen Bank", icon: Banknote, active: "border-purple-500 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300" },
+    { value: "abyssinia", label: "Abyssinia Bank", icon: Banknote, active: "border-teal-500 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300" },
+    { value: "telebirr", label: "Telebirr", icon: Wallet, active: "border-yellow-500 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300" },
+    { value: "safaricom", label: "Safaricom M-Pesa", icon: Smartphone, active: "border-green-500 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300" },
+    { value: "Awash", label: "Awash Bank", icon: Wallet, active: "border-red-500 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300" },
+    { value: "zemen", label: "Zemen Bank", icon: Wallet, active: "border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" },
+    { value: "Abay", label: "Abay Bank", icon: Wallet, active: "border-green-500 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300" }
   ];
 
   const handleSubmit = async (e) => {
@@ -63,7 +64,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center px-2 sm:px-4"
           onClick={onClose}
         >
           <motion.div
@@ -71,12 +72,13 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-4 w-full max-w-sm shadow-xl border border-gray-200 dark:border-gray-700"
+            className="bg-white dark:bg-gray-800 rounded-xl p-4 w-full max-w-md sm:max-w-sm shadow-xl border border-gray-200 dark:border-gray-700"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 text-center">
               Add Balance
             </h2>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Amount */}
               <div>
@@ -100,25 +102,19 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Payment Method
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="flex flex-wrap gap-2">
                   {paymentMethods.map((method) => (
                     <button
                       key={method.value}
                       type="button"
                       onClick={() => setSelectedMethod(method.value)}
-                      className={`flex flex-col items-center p-3 rounded-lg border-2 text-xs sm:text-sm transition-all ${
+                      className={`flex-1 min-w-[45%] sm:min-w-[30%] flex flex-col items-center p-3 rounded-lg border-2 text-xs sm:text-sm transition-all ${
                         selectedMethod === method.value
-                          ? `border-${method.color}-500 bg-${method.color}-50 dark:bg-${method.color}-900/30 text-${method.color}-700 dark:text-${method.color}-300`
+                          ? method.active
                           : "border-gray-200 dark:border-gray-600 hover:border-gray-400 text-gray-900 dark:text-gray-100"
                       }`}
                     >
-                      <method.icon
-                        className={`h-5 w-5 mb-1 ${
-                          selectedMethod === method.value
-                            ? `text-${method.color}-600 dark:text-${method.color}-400`
-                            : `text-${method.color}-500 dark:text-${method.color}-400`
-                        }`}
-                      />
+                      <method.icon className="h-5 w-5 mb-1" />
                       {method.label}
                     </button>
                   ))}

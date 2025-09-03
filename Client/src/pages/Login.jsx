@@ -250,7 +250,7 @@ const Login = () => {
         return;
       }
       if (!isValidAddress(address)) {
-        toast.error('Valid address (5-100 chars).');
+        toast.error('Valid address (2-100 chars).');
         setIsLoading(false);
         return;
       }
