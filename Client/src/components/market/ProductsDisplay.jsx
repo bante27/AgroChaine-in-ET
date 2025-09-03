@@ -10,7 +10,7 @@ const ProductsDisplay = ({ products, viewMode, page, totalPages, onPageChange, o
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-teal-200 shadow-text">
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600 shadow-text">
             {products.length > 0 ? `${products.length} Products Found` : "No Products Found"}
           </h2>
           <div className="flex items-center gap-3">
@@ -19,11 +19,11 @@ const ProductsDisplay = ({ products, viewMode, page, totalPages, onPageChange, o
               size="small"
               disabled={page === 1}
               onClick={() => onPageChange(prev => Math.max(prev - 1, 1))}
-              className="rounded-xl bg-white/10 backdrop-blur-md hover:bg-white/20 transition-colors text-teal-200 border-teal-300"
+              className="rounded-xl bg-white/10 backdrop-blur-md hover:bg-white/20 transition-colors text-blue-600 border-teal-300"
             >
               Previous
             </Button>
-            <span className="text-sm md:text-base text-gray-300">
+            <span className="text-sm md:text-base text-blue-600">
               Page {page} of {totalPages}
             </span>
             <Button
@@ -31,7 +31,7 @@ const ProductsDisplay = ({ products, viewMode, page, totalPages, onPageChange, o
               size="small"
               disabled={page === totalPages}
               onClick={() => onPageChange(prev => Math.min(prev + 1, totalPages))}
-              className="rounded-xl bg-white/10 backdrop-blur-md hover:bg-white/20 transition-colors text-teal-200 border-teal-300"
+              className="rounded-xl bg-white/10 backdrop-blur-md hover:bg-white/20 transition-colors text-blue-600 border-teal-300"
             >
               Next
             </Button>
@@ -42,7 +42,7 @@ const ProductsDisplay = ({ products, viewMode, page, totalPages, onPageChange, o
         {products.length === 0 ? (
           <div className="text-center py-16 bg-white/5 rounded-2xl shadow-xl backdrop-blur-md">
             <Search className="h-16 w-16 text-teal-300 mx-auto mb-4 animate-pulse" />
-            <h3 className="text-lg md:text-xl font-medium text-teal-100 mb-2">No products found</h3>
+            <h3 className="text-lg md:text-xl font-medium text-blue-600 mb-2">No products found</h3>
             <p className="text-gray-400">Try adjusting your search or filter criteria.</p>
           </div>
         ) : (
