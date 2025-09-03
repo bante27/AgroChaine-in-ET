@@ -139,7 +139,7 @@ const Contact = () => {
       files.forEach((file) => payload.append('files', file));
       if (audioBlob) payload.append('voice', audioBlob, 'voice_message.webm');
 
-      const res = await fetch('http://localhost:5000/api/contact', {
+      const res = await fetch('http://157.245.187.246:5000/api/contact', {
         method: 'POST',
         body: payload,
       });

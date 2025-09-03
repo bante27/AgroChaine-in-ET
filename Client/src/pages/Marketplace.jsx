@@ -65,7 +65,7 @@ const Marketplace = () => {
         page,
         limit: 20,
       };
-      const response = await axios.get('http://localhost:5000/api/products', {
+      const response = await axios.get('http://157.245.187.246:5000/api/products', {
         headers: { Authorization: token ? `Bearer ${token}` : undefined },
         params,
       });

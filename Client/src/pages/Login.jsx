@@ -170,7 +170,7 @@ const Login = () => {
 
   const handleVerifyOTP = async (otp) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/users/verify-otp', { email: otpEmail, otp });
+      const res = await axios.post('http://157.245.187.246:5000/api/users/verify-otp', { email: otpEmail, otp });
       if (res.data.success) {
         await login(res.data.token);
         toast.success('OTP verified! Redirecting...');
@@ -185,7 +185,7 @@ const Login = () => {
 
   const handleResendOTP = async () => {
     try {
-      const res = await axios.post('http://localhost:5000/api/users/register', { email: otpEmail });
+      const res = await axios.post('http://157.245.187.246:5000/api/users/register', { email: otpEmail });
       if (res.data.success) {
         setInitialOtp(res.data.otp);
         toast.success('OTP resent.');
@@ -215,7 +215,7 @@ const Login = () => {
       }
 
       try {
-        const response = await axios.post('http://localhost:5000/api/users/login', { email: formData.email, password: formData.password });
+        const response = await axios.post('http://157.245.187.246:5000/api/users/login', { email: formData.email, password: formData.password });
         if (response.data.success && response.data.token) {
           await login(response.data.token);
           toast.success('Login successful!');
@@ -266,7 +266,7 @@ const Login = () => {
       }
 
       try {
-        const response = await axios.post('http://localhost:5000/api/users/register', { fullName, email, password, phone, address, agreeToTerms });
+        const response = await axios.post('http://157.245.187.246:5000/api/users/register', { fullName, email, password, phone, address, agreeToTerms });
         if (response.data.success) {
           setOtpEmail(email);
           setInitialOtp(response.data.otp);

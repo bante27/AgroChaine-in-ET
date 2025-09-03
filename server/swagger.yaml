@@ -5,7 +5,7 @@ info:
   version: 1.0.0
   description: API documentation for the marketplace platform.
 servers:
-  - url: http://localhost:5000
+  - url: http://157.245.187.246:5000
     description: Local development server
 security:
   - bearerAuth: []

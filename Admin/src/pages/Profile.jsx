@@ -39,7 +39,7 @@ const AdminProfile = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/users', {
+      const response = await axios.get('http://157.245.187.246:5000/api/admin/users', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -62,7 +62,7 @@ const AdminProfile = () => {
     setError(null);
     try {
       const response = await axios.put(
-        'http://localhost:5000/api/users/profile',
+        'http://157.245.187.246:5000/api/users/profile',
         {
           fullName: profile.fullName,
           email: profile.email,

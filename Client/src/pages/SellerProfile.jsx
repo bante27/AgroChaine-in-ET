@@ -26,7 +26,7 @@ const SellerProfile = () => {
       setLoading(true);
       setError(null);
       try {
-        const resSeller = await axios.get(`http://localhost:5000/api/users/${id}`);
+        const resSeller = await axios.get(`http://157.245.187.246:5000/api/users/${id}`);
         if (resSeller.data.success) {
           setSeller(resSeller.data.user);
           setPostedProducts(resSeller.data.user.postedProducts || []);

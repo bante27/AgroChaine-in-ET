@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const res = await axios.get('http://localhost:5000/api/users/profile', {
+        const res = await axios.get('http://157.245.187.246:5000/api/users/profile', {
           headers: { Authorization: `Bearer ${storedToken}` },
         });
 
@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = async (credentials) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/users/login', credentials, {
+      const res = await axios.post('http://157.245.187.246:5000/api/users/login', credentials, {
         headers: { 'Content-Type': 'application/json' },
       });
 

@@ -67,7 +67,7 @@ const Login = () => {
         });
         // Redirect to login page if non-admin
         if (result.error === 'Access denied: Only admins can log in') {
-          window.location.href = 'http://localhost:5174/login';
+          window.location.href = 'http://157.245.187.246:5174/login';
         }
       }
     } catch (err) {
