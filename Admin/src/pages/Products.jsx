@@ -23,7 +23,7 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/products', {
+      const response = await axios.get('http://157.245.187.246:5000/api/admin/products', {
         headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` },
       });
       setProducts(response.data.products || []);
@@ -39,7 +39,7 @@ const Products = () => {
   const handleDeleteProduct = async (productId) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        const response = await axios.delete(`http://localhost:5000/api/admin/products/${productId}`, {
+        const response = await axios.delete(`http://157.245.187.246:5000/api/admin/products/${productId}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` },
         });
         if (response.data.success) {

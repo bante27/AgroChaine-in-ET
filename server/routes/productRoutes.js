@@ -2,7 +2,6 @@ import express from "express";
 import auth from "../middleware/auth.js";
 import Product from "../models/Product.js";
 import User from "../models/User.js";
-import PlatformFee from "../models/PlatformFee.js";
 import { productImageUpload } from "../middleware/cloudinaryUpload.js";
 import mongoose from "mongoose";
 
@@ -230,31 +229,5 @@ router.post("/:productId/unlike", auth, async (req, res) => {
   }
 });
 
-// --------------- Get total platform fees ----------------
-router.get("/platform-fees", auth, async (req, res) => {
-  try {
-    const fees = await PlatformFee.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalFees: { $sum: "$feeAmount" },
-          count: { $sum: 1 },
-        },
-      },
-    ]);
-
-    const totalFees = fees.length > 0 ? fees[0].totalFees : 0;
-    const feeCount = fees.length > 0 ? fees[0].count : 0;
-
-    res.json({
-      success: true,
-      totalFees,
-      feeCount,
-    });
-  } catch (error) {
-    console.error("Error fetching platform fees:", error);
-    res.status(500).json({ success: false, error: "Server error fetching platform fees" });
-  }
-});
 
 export default router;

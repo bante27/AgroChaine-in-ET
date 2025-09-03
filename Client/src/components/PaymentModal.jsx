@@ -31,7 +31,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Authentication required. Please log in.");
 
-      const response = await fetch("http://localhost:5000/api/users/add-balance", {
+      const response = await fetch("http://157.245.187.246:5000/api/users/add-balance", {
         method: "POST",
         headers: {
           accept: "application/json",

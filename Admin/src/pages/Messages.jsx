@@ -26,7 +26,7 @@ const Messages = () => {
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/messages', {
+      const response = await axios.get('http://157.245.187.246:5000/api/admin/messages', {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
@@ -57,7 +57,7 @@ const Messages = () => {
     e?.stopPropagation();
     try {
       await axios.patch(
-        `http://localhost:5000/api/admin/messages/${messageId}/read`,
+        `http://157.245.187.246:5000/api/admin/messages/${messageId}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -78,7 +78,7 @@ const Messages = () => {
     setReplyLoading(true);
     try {
       await axios.post(
-        `http://localhost:5000/api/admin/messages/${selectedMessage.id}/reply`,
+        `http://157.245.187.246:5000/api/admin/messages/${selectedMessage.id}/reply`,
         { reply: replyForm.reply },
         {
           headers: {

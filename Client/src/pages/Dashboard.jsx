@@ -116,7 +116,7 @@ const Dashboard = () => {
       return;
     }
     try {
-      const response = await axios.get('http://localhost:5000/api/users/profile', {
+      const response = await axios.get('http://157.245.187.246:5000/api/users/profile', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(response.data.user);
@@ -146,7 +146,7 @@ const Dashboard = () => {
         setOrders([]);
         return;
       }
-      const response = await axios.get('http://localhost:5000/api/transactions/my', {
+      const response = await axios.get('http://157.245.187.246:5000/api/transactions/my', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const transactions = response.data.transactions || [];
@@ -166,7 +166,7 @@ const Dashboard = () => {
 
             let productName = 'Unknown Product';
             try {
-              const productResponse = await axios.get(`http://localhost:5000/api/products/${tx.productId}`, {
+              const productResponse = await axios.get(`http://157.245.187.246:5000/api/products/${tx.productId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               productName = productResponse.data.product.title || 'Unknown Product';
@@ -176,7 +176,7 @@ const Dashboard = () => {
 
             let buyerName = 'Unknown Buyer';
             try {
-              const buyerResponse = await axios.get(`http://localhost:5000/api/users/${tx.buyerUserId}`, {
+              const buyerResponse = await axios.get(`http://157.245.187.246:5000/api/users/${tx.buyerUserId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               buyerName = buyerResponse.data.user.fullName || 'Unknown Buyer';
@@ -186,7 +186,7 @@ const Dashboard = () => {
 
             let sellerName = 'Unknown Seller';
             try {
-              const sellerResponse = await axios.get(`http://localhost:5000/api/users/${tx.sellerUserId}`, {
+              const sellerResponse = await axios.get(`http://157.245.187.246:5000/api/users/${tx.sellerUserId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               sellerName = sellerResponse.data.user.fullName || 'Unknown Seller';
@@ -262,7 +262,7 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `http://localhost:5000/api/transactions/mark-shipped/${transactionId}`,
+        `http://157.245.187.246:5000/api/transactions/mark-shipped/${transactionId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -279,7 +279,7 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `http://localhost:5000/api/transactions/confirm-delivery/${transactionId}`,
+        `http://157.245.187.246:5000/api/transactions/confirm-delivery/${transactionId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -450,13 +450,13 @@ const Dashboard = () => {
       formData.append('govIdFront', data.govIdFront);
       formData.append('govIdBack', data.govIdBack);
       formData.append('role', data.role);
-      await axios.post('http://localhost:5000/api/users/verify-id', formData, {
+      await axios.post('http://157.245.187.246:5000/api/users/verify-id', formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
       setVerificationStatus('pending');
       setShowVerificationModal(false);
       await axios.patch(
-        'http://localhost:5000/api/users/profile',
+        'http://157.245.187.246:5000/api/users/profile',
         { fullName: data.name },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -470,7 +470,7 @@ const Dashboard = () => {
   const handleProductSubmit = async (productData) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/products', productData, {
+      await axios.post('http://157.245.187.246:5000/api/products', productData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
       setShowProductModal(false);
@@ -486,7 +486,7 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       const formData = new FormData();
       formData.append('profilePic', imageFile);
-      await axios.post('http://localhost:5000/api/users/profile-pic', formData, {
+      await axios.post('http://157.245.187.246:5000/api/users/profile-pic', formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
       fetchUserProfileLocal();
@@ -500,7 +500,7 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.patch(
-        'http://localhost:5000/api/users/profile',
+        'http://157.245.187.246:5000/api/users/profile',
         profileData,
         { headers: { Authorization: `Bearer ${token}` } }
       );

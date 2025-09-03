@@ -47,7 +47,7 @@ const Users = () => {
     try {
       setError(null);
       const token = localStorage.getItem("userToken");
-      const res = await axios.get("http://localhost:5000/api/admin/users", {
+      const res = await axios.get("http://157.245.187.246:5000/api/admin/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data.users || []);
@@ -64,7 +64,7 @@ const Users = () => {
       setVerificationLoading(true);
       setError(null);
       const token = localStorage.getItem("userToken");
-      const res = await axios.get("http://localhost:5000/api/admin/verifications/pending", {
+      const res = await axios.get("http://157.245.187.246:5000/api/admin/verifications/pending", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const verification = res.data.pending.find((v) => v.userId === userId);
@@ -83,7 +83,7 @@ const Users = () => {
       setError(null);
       const token = localStorage.getItem("userToken");
       await axios.post(
-        `http://localhost:5000/api/admin/users/${userId}/restrict`,
+        `http://157.245.187.246:5000/api/admin/users/${userId}/restrict`,
         {},
         {
           headers: {
@@ -110,7 +110,7 @@ const Users = () => {
       setError(null);
       const token = localStorage.getItem("userToken");
       await axios.post(
-        `http://localhost:5000/api/users/make-admin/${userId}`,
+        `http://157.245.187.246:5000/api/users/make-admin/${userId}`,
         {},
         {
           headers: {

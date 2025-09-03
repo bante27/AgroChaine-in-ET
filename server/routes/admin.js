@@ -6,6 +6,7 @@ import User from '../models/User.js';
 import Product from '../models/Product.js';
 import Transaction from '../models/Transaction.js';
 import Message from '../models/Message.js';
+import PlatformFee from "../models/PlatformFee.js";
 import nodemailer from 'nodemailer';
 
 const router = express.Router();
