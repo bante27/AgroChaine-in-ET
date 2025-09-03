@@ -406,8 +406,8 @@ router.get('/profile', auth, async (req, res) => {
   }
 });
 
-// -------------------- Update Profile (Restricted) --------------------
-router.patch('/profile', auth, restrictUnverifiedUsers, async (req, res) => {
+// -------------------- Update Profile --------------------
+router.patch('/profile', auth, async (req, res) => {
   try {
     const allowedFields = ['username', 'location'];
     const updates = {};
@@ -441,11 +441,10 @@ router.patch('/profile', auth, restrictUnverifiedUsers, async (req, res) => {
   }
 });
 
-// -------------------- Upload Profile Pic (Restricted) --------------------
+// -------------------- Upload Profile Pic --------------------
 router.post(
   '/profile-pic',
   auth,
-  restrictUnverifiedUsers,
   profilePicUpload.single('profilePic'),
   async (req, res) => {
     try {
@@ -537,8 +536,8 @@ router.get('/:userId', async (req, res) => {
   }
 });
 
-// -------------------- Rate User (Restricted) --------------------
-router.post('/:userId/rate', auth, restrictUnverifiedUsers, async (req, res) => {
+// -------------------- Rate User --------------------
+router.post('/:userId/rate', auth, async (req, res) => {
   try {
     const { rating } = req.body;
     if (!rating || rating < 1 || rating > 5) {
@@ -602,23 +601,5 @@ router.post(
     }
   }
 );
-
-// -------------------- Make Admin (for dev only) --------------------
-router.post('/make-admin/:userId', auth, async (req, res) => {
-  try {
-    const user = await User.findOne({ userId: req.params.userId });
-    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
-
-    user.isAdmin = true;
-    await user.save();
-
-    res.json({ success: true, message: 'User promoted to admin', user });
-  } catch (err) {
-    console.error('Error promoting admin:', err);
-    res
-      .status(500)
-      .json({ success: false, error: 'Server error promoting admin' });
-  }
-});
 
 export default router;

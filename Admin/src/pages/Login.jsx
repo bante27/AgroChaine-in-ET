@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -18,13 +18,11 @@ const Login = () => {
 
   const { login, user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // Redirect after login based on role
+  // Redirect after login
   useEffect(() => {
     if (!loading && isAuthenticated && user) {
-      const redirectTo = user.isAdmin ? '/' : '/profile';
-      navigate(redirectTo, { replace: true });
+      navigate('/', { replace: true }); // Always redirect to '/' since only admins can log in
     }
   }, [user, isAuthenticated, loading, navigate]);
 
@@ -67,6 +65,10 @@ const Login = () => {
             border: '1px solid rgba(239, 68, 68, 0.2)', // border-red-500/20
           },
         });
+        // Redirect to login page if non-admin
+        if (result.error === 'Access denied: Only admins can log in') {
+          window.location.href = 'http://localhost:5174/login';
+        }
       }
     } catch (err) {
       toast.error(err.response?.data?.error || 'Login failed', {

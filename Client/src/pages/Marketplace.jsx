@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import HeroSection from '../components/market/HeroSection';
-import FiltersSection from '../components/market/FiltersSection';
-import ProductsDisplay from '../components/market/ProductsDisplay';
-import ProductModal from '../components/market/ProductModal';
-import CartSidebar from '../components/market/CartSidebar';
-import AuthModal from '../components/market/AuthModal';
-import LiveChat from '../components/LiveChat';
-import CheckoutModal from '../components/market/CheckoutModal';
-import axios from 'axios';
-import toast from 'react-hot-toast';
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import HeroSection from "../components/market/HeroSection";
+import FiltersSection from "../components/market/FiltersSection";
+import ProductsDisplay from "../components/market/ProductsDisplay";
+import ProductModal from "../components/market/ProductModal";
+import CartSidebar from "../components/market/CartSidebar";
+import AuthModal from "../components/market/AuthModal";
+import LiveChat from "../components/LiveChat";
+import CheckoutModal from "../components/market/CheckoutModal";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 const modalBackdrop = {
   initial: { opacity: 0 },
@@ -19,13 +19,14 @@ const modalBackdrop = {
 };
 
 const Marketplace = () => {
-  const [token, setToken] = useState(localStorage.getItem('token') || '');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [inputValue, setInputValue] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [viewMode, setViewMode] = useState('grid');
-  const [sortBy, setSortBy] = useState('price-low');
-  const [displayedProducts, setDisplayedProducts] = useState([]);
+  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [inputValue, setInputValue] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [viewMode, setViewMode] = useState("grid");
+  const [sortBy, setSortBy] = useState("price-low");
+  const [allProducts, setAllProducts] = useState([]); // all fetched products
+  const [displayedProducts, setDisplayedProducts] = useState([]); // filtered products
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -33,69 +34,50 @@ const Marketplace = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [cartItems, setCartItems] = useState(JSON.parse(localStorage.getItem('cart')) || []);
+  const [cartItems, setCartItems] = useState(
+    JSON.parse(localStorage.getItem("cart")) || []
+  );
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState("");
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const searchInputRef = useRef(null);
   const shippingFee = 50;
+  const pageSize = 20;
 
   const categories = [
-    { value: '', label: 'All Categories' },
-    { value: 'vegetable', label: 'Vegetable' },
-    { value: 'fruit', label: 'Fruit' },
-    { value: 'grain', label: 'Grain' },
-    { value: 'dairy', label: 'Dairy' },
-    { value: 'other', label: 'Other' },
+    { value: "", label: "All Categories" },
+    { value: "vegetable", label: "Vegetable" },
+    { value: "fruit", label: "Fruit" },
+    { value: "grain", label: "Grain" },
+    { value: "dairy", label: "Dairy" },
+    { value: "other", label: "Other" },
   ];
 
+  // Save cart to localStorage
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
+    localStorage.setItem("cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
+  // Fetch all products
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
     try {
-      const params = {
-        q: searchTerm || undefined,
-        type: selectedCategory || undefined,
-        page,
-        limit: 20,
-      };
-      const response = await axios.get('http://localhost:5000/api/products', {
+      const response = await axios.get("http://localhost:5000/api/products", {
         headers: { Authorization: token ? `Bearer ${token}` : undefined },
-        params,
       });
 
       let products = response.data.items || response.data.products || [];
       if (!Array.isArray(products)) products = [];
 
-      let sorted = [...products];
-      switch (sortBy) {
-        case 'price-low':
-          sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
-          break;
-        case 'price-high':
-          sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
-          break;
-        case 'newest':
-          sorted.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-          break;
-        case 'rating':
-          sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-          break;
-        default:
-          sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
-      }
-
-      setDisplayedProducts(sorted);
-      setTotalPages(Math.ceil((response.data.total || products.length) / 20));
+      setAllProducts(products);
+      setDisplayedProducts(products);
+      setTotalPages(Math.ceil(products.length / pageSize));
     } catch (err) {
       console.error(err);
-      setError('Failed to load products');
+      setError("Failed to load products");
     } finally {
       setLoading(false);
     }
@@ -103,21 +85,63 @@ const Marketplace = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [searchTerm, selectedCategory, page, token, sortBy]);
+  }, []);
 
-  const handleSearchChange = (e) => setInputValue(e.target.value);
-  const handleSearchSubmit = () => {
-    setSearchTerm(inputValue.trim());
+  // Filtering, sorting, search
+  useEffect(() => {
+    let filtered = [...allProducts];
+
+    if (searchTerm) {
+      filtered = filtered.filter((p) =>
+        p.title?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (selectedCategory) {
+      filtered = filtered.filter((p) => p.type === selectedCategory);
+    }
+
+    switch (sortBy) {
+      case "price-low":
+        filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+        break;
+      case "price-high":
+        filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+        break;
+      case "newest":
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        break;
+      case "rating":
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
+      default:
+        break;
+    }
+
+    setTotalPages(Math.ceil(filtered.length / pageSize));
+    const startIndex = (page - 1) * pageSize;
+    const paginated = filtered.slice(startIndex, startIndex + pageSize);
+    setDisplayedProducts(paginated);
+  }, [searchTerm, selectedCategory, sortBy, allProducts, page]);
+
+  // LIVE Search
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setInputValue(value);
+    setSearchTerm(value); // instant update
     setPage(1);
   };
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') handleSearchSubmit();
-  };
+
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
     setPage(1);
   };
-  const handleSortChange = (e) => setSortBy(e.target.value);
+
+  const handleSortChange = (e) => {
+    setSortBy(e.target.value);
+    setPage(1);
+  };
+
   const openModal = (product) => {
     setSelectedProduct(product);
     setComments([]);
@@ -128,16 +152,14 @@ const Marketplace = () => {
   const handleAddToCart = (product) => {
     const exist = cartItems.find((i) => i._id === product._id);
     const updated = exist
-      ? cartItems.map((i) => (i._id === product._id ? { ...i, quantity: i.quantity + 1 } : i))
+      ? cartItems.map((i) =>
+          i._id === product._id ? { ...i, quantity: i.quantity + 1 } : i
+        )
       : [...cartItems, { ...product, quantity: 1 }];
     setCartItems(updated);
     setIsCartOpen(true);
     toast.success(`${product.title} added to cart`, {
-      style: {
-        background: '#10b981',
-        color: '#fff',
-        borderRadius: '8px',
-      },
+      style: { background: "#10b981", color: "#fff", borderRadius: "8px" },
     });
   };
 
@@ -148,7 +170,10 @@ const Marketplace = () => {
 
   const updateCartQuantity = (id, qty) => {
     if (qty <= 0) setCartItems(cartItems.filter((i) => i._id !== id));
-    else setCartItems(cartItems.map((i) => (i._id === id ? { ...i, quantity: qty } : i)));
+    else
+      setCartItems(
+        cartItems.map((i) => (i._id === id ? { ...i, quantity: qty } : i))
+      );
   };
 
   if (loading)
@@ -177,8 +202,6 @@ const Marketplace = () => {
           <FiltersSection
             inputValue={inputValue}
             onSearchChange={handleSearchChange}
-            onSearchSubmit={handleSearchSubmit}
-            onKeyPress={handleKeyPress}
             categories={categories}
             selectedCategory={selectedCategory}
             onCategoryChange={handleCategoryChange}
@@ -203,6 +226,7 @@ const Marketplace = () => {
         </div>
       </div>
 
+      {/* === Modals & Sidebars === */}
       <AnimatePresence>
         {isModalOpen && selectedProduct && (
           <>
@@ -222,7 +246,7 @@ const Marketplace = () => {
                 initial: { opacity: 0, scale: 0.95 },
                 animate: { opacity: 1, scale: 1 },
                 exit: { opacity: 0, scale: 0.95 },
-                transition: { duration: 0.3, ease: 'easeOut' },
+                transition: { duration: 0.3, ease: "easeOut" },
               }}
               initial="initial"
               animate="animate"
@@ -238,8 +262,8 @@ const Marketplace = () => {
                   onCommentChange={(e) => setNewComment(e.target.value)}
                   onAddComment={() => {
                     if (newComment.trim()) {
-                      setComments([...comments, { user: 'You', text: newComment }]);
-                      setNewComment('');
+                      setComments([...comments, { user: "You", text: newComment }]);
+                      setNewComment("");
                     }
                   }}
                   onClose={closeModal}
@@ -266,10 +290,10 @@ const Marketplace = () => {
               key="cart-sidebar"
               className="fixed top-0 right-0 h-full z-50 bg-white shadow-2xl w-full max-w-md p-6 flex flex-col"
               variants={{
-                initial: { x: '100%' },
+                initial: { x: "100%" },
                 animate: { x: 0 },
-                exit: { x: '100%' },
-                transition: { duration: 0.4, ease: 'easeOut' },
+                exit: { x: "100%" },
+                transition: { duration: 0.4, ease: "easeOut" },
               }}
               initial="initial"
               animate="animate"
@@ -310,7 +334,7 @@ const Marketplace = () => {
                 initial: { opacity: 0, scale: 0.95 },
                 animate: { opacity: 1, scale: 1 },
                 exit: { opacity: 0, scale: 0.95 },
-                transition: { duration: 0.3, ease: 'easeOut' },
+                transition: { duration: 0.3, ease: "easeOut" },
               }}
               initial="initial"
               animate="animate"
@@ -356,7 +380,7 @@ const Marketplace = () => {
                 initial: { opacity: 0, scale: 0.95 },
                 animate: { opacity: 1, scale: 1 },
                 exit: { opacity: 0, scale: 0.95 },
-                transition: { duration: 0.3, ease: 'easeOut' },
+                transition: { duration: 0.3, ease: "easeOut" },
               }}
               initial="initial"
               animate="animate"

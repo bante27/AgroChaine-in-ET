@@ -330,81 +330,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /api/users/verify-id/{userId}:
-    post:
-      tags: [Admin]
-      summary: Approve or reject government ID verification (admin only)
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema:
-            type: string
-          description: The user's public ID
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [status]
-              properties:
-                status:
-                  type: string
-                  enum: [approved, rejected]
-                  description: Action to approve or reject the verification
-      responses:
-        '200':
-          description: Verification status updated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  message:
-                    type: string
-                  user:
-                    type: object
-                    properties:
-                      userId:
-                        type: string
-                      fullName:
-                        type: string
-                      email:
-                        type: string
-                      verified:
-                        type: boolean
-                      govIdStatus:
-                        type: string
-                        enum: [pending, approved, rejected]
-        '400':
-          description: Invalid status
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Admin access required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Server error processing ID verification
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 
   /api/users/{userId}:
     get:
@@ -519,38 +444,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /api/users/make-admin/{userId}:
-    post:
-      tags: [Users]
-      summary: Promote a user to admin (dev only)
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: User promoted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Server error promoting admin
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
+  
   ######################
   # PRODUCTS
   ######################
@@ -1482,6 +1376,37 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Message not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/users/make-admin/{userId}:
+    post:
+      tags: [Users]
+      summary: Promote a user to admin (dev only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User promoted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error promoting admin
           content:
             application/json:
               schema:

@@ -20,18 +20,19 @@ import {
   Truck,
   XCircle,
   Clock,
+  X
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import Card from '../components/Card';
 import Button from '../components/common/Button';
-import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import VerificationModal from '../components/VerificationModal';
 import ProductUploadModal from '../components/ProductUploadModal';
 import ProfileImageUploadModal from '../components/ProfileImageUploadModal';
 import PaymentModal from '../components/PaymentModal';
+import Chart from 'chart.js/auto';
 
 const Dashboard = () => {
   const { user, isAuthenticated, loading, logout, setUser, fetchUserProfile } = useAuth();
@@ -41,23 +42,47 @@ const Dashboard = () => {
   const [showProfileImageModal, setShowProfileImageModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showAllOrdersModal, setShowAllOrdersModal] = useState(false);
+  const [showCustomersModal, setShowCustomersModal] = useState(false);
   const [orders, setOrders] = useState([]);
   const [verificationStatus, setVerificationStatus] = useState(user?.govIdStatus || 'unverified');
   const [profileData, setProfileData] = useState({
-    fullName: '',
-    phone: '',
-    address: '',
-    location: '',
+    fullName: user?.fullName || '',
+    phone: user?.phone || '',
+    address: user?.address || '',
+    location: user?.location || '',
   });
+  const [customers] = useState([
+    {
+      "_id": "68b179d926b79d650f749686",
+      "fullName": "Tom Cat",
+      "rank": 3,
+      "customerRating": 0,
+      "phone": "123-456-7890",
+      "address": "123 Meow Street, Feline City",
+      "profilePic": "https://res.cloudinary.com/dnldn2lef/image/upload/v1756473970/uploads/profilePics/1756473969046-393596871-images.jpeg.jpg"
+    },
+    {
+      "_id": "68b55fbe778cfc734b73201c",
+      "fullName": "Bantalem Mitiku",
+      "rank": 5.5,
+      "customerRating": 0,
+      "phone": "987-654-3210",
+      "address": "456 Harmony Road, Peace Town",
+      "profilePic": "https://res.cloudinary.com/dnldn2lef/image/upload/v1756727132/uploads/profilePics/1756727132028-448017212-photo_2025-05-13_00-15-02.jpg.jpg"
+    }
+  ]);
   const [error, setError] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   const [stats, setStats] = useState([
-    { title: 'Sold Products', value: 'Loading...', change: '0', trend: 'up', icon: Package, color: 'cyan', gradient: 'from-cyan-500 to-blue-600' },
-    { title: 'Total Orders', value: 'Loading...', change: '0', trend: 'up', icon: BarChart3, color: 'purple', gradient: 'from-purple-500 to-indigo-600' },
-    { title: 'Customer Rating', value: 'Loading...', change: '0', trend: 'up', icon: Users, color: 'teal', gradient: 'from-teal-500 to-cyan-600' },
+    { title: 'Sold Products', value: 'Loading...', change: '0', trend: 'up', icon: Package, color: 'cyan', gradient: 'from-cyan-400 to-blue-500' },
+    { title: 'Total Orders', value: 'Loading...', change: '0', trend: 'up', icon: BarChart3, color: 'purple', gradient: 'from-purple-400 to-indigo-500' },
+    { title: 'Customer Rating', value: 'Loading...', change: '0', trend: 'up', icon: Users, color: 'teal', gradient: 'from-teal-400 to-cyan-500' },
   ]);
   const profileRef = useRef(null);
+  const chartRef = useRef(null);
+  const [chartInstance, setChartInstance] = useState(null);
+  const [selectedPeriod, setSelectedPeriod] = useState('90 Days');
 
   // Theme management
   useEffect(() => {
@@ -69,9 +94,8 @@ const Dashboard = () => {
   const fetchUserProfileLocal = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      console.error('No token found for profile fetch');
-      navigate('/login', { replace: true });
       setError('Please log in to continue');
+      navigate('/login', { replace: true });
       return;
     }
     try {
@@ -80,35 +104,27 @@ const Dashboard = () => {
       });
       setUser(response.data.user);
       setProfileData({
-        fullName: response.data.user.fullName || '',
-        phone: response.data.user.phone || '',
-        address: response.data.user.address || '',
-        location: response.data.user.location || '',
+        fullName: response.data.user.fullName || 'Not set',
+        phone: response.data.user.phone || 'Not set',
+        address: response.data.user.address || 'Not set',
+        location: response.data.user.location || 'Not set',
       });
-      setVerificationStatus(response.data.user.govIdStatus);
+      setVerificationStatus(response.data.user.govIdStatus || 'unverified');
       updateStatsFromProfile(response.data.user);
       await fetchOrders(response.data.user.transactionHistory || []);
     } catch (error) {
-      console.error('Error fetching user profile:', {
-        message: error.message,
-        response: error.response ? {
-          status: error.response.status,
-          data: error.response.data,
-          headers: error.response.headers,
-        } : null,
-      });
+      console.error('Error fetching user profile:', error);
       localStorage.removeItem('token');
-      navigate('/login', { replace: true });
       setError('Failed to fetch user profile');
+      navigate('/login', { replace: true });
     }
   };
 
-  // Fetch orders with additional data
+  // Fetch orders without delivery address
   const fetchOrders = async (transactionIds = []) => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        console.error('No token found for fetching orders');
         setOrders([]);
         return;
       }
@@ -121,7 +137,6 @@ const Dashboard = () => {
         transactions.map(async (tx) => {
           try {
             if (!tx.productId || !tx.buyerUserId || !tx.sellerUserId) {
-              console.warn(`Skipping transaction ${tx._id || 'unknown'} due to missing fields`, tx);
               return {
                 ...tx,
                 productName: 'Unknown Product',
@@ -136,9 +151,9 @@ const Dashboard = () => {
               const productResponse = await axios.get(`http://localhost:5000/api/products/${tx.productId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
-              productName = productResponse.data.title || productResponse.data.name || 'Unknown Product';
+              productName = productResponse.data.product.title || 'Unknown Product';
             } catch (productError) {
-              console.error(`Error fetching product ${tx.productId}:`, productError.response?.data || productError.message);
+              console.error(`Error fetching product ${tx.productId}:`, productError);
             }
 
             let buyerName = 'Unknown Buyer';
@@ -146,9 +161,9 @@ const Dashboard = () => {
               const buyerResponse = await axios.get(`http://localhost:5000/api/users/${tx.buyerUserId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
-              buyerName = buyerResponse.data.fullName || 'Unknown Buyer';
+              buyerName = buyerResponse.data.user.fullName || 'Unknown Buyer';
             } catch (buyerError) {
-              console.error(`Error fetching buyer ${tx.buyerUserId}:`, buyerError.response?.data || buyerError.message);
+              console.error(`Error fetching buyer ${tx.buyerUserId}:`, buyerError);
             }
 
             let sellerName = 'Unknown Seller';
@@ -156,9 +171,9 @@ const Dashboard = () => {
               const sellerResponse = await axios.get(`http://localhost:5000/api/users/${tx.sellerUserId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
-              sellerName = sellerResponse.data.fullName || 'Unknown Seller';
+              sellerName = sellerResponse.data.user.fullName || 'Unknown Seller';
             } catch (sellerError) {
-              console.error(`Error fetching seller ${tx.sellerUserId}:`, sellerError.response?.data || sellerError.message);
+              console.error(`Error fetching seller ${tx.sellerUserId}:`, sellerError);
             }
 
             return {
@@ -182,13 +197,7 @@ const Dashboard = () => {
       );
       setOrders(enrichedOrders.filter(order => order));
     } catch (error) {
-      console.error('Error fetching enriched orders:', {
-        message: error.message,
-        response: error.response ? {
-          status: error.response.status,
-          data: error.response.data,
-        } : null,
-      });
+      console.error('Error fetching enriched orders:', error);
       setOrders([]);
     }
   };
@@ -207,7 +216,7 @@ const Dashboard = () => {
         trend: 'up',
         icon: Package,
         color: 'cyan',
-        gradient: 'from-cyan-500 to-blue-600',
+        gradient: 'from-cyan-400 to-blue-500',
       },
       {
         title: 'Total Orders',
@@ -216,7 +225,7 @@ const Dashboard = () => {
         trend: 'up',
         icon: BarChart3,
         color: 'purple',
-        gradient: 'from-purple-500 to-indigo-600',
+        gradient: 'from-purple-400 to-indigo-500',
       },
       {
         title: 'Customer Rating',
@@ -225,7 +234,7 @@ const Dashboard = () => {
         trend: 'up',
         icon: Users,
         color: 'teal',
-        gradient: 'from-teal-500 to-cyan-600',
+        gradient: 'from-teal-400 to-cyan-500',
       },
     ]);
   };
@@ -292,54 +301,93 @@ const Dashboard = () => {
     const config = statusConfig[status] || statusConfig.pending;
     const Icon = config.icon;
     return (
-      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${config.color}`}>
-        <Icon className="w-3 h-3 mr-1" />
+      <span className={`inline-flex items-center px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs font-medium border ${config.color}`}>
+        <Icon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
         {status?.charAt(0).toUpperCase() + status?.slice(1)}
       </span>
     );
   };
 
+  // Sales Overview Chart
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      navigate('/login', { replace: true });
-    } else if (!loading) {
-      fetchUserProfileLocal();
+    if (chartInstance) {
+      chartInstance.destroy();
     }
-  }, [loading, isAuthenticated, navigate, setUser]);
 
-  useEffect(() => {
-    if (user) {
-      setProfileData({
-        fullName: user.fullName || '',
-        phone: user.phone || '',
-        address: user.address || '',
-        location: user.location || '',
-      });
-      setVerificationStatus(user.govIdStatus || 'unverified');
-      updateStatsFromProfile(user);
+    const daysMap = { '7 Days': 7, '30 Days': 30, '90 Days': 90 };
+    const days = daysMap[selectedPeriod];
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const filtered = orders.filter(
+      (o) => o.status === 'completed' && o.sellerUserId === user?.userId && new Date(o.date) >= startDate && new Date(o.date) <= endDate
+    );
+
+    const dailySales = {};
+    let d = new Date(startDate);
+    while (d <= endDate) {
+      const dateStr = d.toISOString().split('T')[0];
+      dailySales[dateStr] = 0;
+      d.setDate(d.getDate() + 1);
     }
-  }, [user]);
 
-  const recentActivities = orders.length
-    ? orders.map((tx, index) => ({
-        id: index,
-        type: tx.buyerUserId === user.userId ? 'purchase' : 'sale',
-        description: `${tx.buyerUserId === user.userId ? 'Purchased' : 'Sold'} ${tx.quantity} of ID: ${tx.productId}`,
-        amount: `${tx.totalPrice.toFixed(2)} ETB`,
-        time: new Date(tx.date || Date.now()).toLocaleString(),
-        status: tx.status || 'pending',
-        order: tx,
-      }))
-    : [
-        {
-          id: 1,
-          type: 'info',
-          description: 'No recent transactions',
-          amount: null,
-          time: new Date().toLocaleString(),
-          status: 'info',
+    filtered.forEach((o) => {
+      const dateStr = new Date(o.date).toISOString().split('T')[0];
+      dailySales[dateStr] = (dailySales[dateStr] || 0) + o.totalPrice;
+    });
+
+    const labels = Object.keys(dailySales).sort();
+    const data = labels.map((l) => dailySales[l]);
+
+    const newChart = new Chart(chartRef.current, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Sales (ETB)',
+          data,
+          borderColor: theme === 'dark' ? '#FF6B6B' : '#4B6BFB',
+          backgroundColor: theme === 'dark' ? 'rgba(255, 107, 107, 0.2)' : 'rgba(75, 107, 251, 0.2)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 3,
+          pointHoverRadius: 6,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            ticks: { color: theme === 'dark' ? '#E5E7EB' : '#374151', font: { size: 10 } },
+            grid: { color: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)' },
+            title: { display: true, text: 'Date', color: theme === 'dark' ? '#E5E7EB' : '#374151', font: { size: 12 } },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: theme === 'dark' ? '#E5E7EB' : '#374151', font: { size: 10 }, callback: (value) => `${value} ETB` },
+            grid: { color: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)' },
+            title: { display: true, text: 'Sales Amount (ETB)', color: theme === 'dark' ? '#E5E7EB' : '#374151', font: { size: 12 } },
+          },
         },
-      ];
+        plugins: {
+          legend: { labels: { color: theme === 'dark' ? '#E5E7EB' : '#374151', font: { size: 12 } } },
+          tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.y} ETB` } },
+        },
+        animation: {
+          duration: 1000,
+          easing: 'easeOutQuart',
+        },
+      },
+    });
+
+    setChartInstance(newChart);
+
+    return () => {
+      if (newChart) newChart.destroy();
+    };
+  }, [orders, selectedPeriod, theme, user]);
 
   let quickActions = [
     {
@@ -355,6 +403,13 @@ const Dashboard = () => {
       action: () => setShowPaymentModal(true),
       icon: Wallet,
       color: 'indigo',
+    },
+    {
+      title: 'View Customers',
+      description: 'See your customer list',
+      action: () => setShowCustomersModal(true),
+      icon: Users,
+      color: 'teal',
     },
     {
       title: 'About',
@@ -428,6 +483,7 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
       const formData = new FormData();
+      
       formData.append('profilePic', imageFile);
       await axios.post('http://localhost:5000/api/users/profile-pic', formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
@@ -478,13 +534,34 @@ const Dashboard = () => {
     setShowProductModal(true);
   };
 
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate('/login', { replace: true });
+    } else if (!loading) {
+      fetchUserProfileLocal();
+    }
+  }, [loading, isAuthenticated, navigate, setUser]);
+
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        fullName: user.fullName || 'Not set',
+        phone: user.phone || 'Not set',
+        address: user.address || 'Not set',
+        location: user.location || 'Not set',
+      });
+      setVerificationStatus(user.govIdStatus || 'unverified');
+      updateStatsFromProfile(user);
+    }
+  }, [user]);
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
+          className="w-8 h-8 sm:w-10 sm:h-10 border-4 border-blue-500 border-t-transparent rounded-full"
         />
       </div>
     );
@@ -492,15 +569,15 @@ const Dashboard = () => {
 
   if (error && !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <div className="text-center py-10 text-lg sm:text-xl text-red-500 bg-red-100/80 dark:bg-red-900/80 rounded-2xl p-6 sm:p-8 border border-red-200 dark:border-red-800 shadow-2xl backdrop-blur-md">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
+        <div className="text-center py-6 px-4 sm:px-6 text-sm sm:text-base text-red-500 bg-red-100/90 dark:bg-red-900/90 rounded-xl border border-red-200 dark:border-red-700 shadow-lg backdrop-blur-sm">
           {error}
           <Button
             onClick={() => {
               setError(null);
               fetchUserProfileLocal();
             }}
-            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 px-4 text-sm shadow-lg hover:shadow-xl transition-all"
+            className="mt-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1.5 px-3 sm:px-4 text-xs sm:text-sm shadow-md hover:shadow-lg transition-all"
           >
             Retry
           </Button>
@@ -510,17 +587,18 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-900 dark:to-gray-800 text-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white">
       {/* Profile Section */}
       <div ref={profileRef} className="fixed top-4 right-4 z-50">
         <button
           onClick={() => setIsProfileOpen(!isProfileOpen)}
-          className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-blue-400/50 dark:border-blue-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 backdrop-blur-sm bg-white/10"
+          className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border-2 border-blue-300/50 dark:border-blue-600/50 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 bg-white/10 dark:bg-gray-800/10 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Toggle profile menu"
         >
           {user?.profilePic ? (
             <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
           ) : (
-            <span className="text-sm sm:text-base font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-700 w-full h-full flex items-center justify-center">
+            <span className="text-sm font-bold text-white bg-gradient-to-br from-blue-500 to-indigo-600 w-full h-full flex items-center justify-center">
               {user?.fullName?.[0] || 'U'}
             </span>
           )}
@@ -529,18 +607,18 @@ const Dashboard = () => {
         <AnimatePresence>
           {isProfileOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={{ duration: 0.3, type: 'spring' }}
-              className="absolute right-0 mt-3 w-72 sm:w-80 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/30 dark:border-blue-800/30 overflow-hidden"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="absolute right-0 mt-2 w-64 sm:w-72 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg rounded-xl shadow-xl border border-blue-200/30 dark:border-blue-700/30 overflow-hidden"
             >
-              <div className="flex items-center space-x-4 p-4 border-b border-blue-200/50 dark:border-blue-800/50 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-800 dark:to-gray-700">
-                <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-blue-400/50 dark:border-blue-600/50 group">
+              <div className="flex items-center space-x-3 p-3 border-b border-blue-200/50 dark:border-blue-700/50 bg-gradient-to-r from-blue-50/30 to-indigo-50/30 dark:from-gray-800/30 dark:to-gray-700/30">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-blue-300/50 dark:border-blue-600/50 group">
                   {user?.profilePic ? (
                     <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-base sm:text-lg font-bold text-white bg-gradient-to-br from-blue-600 to-indigo-700 w-full h-full flex items-center justify-center">
+                    <span className="text-sm font-bold text-white bg-gradient-to-br from-blue-500 to-indigo-600 w-full h-full flex items-center justify-center">
                       {user?.fullName?.[0] || 'U'}
                     </span>
                   )}
@@ -550,52 +628,51 @@ const Dashboard = () => {
                       e.stopPropagation();
                       setShowProfileImageModal(true);
                     }}
+                    aria-label="Upload profile picture"
                   >
-                    <Camera className="w-5 h-5 sm:w-6 sm:w-6 text-white" />
+                    <Camera className="w-4 h-4 text-white" />
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">{profileData.fullName || 'Complete Profile'}</h3>
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">{profileData.fullName}</h3>
                   <span
-                    className={`inline-block text-xs px-3 py-1 rounded-full mt-1 ${
+                    className={`inline-block text-xs px-2 py-0.5 rounded-full mt-1 ${
                       verificationStatus === 'verified'
-                        ? 'bg-green-500/30 text-green-600 dark:text-green-400 border border-green-500/50'
+                        ? 'bg-green-100 text-green-600 border-green-200'
                         : verificationStatus === 'pending'
-                        ? 'bg-yellow-500/30 text-yellow-600 dark:text-yellow-400 border border-yellow-500/50'
-                        : verificationStatus === 'rejected'
-                        ? 'bg-red-500/30 text-red-600 dark:text-red-400 border border-red-500/50'
-                        : 'bg-red-500/30 text-red-600 dark:text-red-400 border border-red-500/50'
+                        ? 'bg-yellow-100 text-yellow-600 border-yellow-200'
+                        : 'bg-red-100 text-red-600 border-red-200'
                     }`}
                   >
                     {verificationStatus.charAt(0).toUpperCase() + verificationStatus.slice(1)}
                   </span>
                 </div>
               </div>
-              <div className="p-4 space-y-3 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 dark:scrollbar-thumb-blue-600 scrollbar-track-blue-100 dark:scrollbar-track-blue-900">
+              <div className="p-3 space-y-2 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 dark:scrollbar-thumb-blue-600">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Email</label>
-                  <p className="w-full px-3 py-2 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-sm shadow-inner">
-                    {user?.email || 'No email registered'}
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Email</label>
+                  <p className="w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-xs shadow-sm">
+                    {user?.email || 'Not set'}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Available Balance</label>
-                  <div className="flex items-center space-x-2 w-full px-3 py-2 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-sm shadow-inner">
-                    <Wallet className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Available Balance</label>
+                  <div className="flex items-center space-x-2 w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-xs shadow-sm">
+                    <Wallet className="h-3 w-3 text-blue-500 dark:text-blue-400" />
                     <p>{user?.balance?.toFixed(2) || '0.00'} ETB</p>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Pending Balance</label>
-                  <div className="flex items-center space-x-2 w-full px-3 py-2 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-sm shadow-inner">
-                    <Wallet className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Pending Balance</label>
+                  <div className="flex items-center space-x-2 w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-xs shadow-sm">
+                    <Wallet className="h-3 w-3 text-yellow-500 dark:text-yellow-400" />
                     <p>{user?.pendingBalance?.toFixed(2) || '0.00'} ETB</p>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Total Balance</label>
-                  <div className="flex items-center space-x-2 w-full px-3 py-2 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-sm shadow-inner">
-                    <Wallet className="h-4 w-4 text-green-500 dark:text-green-400" />
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Total Balance</label>
+                  <div className="flex items-center space-x-2 w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-xs shadow-sm">
+                    <Wallet className="h-3 w-3 text-green-500 dark:text-green-400" />
                     <p>{((user?.balance || 0) + (user?.pendingBalance || 0)).toFixed(2)} ETB</p>
                   </div>
                 </div>
@@ -606,35 +683,42 @@ const Dashboard = () => {
                   { label: 'Location', key: 'location', type: 'text' },
                 ].map((field) => (
                   <div key={field.key}>
-                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{field.label}</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">{field.label}</label>
                     <input
                       type={field.type}
                       value={profileData[field.key]}
                       onChange={(e) => setProfileData({ ...profileData, [field.key]: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 border-0 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 shadow-inner placeholder-blue-400 dark:placeholder-blue-300"
+                      className="w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50 text-gray-900 dark:text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm"
                       placeholder={`Enter ${field.label.toLowerCase()}`}
+                      aria-label={field.label}
                     />
                   </div>
                 ))}
               </div>
-              <div className="border-t border-blue-200/50 dark:border-blue-800/50 p-4 space-y-2 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-800 dark:to-gray-700">
-                <Button onClick={saveProfile} className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm shadow-lg hover:shadow-xl transition-all">
+              <div className="border-t border-blue-200/50 dark:border-blue-700/50 p-3 space-y-2 bg-gradient-to-r from-blue-50/30 to-indigo-50/30 dark:from-gray-800/30 dark:to-gray-700/30">
+                <Button
+                  onClick={saveProfile}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1.5 text-xs shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Save profile changes"
+                >
                   Save Changes
                 </Button>
                 <Button
                   onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
                   variant="outline"
-                  className="w-full flex items-center justify-center space-x-2 border-blue-400/50 text-blue-600 dark:text-blue-400 bg-blue-100/20 dark:bg-blue-900/20 hover:bg-blue-200/20 dark:hover:bg-blue-800/20 text-sm rounded-lg py-2 shadow-lg hover:shadow-xl transition-all"
+                  className="w-full flex items-center justify-center space-x-2 border-blue-300/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 bg-blue-100/10 dark:bg-blue-900/10 hover:bg-blue-200/20 dark:hover:bg-blue-800/20 text-xs rounded-lg py-1.5 shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
                 >
-                  {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                  {theme === 'light' ? <Moon className="h-3 w-3" /> : <Sun className="h-3 w-3" />}
                   <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full flex items-center justify-center space-x-2 border-red-400/50 text-red-600 dark:text-red-400 bg-red-100/20 dark:bg-red-900/20 hover:bg-red-200/20 dark:hover:bg-red-800/20 text-sm rounded-lg py-2 shadow-lg hover:shadow-xl transition-all"
+                  className="w-full flex items-center justify-center space-x-2 border-red-300/50 dark:border-red-600/50 text-red-600 dark:text-red-400 bg-red-100/10 dark:bg-red-900/10 hover:bg-red-200/20 dark:hover:bg-red-800/20 text-xs rounded-lg py-1.5 shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
                   onClick={logout}
+                  aria-label="Logout"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-3 w-3" />
                   <span>Logout</span>
                 </Button>
               </div>
@@ -643,71 +727,65 @@ const Dashboard = () => {
         </AnimatePresence>
       </div>
 
-      <div className="p-4 sm:p-6 md:p-8 lg:p-12 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 50 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, type: 'spring' }}
-          className="mb-8 sm:mb-12 text-center"
+          transition={{ duration: 0.5 }}
+          className="mb-6 text-center"
         >
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 mb-4">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
             Welcome back, {user?.fullName || 'User'}!
           </h1>
-          <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300">Your modern agricultural marketplace dashboard</p>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">Your modern agricultural marketplace dashboard</p>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 50 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2, type: 'spring' }}
-          className="mb-8 sm:mb-12 flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center"
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-6 flex flex-col sm:flex-row gap-3 justify-center"
         >
           <Button
             onClick={handleBuyClick}
-            size="large"
-            className="flex items-center justify-center space-x-3 min-w-[160px] sm:min-w-[180px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-sm"
+            className="flex items-center justify-center space-x-2 w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Buy products"
           >
-            <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span>Buy Products</span>
+            <ShoppingCart className="h-4 w-4" />
+            <span className="text-sm">Buy Products</span>
           </Button>
           <Button
             onClick={handleSellClick}
-            size="large"
-            className="flex items-center justify-center space-x-3 min-w-[160px] sm:min-w-[180px] bg-gradient-to-r from-gray-600 to-teal-600 hover:from-rose-700 hover:to-teal-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-sm"
+            className="flex items-center justify-center space-x-2 w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-gray-600 to-teal-600 hover:from-gray-700 hover:to-teal-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            aria-label="Sell products"
           >
-            <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span>Sell Products</span>
+            <Upload className="h-4 w-4" />
+            <span className="text-sm">Sell Products</span>
           </Button>
         </motion.div>
 
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
         >
           {stats.map((stat, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 + 0.5, type: 'spring' }}
+              transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
             >
-              <Card className="group relative overflow-hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl p-4 sm:p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-blue-200/30 dark:border-blue-800/30">
+              <Card className="group relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-blue-200/20 dark:border-blue-700/20">
                 <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
-                <div
-                  className={`inline-flex p-3 sm:p-4 rounded-xl bg-gradient-to-br ${stat.gradient} mb-4 shadow-md group-hover:shadow-lg transition-all`}
-                >
-                  <stat.icon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+                <div className={`p-2 rounded-lg bg-gradient-to-br ${stat.gradient} mb-3 shadow-sm`}>
+                  <stat.icon className="h-5 w-5 text-white" />
                 </div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{stat.title}</p>
-                <p className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white mb-2">{stat.value}</p>
-                <div
-                  className={`flex items-center text-xs sm:text-sm font-medium ${
-                    stat.trend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                  }`}
-                >
-                  {stat.trend === 'up' ? <ArrowUpRight className="h-4 w-4 mr-1" /> : null}
+                <p className="text-xs font-medium text-gray-600 dark:text-gray-300">{stat.title}</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                <div className={`flex items-center text-xs ${stat.trend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  {stat.trend === 'up' ? <ArrowUpRight className="h-3 w-3 mr-1" /> : null}
                   {stat.change}
                 </div>
               </Card>
@@ -715,116 +793,117 @@ const Dashboard = () => {
           ))}
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.6, type: 'spring' }}
+            transition={{ duration: 0.5, delay: 0.4 }}
             className="lg:col-span-2"
           >
-            <Card className="p-4 sm:p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-lg border border-blue-200/30 dark:border-blue-800/30">
-              <div className="flex items-center justify-between mb-4 sm:mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Recent Activity</h2>
+            <Card className="p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-md border border-blue-200/20 dark:border-blue-700/20">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Activities</h2>
+              <div className="space-y-3">
+                {orders.length > 0 ? (
+                  orders.slice(0, 5).map((order, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-blue-100/10 dark:bg-blue-900/10 rounded-lg hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-700/20"
+                    >
+                      <div className="flex items-center space-x-3 mb-2 sm:mb-0">
+                        <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+                          <Activity className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white text-sm">
+                            {order.sellerUserId === user?.userId ? (
+                              <>
+                                You sold <span className="font-bold">{order.productName}</span> to {order.buyerUserId === user?.userId ? 'You' : order.buyerName}
+                              </>
+                            ) : (
+                              <>
+                                You purchased <span className="font-bold">{order.productName}</span> from {order.sellerUserId === user?.userId ? 'You' : order.sellerName}
+                              </>
+                            )}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-300">{new Date(order.date).toLocaleString()}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                        <p className="font-bold text-gray-900 dark:text-white text-sm">{order.totalPrice.toFixed(2)} ETB</p>
+                        {getStatusBadge(order.status)}
+                        {order.status === 'pending' && order.sellerUserId === user?.userId && (
+                          <Button
+                            onClick={() => handleDeliver(order._id)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            aria-label="Mark as shipped"
+                          >
+                            Mark Shipped
+                          </Button>
+                        )}
+                        {order.status === 'shipped' && order.buyerUserId === user?.userId && (
+                          <Button
+                            onClick={() => handleDelivered(order._id)}
+                            className="bg-green-600 hover:bg-green-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-green-500"
+                            aria-label="Confirm delivery"
+                          >
+                            Confirm Delivery
+                          </Button>
+                        )}
+                        {order.status === 'pending' && (
+                          <Button
+                            onClick={() => handleCancel(order._id)}
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
+                            aria-label="Cancel order"
+                          >
+                            Cancel
+                          </Button>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">No recent activities.</p>
+                )}
+              </div>
+              {orders.length > 5 && (
                 <Button
-                  variant="outline"
-                  className="text-xs sm:text-sm border-blue-400/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 rounded-lg shadow-sm"
                   onClick={() => setShowAllOrdersModal(true)}
+                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1.5 px-4 text-sm shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="View all orders"
                 >
-                  View All
+                  View All Orders
                 </Button>
-              </div>
-              <div className="space-y-4">
-                {recentActivities.map((activity, index) => (
-                  <motion.div
-                    key={activity.id}
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-blue-100/10 dark:bg-blue-900/10 rounded-xl hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-800/20 shadow-sm hover:shadow-md"
-                  >
-                    <div className="flex items-center space-x-4 mb-3 sm:mb-0">
-                      <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md">
-                        <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">{activity.description}</p>
-                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{activity.time}</p>
-                      </div>
-                    </div>
-                    <div className="text-left sm:text-right w-full sm:w-auto flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-                      {activity.amount && <p className="font-bold text-gray-900 dark:text-white text-sm sm:text-base">{activity.amount}</p>}
-                      {getStatusBadge(activity.status)}
-                      {activity.order && (
-                        <>
-                          {activity.order.status === 'pending' && activity.order.sellerUserId === user.userId && (
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeliver(activity.order._id);
-                              }}
-                              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1 px-2 text-xs sm:text-sm"
-                            >
-                              Mark Shipped
-                            </Button>
-                          )}
-                          {activity.order.status === 'shipped' && activity.order.buyerUserId === user.userId && (
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelivered(activity.order._id);
-                              }}
-                              className="bg-green-600 hover:bg-green-700 text-white rounded-lg py-1 px-2 text-xs sm:text-sm"
-                            >
-                              Confirm Delivery
-                            </Button>
-                          )}
-                          {activity.order.status === 'pending' && (
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleCancel(activity.order._id);
-                              }}
-                              className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-2 text-xs sm:text-sm"
-                            >
-                              Cancel
-                            </Button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+              )}
             </Card>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.8, type: 'spring' }}
+            transition={{ duration: 0.5, delay: 0.5 }}
           >
-            <Card className="p-4 sm:p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-lg border border-blue-200/30 dark:border-blue-800/30">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Quick Actions</h2>
-              <div className="space-y-4">
+            <Card className="p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-md border border-blue-200/20 dark:border-blue-700/20">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
+              <div className="space-y-3">
                 {quickActions.map((action, index) => (
                   <motion.button
                     key={index}
                     onClick={action.action}
-                    className={`w-full text-left p-4 rounded-xl transition-all duration-300 border border-blue-200/20 dark:border-blue-800/20 hover:border-${action.color}-400/50 dark:hover:border-${action.color}-600/50 group bg-gradient-to-r from-blue-100/10 to-indigo-100/10 dark:from-blue-900/10 dark:to-indigo-900/10 hover:from-${action.color}-100/20 hover:to-${action.color}-200/20 dark:hover:from-${action.color}-900/20 dark:hover:to-${action.color}-800/20 shadow-sm hover:shadow-md`}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
+                    className={`w-full text-left p-3 rounded-lg transition-all duration-300 border border-blue-200/20 dark:border-blue-700/20 hover:bg-${action.color}-100/10 dark:hover:bg-${action.color}-900/10 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-${action.color}-500`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    aria-label={action.title}
                   >
                     <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg bg-${action.color}-100/30 dark:bg-${action.color}-900/30 group-hover:bg-${action.color}-200/40 dark:group-hover:bg-${action.color}-800/40 transition-colors shadow-sm`}>
-                        <action.icon className={`h-4 w-4 sm:h-5 sm:w-5 text-${action.color}-500 group-hover:text-${action.color}-600 dark:group-hover:text-${action.color}-400`} />
+                      <div className={`p-2 rounded-lg bg-${action.color}-100/20 dark:bg-${action.color}-900/20`}>
+                        <action.icon className={`h-4 w-4 text-${action.color}-500`} />
                       </div>
                       <div>
-                        <h3 className={`text-sm sm:text-base font-bold text-gray-900 dark:text-white group-hover:text-${action.color}-400 dark:group-hover:text-${action.color}-300 transition-colors`}>
-                          {action.title}
-                        </h3>
-                        <p className={`text-xs sm:text-sm text-gray-600 dark:text-gray-400 group-hover:text-${action.color}-300 dark:group-hover:text-${action.color}-200 transition-colors`}>
-                          {action.description}
-                        </p>
+                        <h3 className={`text-sm font-bold text-gray-900 dark:text-white`}>{action.title}</h3>
+                        <p className={`text-xs text-gray-600 dark:text-gray-300`}>{action.description}</p>
                       </div>
                     </div>
                   </motion.button>
@@ -835,39 +914,34 @@ const Dashboard = () => {
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 50 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.0, type: 'spring' }}
+          transition={{ duration: 0.5, delay: 0.6 }}
         >
-          <Card className="p-4 sm:p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-lg border border-blue-200/30 dark:border-blue-800/30">
-            <div className="flex flex-col sm:flex-row items-center justify-between mb-4 sm:mb-6 gap-4">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Sales Overview</h2>
+          <Card className="p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-md border border-blue-200/20 dark:border-blue-700/20 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-100/10 to-indigo-100/10 dark:from-blue-900/10 dark:to-indigo-900/10 opacity-50"></div>
+            <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-3">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Sales Overview</h2>
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  className="text-xs sm:text-sm border-blue-400/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 rounded-lg shadow-sm"
-                >
-                  7 Days
-                </Button>
-                <Button
-                  variant="outline"
-                  className="text-xs sm:text-sm border-blue-400/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 rounded-lg shadow-sm"
-                >
-                  30 Days
-                </Button>
-                <Button className="text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm">
-                  90 Days
-                </Button>
+                {['7 Days', '30 Days', '90 Days'].map((period) => (
+                  <Button
+                    key={period}
+                    variant={selectedPeriod === period ? undefined : 'outline'}
+                    className={`py-1 px-3 text-xs rounded-lg transition-all duration-300 ${
+                      selectedPeriod === period
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm'
+                        : 'border-blue-300/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/10 dark:hover:bg-blue-900/10'
+                    }`}
+                    onClick={() => setSelectedPeriod(period)}
+                    aria-label={`Show sales for ${period}`}
+                  >
+                    {period}
+                  </Button>
+                ))}
               </div>
             </div>
-            <div className="h-48 sm:h-64 md:h-80 bg-blue-100/10 dark:bg-blue-900/10 rounded-2xl flex items-center justify-center border border-blue-200/20 dark:border-blue-800/20 overflow-hidden shadow-inner">
-              <div className="text-center p-4 sm:p-6">
-                <div className="inline-flex p-4 sm:p-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 sm:mb-6 shadow-2xl">
-                  <TrendingUp className="h-8 w-8 sm:h-12 sm:w-12 text-white" />
-                </div>
-                <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">Sales Analytics Coming Soon</p>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Advanced insights and interactive charts will be available</p>
-              </div>
+            <div className="h-48 sm:h-64 relative">
+              <canvas ref={chartRef}></canvas>
             </div>
           </Card>
         </motion.div>
@@ -894,38 +968,147 @@ const Dashboard = () => {
         onClose={() => setShowPaymentModal(false)}
         onPaymentSuccess={fetchUserProfileLocal}
       />
-      <Modal
-        isOpen={showAllOrdersModal}
-        onClose={() => setShowAllOrdersModal(false)}
-      >
-        <div className="p-4 sm:p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl max-w-2xl w-full mx-auto">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">All Orders</h2>
-          <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 dark:scrollbar-thumb-blue-600 scrollbar-track-blue-100 dark:scrollbar-track-blue-900">
-            {recentActivities.map((activity, index) => (
-              <div
-                key={index}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-blue-100/10 dark:bg-blue-900/10 rounded-xl hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-800/20 shadow-sm hover:shadow-md"
-              >
-                <div className="flex items-center space-x-4 mb-3 sm:mb-0">
-                  <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md">
-                    <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">{activity.description}</p>
-                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{activity.time}</p>
-                  </div>
-                </div>
-                <div className="text-left sm:text-right w-full sm:w-auto flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-                  {activity.amount && <p className="font-bold text-gray-900 dark:text-white text-sm sm:text-base">{activity.amount}</p>}
-                  {getStatusBadge(activity.status)}
+      <AnimatePresence>
+        {showAllOrdersModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden"
+            >
+              <div className="p-4 flex justify-between items-center border-b border-blue-200/20 dark:border-blue-700/20">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">All Orders</h2>
+                <Button
+                  onClick={() => setShowAllOrdersModal(false)}
+                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-2 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
+                  aria-label="Close orders popup"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="p-4 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 dark:scrollbar-thumb-blue-600">
+                <div className="space-y-3">
+                  {orders.map((order, index) => (
+                    <div
+                      key={index}
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-blue-100/10 dark:bg-blue-900/10 rounded-lg hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-700/20"
+                    >
+                      <div className="flex items-center space-x-3 mb-2 sm:mb-0">
+                        <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+                          <Activity className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white text-sm">
+                            {order.sellerUserId === user?.userId ? (
+                              <>
+                                You sold <span className="font-bold">{order.productName}</span> to {order.buyerUserId === user?.userId ? 'You' : order.buyerName}
+                              </>
+                            ) : (
+                              <>
+                                You purchased <span className="font-bold">{order.productName}</span> from {order.sellerUserId === user?.userId ? 'You' : order.sellerName}
+                              </>
+                            )}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-300">{new Date(order.date).toLocaleString()}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                        <p className="font-bold text-gray-900 dark:text-white text-sm">{order.totalPrice.toFixed(2)} ETB</p>
+                        {getStatusBadge(order.status)}
+                        {order.status === 'pending' && order.sellerUserId === user?.userId && (
+                          <Button
+                            onClick={() => handleDeliver(order._id)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            aria-label="Mark as shipped"
+                          >
+                            Mark Shipped
+                          </Button>
+                        )}
+                        {order.status === 'shipped' && order.buyerUserId === user?.userId && (
+                          <Button
+                            onClick={() => handleDelivered(order._id)}
+                            className="bg-green-600 hover:bg-green-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-green-500"
+                            aria-label="Confirm delivery"
+                          >
+                            Confirm Delivery
+                          </Button>
+                        )}
+                        {order.status === 'pending' && (
+                          <Button
+                            onClick={() => handleCancel(order._id)}
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
+                            aria-label="Cancel order"
+                          >
+                            Cancel
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {orders.length === 0 && (
+                    <p className="text-gray-600 dark:text-gray-300 text-sm">No orders found.</p>
+                  )}
                 </div>
               </div>
-            ))}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <Modal
+        isOpen={showCustomersModal}
+        onClose={() => setShowCustomersModal(false)}
+        title="Customers"
+        size="lg"
+      >
+        <div className="bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-md">
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Customer List</h2>
+              <Button
+                onClick={() => setShowCustomersModal(false)}
+                className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
+                aria-label="Close customers modal"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {customers.map((customer, index) => (
+                <div
+                  key={index}
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-blue-100/10 dark:bg-blue-900/10 rounded-lg hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-700/20"
+                >
+                  <div className="flex items-center space-x-3 mb-2 sm:mb-0">
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden">
+                      <img src={customer.profilePic} alt={customer.fullName} className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white text-sm">{customer.fullName}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-300">Rank: {customer.rank || 'N/A'}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-300">Rating: {customer.customerRating}/5</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {customers.length === 0 && (
+                <p className="text-gray-600 dark:text-gray-300 text-sm">No customers found.</p>
+              )}
+            </div>
           </div>
-          <div className="mt-4 sm:mt-6 flex justify-end">
+          <div className="p-4 flex justify-end">
             <Button
-              onClick={() => setShowAllOrdersModal(false)}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 px-4 text-sm"
+              onClick={() => setShowCustomersModal(false)}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1.5 px-4 text-sm shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Close customers modal"
             >
               Close
             </Button>

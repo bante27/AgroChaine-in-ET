@@ -12,8 +12,28 @@ const router = express.Router();
 const generateProductId = () =>
   Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
+// Middleware to restrict unverified users
+const restrictUnverifiedUsers = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ userId: req.user.userId });
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    if (user.govIdStatus !== 'verified') {
+      return res.status(403).json({
+        success: false,
+        error: 'Action restricted: Government ID verification pending or not completed',
+      });
+    }
+    next();
+  } catch (err) {
+    console.error('Error checking verification status:', err);
+    res.status(500).json({ success: false, error: 'Server error checking verification status' });
+  }
+};
+
 // ---------------- Add a product ----------------
-router.post("/", auth, productImageUpload.array("images", 5), async (req, res) => {
+router.post("/", auth, restrictUnverifiedUsers, productImageUpload.array("images", 5), async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.user.userId });
     if (user.isRestricted) {
