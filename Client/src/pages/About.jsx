@@ -69,7 +69,7 @@ const About = () => {
       telegram: 'https://t.me/example1',
     },
     {
-      name: 'Bantalem Mitiku',
+      name: 'M.S Bantalem Mitiku',
       role: 'CTO',
       image: 'https://images.pexels.com/photos/9946445/pexels-photo-9946445.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop',
       bio: ' supply chain solutions.',
@@ -78,7 +78,7 @@ const About = () => {
       telegram: 'https://t.me/example2',
     },
     {
-      name: 'Tegene',
+      name: 'M.S Tegene',
       role: 'Head of Operations',
       image: 'https://images.pexels.com/photos/11099197/pexels-photo-11099197.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop',
       bio: 'Former agricultural extension officer with deep farming expertise.',
@@ -92,7 +92,7 @@ const About = () => {
     {
       icon: Shield,
       title: 'Enhanced Traceability',
-      description: 'Track products from farm to consumer with secure, verifiable records for unmatched transparency.',
+      description:    '  Track products from farm to consumer with secure, verifiable records for unmatched transparency.',
       features: [
         'Verifiable transaction records',
         'Real-time supply chain visibility',
@@ -210,7 +210,7 @@ const About = () => {
   const currentStoryImage = storyImages[currentImageIndex];
 
   return (
-    <div className="min-h-screen font-sans text-amber-800 bg-gradient-to-br from-green-100 to-emerald-200">
+    <div className="min-h-screen font-sans text-gray-800 bg-gradient-to-br from-green-100 to-emerald-200">
       {/* Hero Section - Enhanced Attractive Design with Improved Text Visibility */}
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-teal-500 to-emerald-600 animate-gradient-shift">
         <div className="relative z-10 text-center max-w-7xl mx-auto px-10 sm:px-12 lg:px-16 py-24">
@@ -286,10 +286,10 @@ const About = () => {
               </h2>
               <div className="space-y-6 text-lg sm:text-xl text-gray-950">
                 <p>
-                  AgroChain Ethiopia was born from a vision to uplift Ethiopian farmers by tackling the inefficiencies of traditional agricultural supply chains. Founded in 2020, we leverage advanced technology to bridge the gap between rural producers and global markets.
+                  AgroChain Ethiopia was born from a vision to uplift Ethiopian farmers by tackling the inefficiencies of traditional agricultural supply chains. Founded in 2025, we leverage advanced technology to bridge the gap between rural producers and global markets.
                 </p>
                 <p>
-                  Our platform offers real-time traceability, secure logistics, and a digital marketplace, empowering over 10,000 farmers with fair pricing and direct buyer connections. We are committed to sustainable practices, supporting local economies, and fostering innovation in agriculture.
+                  Our platform offers real-time traceability, secure logistics, and a digital marketplace, empowering  farmers with fair pricing and direct buyer connections. We are committed to sustainable practices, supporting local economies, and fostering innovation in agriculture.
                 </p>
                 <p>
                   With a team of agricultural experts and tech innovators, AgroChain Ethiopia aims to set a new standard for agricultural transformation across Africa, ensuring prosperity for generations to come.

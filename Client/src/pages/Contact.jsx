@@ -182,15 +182,16 @@ const Contact = () => {
       details: [
         { text: '+251985076701', link: 'tel:+251985076701' },
         { text: '+251927993894', link: 'tel:+251927993894' },
+        {text: '+251703036701' ,link: 'tel:+251703036701'},
       ],
     },
     {
       icon: Mail,
       title: 'Email Addresses',
       details: [
-        { text: 'info@agrochain.et', link: 'mailto:info@agrochain.et' },
-        { text: 'support@agrochain.et', link: 'mailto:support@agrochain.et' },
-        { text: 'sales@agrochain.et', link: 'mailto:sales@agrochain.et' },
+        { text: 'tilahunsitotaw87@gmail.com', link: 'tilahunsitotaw87@gmail.com' },
+        { text: 'mitikubanitalem@gmail.com', link: 'mitikubanitalem@gmail.com' },
+        { text: 'sales@agrochain.et', link: 'sales@agrochain.et' },
       ],
     },
     {
@@ -219,11 +220,11 @@ const Contact = () => {
     },
     {
       question: 'What payment methods are supported in the marketplace?',
-      answer: 'We support bank transfers, mobile money (e.g., Telebirr), credit/debit cards, and cryptocurrency options for secure and convenient transactions.',
+      answer: 'We support bank transfers, mobile money (e.g., Telebirr), CBE, and cryptocurrency options for secure and convenient transactions.',
     },
     {
       question: 'How can I get technical support for the platform?',
-      answer: 'Contact our support team via email at support@agrochain.et or call +251985076701. We also offer live chat for immediate assistance.',
+      answer: 'Contact our support team via email at mitikubanitalem@gmail.com or call +251985076701. We also offer live chat for immediate assistance.',
     },
     {
       question: 'Can I use the platform in multiple languages?',
@@ -231,7 +232,7 @@ const Contact = () => {
     },
     {
       question: 'What is the cost to join the platform?',
-      answer: 'Registration is free for farmers. Premium features for distributors and retailers are available through subscription plans.',
+      answer: 'Registration is free for farmers. Premium features for distributors and retailers are available through subscription plans in the future.',
     },
   ];
 
@@ -258,7 +259,7 @@ const Contact = () => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.2, delay: 0.2, type: 'spring', stiffness: 100 }}
-            className="text-lg sm:text-xl max-w-3xl mx-auto mb-8 text-white bg-white/70 rounded-xl p-4 shadow-md"
+            className="text-lg sm:text-xl max-w-3xl mx-auto mb-8 text-gray-500 bg-white/70 rounded-xl p-4 shadow-md"
           >
             Let’s grow together! Reach out to transform your agricultural journey.
           </motion.p>

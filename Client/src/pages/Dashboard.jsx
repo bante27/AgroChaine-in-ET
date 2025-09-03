@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -44,6 +45,7 @@ const Dashboard = () => {
   const [showAllOrdersModal, setShowAllOrdersModal] = useState(false);
   const [showCustomersModal, setShowCustomersModal] = useState(false);
   const [orders, setOrders] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [verificationStatus, setVerificationStatus] = useState(user?.govIdStatus || 'unverified');
   const [profileData, setProfileData] = useState({
     fullName: user?.fullName || '',
@@ -51,26 +53,6 @@ const Dashboard = () => {
     address: user?.address || '',
     location: user?.location || '',
   });
-  const [customers] = useState([
-    {
-      "_id": "68b179d926b79d650f749686",
-      "fullName": "Tom Cat",
-      "rank": 3,
-      "customerRating": 0,
-      "phone": "123-456-7890",
-      "address": "123 Meow Street, Feline City",
-      "profilePic": "https://res.cloudinary.com/dnldn2lef/image/upload/v1756473970/uploads/profilePics/1756473969046-393596871-images.jpeg.jpg"
-    },
-    {
-      "_id": "68b55fbe778cfc734b73201c",
-      "fullName": "Bantalem Mitiku",
-      "rank": 5.5,
-      "customerRating": 0,
-      "phone": "987-654-3210",
-      "address": "456 Harmony Road, Peace Town",
-      "profilePic": "https://res.cloudinary.com/dnldn2lef/image/upload/v1756727132/uploads/profilePics/1756727132028-448017212-photo_2025-05-13_00-15-02.jpg.jpg"
-    }
-  ]);
   const [error, setError] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
@@ -89,6 +71,41 @@ const Dashboard = () => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // Fetch customers from closeCustomers
+  const fetchCustomers = async (closeCustomerIds = []) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setCustomers([]);
+        return;
+      }
+      const customerPromises = closeCustomerIds.map(async (customerId) => {
+        try {
+          const response = await axios.get(`http://localhost:5000/api/users/${customerId.userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const { user } = response.data;
+          return {
+            _id: user.userId,
+            fullName: user.fullName || 'Unknown',
+            rank: user.rank || 0,
+            customerRating: user.customerRating || 0,
+            profilePic: user.profilePic || 'https://via.placeholder.com/150',
+          };
+        } catch (error) {
+          console.error(`Error fetching customer ${customerId}:`, error);
+          return null;
+        }
+      });
+      const customerData = await Promise.all(customerPromises);
+      setCustomers(customerData.filter(customer => customer));
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+      setCustomers([]);
+      toast.error('Failed to fetch customer data');
+    }
+  };
 
   // Fetch user profile
   const fetchUserProfileLocal = async () => {
@@ -112,6 +129,7 @@ const Dashboard = () => {
       setVerificationStatus(response.data.user.govIdStatus || 'unverified');
       updateStatsFromProfile(response.data.user);
       await fetchOrders(response.data.user.transactionHistory || []);
+      await fetchCustomers(response.data.user.closeCustomers || []);
     } catch (error) {
       console.error('Error fetching user profile:', error);
       localStorage.removeItem('token');
@@ -274,29 +292,13 @@ const Dashboard = () => {
     }
   };
 
-  const handleCancel = async (transactionId) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `http://localhost:5000/api/transactions/cancel/${transactionId}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (response.data.success) {
-        toast.success('Order cancelled successfully');
-        fetchUserProfileLocal();
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to cancel transaction');
-    }
-  };
+  
 
   const getStatusBadge = (status) => {
     const statusConfig = {
       completed: { color: 'bg-green-100 text-green-600 border-green-200', icon: CheckCircle },
       shipped: { color: 'bg-blue-100 text-blue-600 border-blue-200', icon: Truck },
       pending: { color: 'bg-yellow-100 text-yellow-600 border-yellow-200', icon: Clock },
-      canceled: { color: 'bg-red-100 text-red-600 border-red-200', icon: XCircle },
     };
     const config = statusConfig[status] || statusConfig.pending;
     const Icon = config.icon;
@@ -483,7 +485,6 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
       const formData = new FormData();
-      
       formData.append('profilePic', imageFile);
       await axios.post('http://localhost:5000/api/users/profile-pic', formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
@@ -662,20 +663,8 @@ const Dashboard = () => {
                     <p>{user?.balance?.toFixed(2) || '0.00'} ETB</p>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Pending Balance</label>
-                  <div className="flex items-center space-x-2 w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-xs shadow-sm">
-                    <Wallet className="h-3 w-3 text-yellow-500 dark:text-yellow-400" />
-                    <p>{user?.pendingBalance?.toFixed(2) || '0.00'} ETB</p>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Total Balance</label>
-                  <div className="flex items-center space-x-2 w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-xs shadow-sm">
-                    <Wallet className="h-3 w-3 text-green-500 dark:text-green-400" />
-                    <p>{((user?.balance || 0) + (user?.pendingBalance || 0)).toFixed(2)} ETB</p>
-                  </div>
-                </div>
+                
+              
                 {[
                   { label: 'Full Name', key: 'fullName', type: 'text' },
                   { label: 'Phone', key: 'phone', type: 'tel' },
@@ -852,15 +841,7 @@ const Dashboard = () => {
                             Confirm Delivery
                           </Button>
                         )}
-                        {order.status === 'pending' && (
-                          <Button
-                            onClick={() => handleCancel(order._id)}
-                            className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
-                            aria-label="Cancel order"
-                          >
-                            Cancel
-                          </Button>
-                        )}
+                        
                       </div>
                     </motion.div>
                   ))
@@ -1041,15 +1022,7 @@ const Dashboard = () => {
                             Confirm Delivery
                           </Button>
                         )}
-                        {order.status === 'pending' && (
-                          <Button
-                            onClick={() => handleCancel(order._id)}
-                            className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
-                            aria-label="Cancel order"
-                          >
-                            Cancel
-                          </Button>
-                        )}
+                       
                       </div>
                     </div>
                   ))}

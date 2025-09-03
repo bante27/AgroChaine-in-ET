@@ -91,7 +91,7 @@ const Home = () => {
         </>
       ),
       tagline: 'Traceable. Transparent. Trusted.',
-      description: 'Revolutionize Ethiopia’s food supply chain with a blockchain-powered platform connecting farmers, distributors, retailers, and consumers.',
+      description: 'Revolutionize Ethiopia’s food supply chain with Technology-powered platform connecting farmers, distributors, retailers, and consumers.',
     },
     {
       video: video2,
