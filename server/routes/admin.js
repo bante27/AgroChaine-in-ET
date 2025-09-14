@@ -115,7 +115,7 @@ router.post(
   }
 );
 
-// 📝 Get pending government ID verifications
+// Get pending government ID verifications
 router.get('/verifications/pending', auth, admin, async (req, res) => {
   try {
     const pending = await User.find({ govIdStatus: 'pending' })
@@ -127,7 +127,7 @@ router.get('/verifications/pending', auth, admin, async (req, res) => {
   }
 });
 
-// ✅ Approve or ❌ Reject verification
+// Approve or ❌ Reject verification
 router.patch('/verify/:userId', auth, admin, async (req, res) => {
   try {
     const { action } = req.body; // 'approve' or 'reject'
@@ -212,7 +212,7 @@ router.get('/users/:userId', auth, admin, async (req, res) => {
   }
 });
 
-// 🔒 Restrict or unrestrict a user
+// Restrict or unrestrict a user
 router.post('/users/:userId/restrict', auth, admin, async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.params.userId });
@@ -232,7 +232,7 @@ router.post('/users/:userId/restrict', auth, admin, async (req, res) => {
   }
 });
 
-// 📦 Get all products
+// Get all products
 router.get('/products', auth, admin, async (req, res) => {
   try {
     const products = await Product.find().sort({ createdAt: -1 });
@@ -243,7 +243,7 @@ router.get('/products', auth, admin, async (req, res) => {
   }
 });
 
-// 🗑️ Delete a product
+// Delete a product
 router.delete(
   '/products/:productId',
   auth,
@@ -301,7 +301,7 @@ router.delete(
   }
 );
 
-// 💰 Get all transactions
+// Get all transactions
 router.get('/transactions', auth, admin, async (req, res) => {
   try {
     const transactions = await Transaction.find().sort({ date: -1 });
@@ -312,7 +312,7 @@ router.get('/transactions', auth, admin, async (req, res) => {
   }
 });
 
-// 🚨 Suspicious users (basic filter example)
+// Suspicious users (basic filter example)
 router.get('/users/suspicious', auth, admin, async (req, res) => {
   try {
     const suspiciousUsers = await User.find({

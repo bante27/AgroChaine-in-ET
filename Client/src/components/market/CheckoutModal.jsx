@@ -75,7 +75,7 @@ const CheckoutModal = ({
         };
 
         const { data } = await axios.post(
-          "http://157.245.187.246:5000/api/transactions/buy",
+          "http://localhost:5000/api/transactions/buy",
           payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );

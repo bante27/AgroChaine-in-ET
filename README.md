@@ -11,9 +11,9 @@ AgroChain-Ethiopia/
 │   ├── assets/
 │   │   ├── images/
 │   │   ├── videos/
-│   │   └── icons/
-│   ├── favicon.ico
-│   └── index.html
+│   │   
+│   ├
+│   └
 ├── src/
 │   ├── components/
 │   │   ├── layout/
@@ -27,7 +27,7 @@ AgroChain-Ethiopia/
 │   │   │   ├── Modal.jsx
 │   │   │   ├── Card.jsx
 │   │   │   ├── Loading.jsx
-│   │   │   └── Alert.jsx
+│   │   │   └── 
 │   │   ├── forms/
 │   │   │   ├── LoginForm.jsx
 │   │   │   ├── RegisterForm.jsx

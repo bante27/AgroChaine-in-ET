@@ -104,12 +104,13 @@ const Header = () => {
               </div>
               <div className="flex flex-col -space-y-1">
                 <span className="text-2xl font-bold text-white hover:text-teal-300 transition-colors duration-300">AgroChain</span>
-                <span className="text-sm font-semibold text-white hover:text-teal-300 transition-colors duration-300">Ethiopia</span>
+                <span className="text-sm font-semibold text-amber-400 hover:text-teal-300 transition-colors duration-300">Ethiopia</span>
               </div>
             </Link>
           </motion.div>
 
           {/* Desktop Nav */}
+          
           <div className="hidden md:flex items-center space-x-6">
             <Navigation />
             <div className="flex items-center space-x-2">

@@ -87,7 +87,7 @@ const Home = () => {
       video: video1,
       title: (
         <>
-          AgroChain <span className="gradient-text">Ethiopia</span>
+          AgroChain <span className="gradient-text text-amber-400">Ethiopia</span>
         </>
       ),
       tagline: 'Traceable. Transparent. Trusted.',

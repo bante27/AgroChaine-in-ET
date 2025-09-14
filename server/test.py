@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "http://157.245.187.246:5000/api"
+BASE_URL = "http://localhost:5000/api"
 
 def print_response(resp):
     print(f"Status: {resp.status_code}")

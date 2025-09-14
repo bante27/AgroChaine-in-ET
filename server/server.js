@@ -29,7 +29,7 @@ const __dirname = path.dirname(__filename);
 // Middleware
 app.use(
   cors({
-    origin: ["http://157.245.187.246:5174", "http://157.245.187.246:5175", "http://157.245.187.246:5001","http://157.245.187.246:3000"],
+    origin: ["http://localhost:5174", "http://localhost:5175", "http://localhost:5001","http://localhost:3000"],
     credentials: true,
   })
 );

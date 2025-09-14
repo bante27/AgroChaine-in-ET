@@ -44,7 +44,7 @@ const ProductModal = ({
     setIsSubmittingReview(true);
     try {
       const res = await fetch(
-        `http://157.245.187.246:5000/api/products/${product.productId}/review`,
+        `http://localhost:5000/api/products/${product.productId}/review`,
         {
           method: "POST",
           headers: {
@@ -70,7 +70,7 @@ const ProductModal = ({
     setLikeLoading(true);
     try {
       const res = await fetch(
-        `http://157.245.187.246:5000/api/products/${product.productId}/${liked ? "unlike" : "like"}`,
+        `http://localhost:5000/api/products/${product.productId}/${liked ? "unlike" : "like"}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
