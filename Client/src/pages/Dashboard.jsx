@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +20,8 @@ import {
   Truck,
   XCircle,
   Clock,
-  X
+  X,
+  MapPin // Added MapPin for Google Maps
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -57,9 +57,10 @@ const Dashboard = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   const [stats, setStats] = useState([
-    { title: 'Sold Products', value: 'Loading...', change: '0', trend: 'up', icon: Package, color: 'cyan', gradient: 'from-cyan-400 to-blue-500' },
+    { title: 'Posted Products', value: 'Loading...', change: '0', trend: 'up', icon: Package, color: 'cyan', gradient: 'from-cyan-400 to-blue-500' },
     { title: 'Total Orders', value: 'Loading...', change: '0', trend: 'up', icon: BarChart3, color: 'purple', gradient: 'from-purple-400 to-indigo-500' },
-    { title: 'Customer Rating', value: 'Loading...', change: '0', trend: 'up', icon: Users, color: 'teal', gradient: 'from-teal-400 to-cyan-500' },
+    { title: 'Sold Products', value: 'Loading...', change: '0', trend: 'up', icon: TrendingUp, color: 'teal', gradient: 'from-teal-400 to-cyan-500' },
+    { title: 'Customer Rating', value: 'Loading...', change: '0', trend: 'up', icon: Users, color: 'green', gradient: 'from-green-400 to-teal-500' },
   ]);
   const profileRef = useRef(null);
   const chartRef = useRef(null);
@@ -71,6 +72,18 @@ const Dashboard = () => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // Google Maps function
+  const openGoogleMaps = (address) => {
+    if (!address || address === 'Not specified') {
+      toast.error('No delivery address available');
+      return;
+    }
+    
+    const encodedAddress = encodeURIComponent(address);
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+    window.open(googleMapsUrl, '_blank');
+  };
 
   // Fetch customers from closeCustomers
   const fetchCustomers = async (closeCustomerIds = []) => {
@@ -127,7 +140,7 @@ const Dashboard = () => {
         location: response.data.user.location || 'Not set',
       });
       setVerificationStatus(response.data.user.govIdStatus || 'unverified');
-      updateStatsFromProfile(response.data.user);
+      await updateStatsFromProfile(response.data.user);
       await fetchOrders(response.data.user.transactionHistory || []);
       await fetchCustomers(response.data.user.closeCustomers || []);
     } catch (error) {
@@ -138,7 +151,118 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch orders without delivery address
+  // FIXED: Fetch user's posted products with multiple fallbacks
+  const fetchPostedProducts = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      let postedProducts = [];
+      
+      // Try the API endpoint first
+      try {
+        const response = await axios.get('http://localhost:5000/api/products/my-products', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        postedProducts = response.data.products || [];
+        console.log('Posted products from API:', postedProducts.length);
+      } catch (apiError) {
+        console.log('API endpoint failed, trying fallback...');
+        
+        // Fallback: get from user profile
+        try {
+          const userResponse = await axios.get('http://localhost:5000/api/users/profile', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          
+          if (userResponse.data.user && userResponse.data.user.postedProducts) {
+            postedProducts = userResponse.data.user.postedProducts;
+            console.log('Posted products from user profile:', postedProducts.length);
+          }
+        } catch (userError) {
+          console.error('Error fetching user profile for products:', userError);
+        }
+      }
+      
+      return postedProducts;
+    } catch (error) {
+      console.error('Error fetching posted products:', error);
+      return [];
+    }
+  };
+
+  // FIXED: Update stats from profile data with better error handling
+  const updateStatsFromProfile = async (userData) => {
+    try {
+      let postedProductsCount = 0;
+      
+      // Get posted products count with multiple fallbacks
+      try {
+        const postedProducts = await fetchPostedProducts();
+        postedProductsCount = postedProducts.length || 0;
+        
+        // Final fallback - check userData directly
+        if (postedProductsCount === 0 && userData.postedProducts) {
+          postedProductsCount = userData.postedProducts.length || 0;
+        }
+      } catch (error) {
+        console.error('Error getting posted products count:', error);
+        // Use userData as last resort
+        postedProductsCount = userData.postedProducts?.length || 0;
+      }
+      
+      const totalOrdersCount = userData.transactionHistory?.length || 0;
+      
+      // Count sold products (transactions where user is seller and status is completed)
+      const soldProductsCount = userData.transactionHistory?.filter(
+        tx => tx.sellerUserId === userData.userId && tx.status === 'completed'
+      ).length || 0;
+      
+      const customerRating = userData.customerRating || 0;
+
+      setStats([
+        {
+          title: 'Posted Products',
+          value: postedProductsCount,
+          change: '0',
+          trend: 'up',
+          icon: Package,
+          color: 'cyan',
+          gradient: 'from-cyan-400 to-blue-500',
+        },
+        {
+          title: 'Total Orders',
+          value: totalOrdersCount,
+          change: '0',
+          trend: 'up',
+          icon: BarChart3,
+          color: 'purple',
+          gradient: 'from-purple-400 to-indigo-500',
+        },
+        {
+          title: 'Sold Products',
+          value: soldProductsCount,
+          change: '0',
+          trend: 'up',
+          icon: TrendingUp,
+          color: 'teal',
+          gradient: 'from-teal-400 to-cyan-500',
+        },
+        {
+          title: 'Customer Rating',
+          value: `${customerRating}/5`,
+          change: '0',
+          trend: 'up',
+          icon: Users,
+          color: 'green',
+          gradient: 'from-green-400 to-teal-500',
+        },
+      ]);
+    } catch (error) {
+      console.error('Error updating stats:', error);
+    }
+  };
+
+  // Fetch orders with enhanced information
   const fetchOrders = async (transactionIds = []) => {
     try {
       const token = localStorage.getItem('token');
@@ -161,35 +285,42 @@ const Dashboard = () => {
                 buyerName: 'Unknown Buyer',
                 sellerName: 'Unknown Seller',
                 totalPrice: tx.totalPrice || 0,
+                deliveryAddress: tx.deliveryAddress || 'Not specified',
               };
             }
 
             let productName = 'Unknown Product';
+            let productImage = '';
             try {
               const productResponse = await axios.get(`http://localhost:5000/api/products/${tx.productId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               productName = productResponse.data.product.title || 'Unknown Product';
+              productImage = productResponse.data.product.images?.[0] || '';
             } catch (productError) {
               console.error(`Error fetching product ${tx.productId}:`, productError);
             }
 
             let buyerName = 'Unknown Buyer';
+            let buyerEmail = '';
             try {
               const buyerResponse = await axios.get(`http://localhost:5000/api/users/${tx.buyerUserId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               buyerName = buyerResponse.data.user.fullName || 'Unknown Buyer';
+              buyerEmail = buyerResponse.data.user.email || '';
             } catch (buyerError) {
               console.error(`Error fetching buyer ${tx.buyerUserId}:`, buyerError);
             }
 
             let sellerName = 'Unknown Seller';
+            let sellerEmail = '';
             try {
               const sellerResponse = await axios.get(`http://localhost:5000/api/users/${tx.sellerUserId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               sellerName = sellerResponse.data.user.fullName || 'Unknown Seller';
+              sellerEmail = sellerResponse.data.user.email || '';
             } catch (sellerError) {
               console.error(`Error fetching seller ${tx.sellerUserId}:`, sellerError);
             }
@@ -197,9 +328,13 @@ const Dashboard = () => {
             return {
               ...tx,
               productName,
+              productImage,
               buyerName,
+              buyerEmail,
               sellerName,
+              sellerEmail,
               totalPrice: tx.totalPrice || 0,
+              deliveryAddress: tx.deliveryAddress || 'Not specified',
             };
           } catch (err) {
             console.error(`Error processing transaction ${tx._id || 'unknown'}:`, err);
@@ -209,6 +344,7 @@ const Dashboard = () => {
               buyerName: 'Unknown Buyer',
               sellerName: 'Unknown Seller',
               totalPrice: tx.totalPrice || 0,
+              deliveryAddress: 'Not specified',
             };
           }
         })
@@ -219,86 +355,122 @@ const Dashboard = () => {
       setOrders([]);
     }
   };
+// -------------------- Handle Mark as Shipped --------------------
+const handleDeliver = async (transactionId) => {
+  try {
+    const token = localStorage.getItem("token");
 
-  // Update stats from profile data
-  const updateStatsFromProfile = (userData) => {
-    const soldProductsCount = userData.soldProducts?.length || 0;
-    const totalOrdersCount = userData.transactionHistory?.length || 0;
-    const customerRating = userData.customerRating || 0;
+    // Mark order as shipped
+    const response = await axios.post(
+      `http://localhost:5000/api/transactions/mark-shipped/${transactionId}`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-    setStats([
-      {
-        title: 'Sold Products',
-        value: soldProductsCount,
-        change: '0',
-        trend: 'up',
-        icon: Package,
-        color: 'cyan',
-        gradient: 'from-cyan-400 to-blue-500',
-      },
-      {
-        title: 'Total Orders',
-        value: totalOrdersCount,
-        change: '0',
-        trend: 'up',
-        icon: BarChart3,
-        color: 'purple',
-        gradient: 'from-purple-400 to-indigo-500',
-      },
-      {
-        title: 'Customer Rating',
-        value: `${customerRating}/5`,
-        change: '0',
-        trend: 'up',
-        icon: Users,
-        color: 'teal',
-        gradient: 'from-teal-400 to-cyan-500',
-      },
-    ]);
-  };
+    if (!response.data.success) throw new Error("Failed to mark product as shipped");
 
-  // Orders logic
-  const handleDeliver = async (transactionId) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `http://localhost:5000/api/transactions/mark-shipped/${transactionId}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (response.data.success) {
-        toast.success('Product shipped successfully');
-        fetchUserProfileLocal();
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to mark as delivered');
+    // Find order info
+    const transaction = orders.find((order) => order._id === transactionId);
+    if (!transaction) {
+      console.error("Transaction not found for ID:", transactionId);
+      toast.error("Transaction not found");
+      return;
     }
-  };
 
-  const handleDelivered = async (transactionId) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `http://localhost:5000/api/transactions/confirm-delivery/${transactionId}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (response.data.success) {
-        toast.success('Delivery confirmed successfully');
-        fetchUserProfileLocal();
+    console.log("Transaction found for shipping:", transaction);
+
+    // Send email to buyer
+    if (transaction.buyerEmail) {
+      try {
+        await axios.post(
+          "http://localhost:5000/api/products/email/shipped-notification",
+          {
+            to: transaction.buyerEmail,
+            buyerName: transaction.buyerName || "Customer",
+            productName: transaction.productName || "Product",
+            transactionId,
+            estimatedDelivery: "3-5 business days",
+          }
+        );
+        console.log(" Shipped email sent successfully to buyer:", transaction.buyerEmail);
+      } catch (emailError) {
+        console.error("❌ Failed to send shipped email:", emailError.response?.data || emailError);
       }
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to confirm delivery');
+    } else {
+      console.warn("No buyer email found for transaction:", transactionId);
     }
-  };
 
-  
+    toast.success(" Product marked as shipped successfully!");
+    fetchUserProfileLocal();
+
+  } catch (error) {
+    console.error("❌ Error in handleDeliver:", error);
+    toast.error(error.response?.data?.error || error.message || "Failed to mark product as shipped");
+  }
+};
+
+// -------------------- Handle Confirm Delivery --------------------
+const handleDelivered = async (transactionId) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    // Confirm delivery
+    const response = await axios.post(
+      `http://localhost:5000/api/transactions/confirm-delivery/${transactionId}`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (!response.data.success) throw new Error("Failed to confirm delivery");
+
+    // Find order info
+    const transaction = orders.find((order) => order._id === transactionId);
+    if (!transaction) {
+      console.error("Transaction not found for ID:", transactionId);
+      toast.error("Transaction not found");
+      return;
+    }
+
+    console.log("Transaction found for delivery confirmation:", transaction);
+
+    // Send email to seller
+    if (transaction.sellerEmail) {
+      try {
+        await axios.post(
+          "http://localhost:5000/api/products/email/delivery-confirmation",
+          {
+            to: transaction.sellerEmail,
+            sellerName: transaction.sellerName || "Seller",
+            productName: transaction.productName || "Product",
+            transactionId,
+            buyerName: transaction.buyerName || "Buyer",
+          }
+        );
+        console.log(" Delivery confirmation email sent successfully to seller:", transaction.sellerEmail);
+      } catch (emailError) {
+        console.error("❌ Failed to send delivery confirmation email:", emailError.response?.data || emailError);
+      }
+    } else {
+      console.warn("No seller email found for transaction:", transactionId);
+    }
+
+    toast.success(" Delivery confirmed successfully!");
+    fetchUserProfileLocal();
+
+  } catch (error) {
+    console.error("❌ Error in handleDelivered:", error);
+    toast.error(error.response?.data?.error || error.message || "Failed to confirm delivery");
+  }
+};
+
+
 
   const getStatusBadge = (status) => {
     const statusConfig = {
       completed: { color: 'bg-green-100 text-green-600 border-green-200', icon: CheckCircle },
       shipped: { color: 'bg-blue-100 text-blue-600 border-blue-200', icon: Truck },
       pending: { color: 'bg-yellow-100 text-yellow-600 border-yellow-200', icon: Clock },
+      cancelled: { color: 'bg-red-100 text-red-600 border-red-200', icon: XCircle },
     };
     const config = statusConfig[status] || statusConfig.pending;
     const Icon = config.icon;
@@ -315,6 +487,8 @@ const Dashboard = () => {
     if (chartInstance) {
       chartInstance.destroy();
     }
+
+    if (!chartRef.current || !user) return;
 
     const daysMap = { '7 Days': 7, '30 Days': 30, '90 Days': 90 };
     const days = daysMap[selectedPeriod];
@@ -475,6 +649,7 @@ const Dashboard = () => {
       });
       setShowProductModal(false);
       toast.success('Product uploaded successfully');
+      fetchUserProfileLocal(); // Refresh stats to update posted products count
       navigate('/marketplace');
     } catch (error) {
       toast.error(error.response?.data?.error || 'Product upload failed');
@@ -754,7 +929,7 @@ const Dashboard = () => {
         </motion.div>
 
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -818,6 +993,17 @@ const Dashboard = () => {
                             )}
                           </p>
                           <p className="text-xs text-gray-600 dark:text-gray-300">{new Date(order.date).toLocaleString()}</p>
+                          {/* UPDATED: Google Maps integration for delivery address */}
+                          <div className="flex items-center space-x-1 mt-1">
+                            <MapPin className="h-3 w-3 text-blue-500" />
+                            <button
+                              onClick={() => openGoogleMaps(order.deliveryAddress)}
+                              className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline cursor-pointer transition-colors"
+                              title="Open in Google Maps"
+                            >
+                              {order.deliveryAddress}
+                            </button>
+                          </div>
                         </div>
                       </div>
                       <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
@@ -841,7 +1027,6 @@ const Dashboard = () => {
                             Confirm Delivery
                           </Button>
                         )}
-                        
                       </div>
                     </motion.div>
                   ))
@@ -963,7 +1148,7 @@ const Dashboard = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden"
+              className="bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden"
             >
               <div className="p-4 flex justify-between items-center border-b border-blue-200/20 dark:border-blue-700/20">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">All Orders</h2>
@@ -999,6 +1184,18 @@ const Dashboard = () => {
                             )}
                           </p>
                           <p className="text-xs text-gray-600 dark:text-gray-300">{new Date(order.date).toLocaleString()}</p>
+                          {/* UPDATED: Google Maps integration for delivery address */}
+                          <div className="flex items-center space-x-1 mt-1">
+                            <MapPin className="h-3 w-3 text-blue-500" />
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Delivery Address:</span>
+                            <button
+                              onClick={() => openGoogleMaps(order.deliveryAddress)}
+                              className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline cursor-pointer transition-colors ml-1"
+                              title="Open in Google Maps"
+                            >
+                              {order.deliveryAddress}
+                            </button>
+                          </div>
                         </div>
                       </div>
                       <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
@@ -1022,7 +1219,6 @@ const Dashboard = () => {
                             Confirm Delivery
                           </Button>
                         )}
-                       
                       </div>
                     </div>
                   ))}

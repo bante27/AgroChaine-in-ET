@@ -28,7 +28,7 @@ const ForgotPassword = () => {
 
     setIsLoading(true);
     try {
-      await axios.post("http://157.245.187.246:5000/api/users/forgot-password", { email });
+      await axios.post("http://localhost:5000/api/users/forgot-password", { email });
       toast.success("OTP sent to your email");
       setStep(2);
       setTimer(300);
@@ -68,7 +68,7 @@ const ForgotPassword = () => {
 
     setIsLoading(true);
     try {
-      const res = await axios.post("http://157.245.187.246:5000/api/users/reset-password", {
+      const res = await axios.post("http://localhost:5000/api/users/reset-password", {
         email,
         otp,
         password: newPassword,

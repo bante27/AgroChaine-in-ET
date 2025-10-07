@@ -13,7 +13,7 @@ const Header = () => {
   const { language, changeLanguage, t } = useLanguage();
   const location = useLocation();
   const controls = useAnimation();
-  const menuRef = useRef(null); // Ref for mobile menu
+  const menuRef = useRef(null);
 
   useEffect(() => {
     controls.start({ opacity: 1, y: 0 });
@@ -49,7 +49,6 @@ const Header = () => {
             clip-path: polygon(0 0, 100% 0, 100% 75%, 85% 100%, 15% 100%, 0 75%);
             width: 100%;
             height: 100%;
-            transform-style: preserve-3d;
           }
           .glow-effect {
             filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.7));
@@ -97,10 +96,12 @@ const Header = () => {
           >
             <Link to="/" className="flex items-center space-x-2">
               <div className="relative">
-                <img src={logoIconDarkTransparent} alt="AgroChain Logo Icon" className="h-10 w-10 object-contain glow-effect" />
-                <span className="absolute -top-1 -right-1 bg-teal-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white pulse-animation">
-                  ET
-                </span>
+                {/* Circular logo with no background box */}
+                <img
+                  src={logoIconDarkTransparent}
+                  alt="AgroChain Logo Icon"
+                  className="h-12 w-12 object-cover rounded-full bg-transparent glow-effect"
+                />
               </div>
               <div className="flex flex-col -space-y-1">
                 <span className="text-2xl font-bold text-white hover:text-teal-300 transition-colors duration-300">AgroChain</span>
@@ -110,7 +111,6 @@ const Header = () => {
           </motion.div>
 
           {/* Desktop Nav */}
-          
           <div className="hidden md:flex items-center space-x-6">
             <Navigation />
             <div className="flex items-center space-x-2">
@@ -172,7 +172,7 @@ const Header = () => {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <motion.div
-            ref={menuRef} // attach ref here
+            ref={menuRef}
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: '65vh' }}
             exit={{ opacity: 0, height: 0 }}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Mail, Eye, AlertTriangle, Search, Filter, CheckCircle } from 'lucide-react';
+import { MessageSquare, Mail, AlertTriangle, Search, Filter, CheckCircle, Trash2 } from 'lucide-react';
 import Table from '../components/common/Table';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
@@ -26,7 +26,7 @@ const Messages = () => {
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://157.245.187.246:5000/api/admin/messages', {
+      const response = await axios.get('http://localhost:5000/api/admin/messages', {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
@@ -57,13 +57,27 @@ const Messages = () => {
     e?.stopPropagation();
     try {
       await axios.patch(
-        `http://157.245.187.246:5000/api/admin/messages/${messageId}/read`,
+        `http://localhost:5000/api/admin/messages/${messageId}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchMessages();
     } catch (err) {
       console.error('Error marking message as read:', err);
+    }
+  };
+
+  const handleDelete = async (messageId) => {
+    if (!window.confirm('Are you sure you want to delete this message?')) return;
+    try {
+      await axios.delete(`http://localhost:5000/api/admin/messages/${messageId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (selectedMessage?.id === messageId) setShowMessageModal(false);
+      fetchMessages();
+    } catch (err) {
+      console.error('Error deleting message:', err);
+      alert('Failed to delete message.');
     }
   };
 
@@ -78,7 +92,7 @@ const Messages = () => {
     setReplyLoading(true);
     try {
       await axios.post(
-        `http://157.245.187.246:5000/api/admin/messages/${selectedMessage.id}/reply`,
+        `http://localhost:5000/api/admin/messages/${selectedMessage.id}/reply`,
         { reply: replyForm.reply },
         {
           headers: {
@@ -108,10 +122,26 @@ const Messages = () => {
 
   const getPriorityBadge = (priority) => {
     const config = {
-      high: { color: 'bg-red-600/20 text-red-500 border-red-600', label: 'High' },
-      medium: { color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500', label: 'Medium' },
-      low: { color: 'bg-green-600/20 text-green-500 border-green-600', label: 'Low' },
-    }[priority] || { color: 'bg-green-600/20 text-green-500 border-green-600', label: 'Low' };
+      high: {
+        color:
+          'bg-red-100 text-red-600 border-red-500 dark:bg-red-600/20 dark:text-red-400 dark:border-red-600',
+        label: 'High',
+      },
+      medium: {
+        color:
+          'bg-yellow-100 text-yellow-600 border-yellow-500 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500',
+        label: 'Medium',
+      },
+      low: {
+        color:
+          'bg-green-100 text-green-600 border-green-500 dark:bg-green-600/20 dark:text-green-400 dark:border-green-600',
+        label: 'Low',
+      },
+    }[priority] || {
+      color:
+        'bg-green-100 text-green-600 border-green-500 dark:bg-green-600/20 dark:text-green-400 dark:border-green-600',
+      label: 'Low',
+    };
 
     return (
       <span
@@ -125,7 +155,7 @@ const Messages = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[24rem] bg-gray-900">
+      <div className="flex items-center justify-center min-h-[24rem] bg-gray-100 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-emerald-500"></div>
       </div>
     );
@@ -143,9 +173,13 @@ const Messages = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               icon={Search}
-              className="w-64 bg-gray-800 border border-gray-700 text-white placeholder-gray-400"
+              className="w-64 bg-white text-gray-900 border border-gray-300 placeholder-gray-400 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-400"
             />
-            <Button variant="ghost" size="icon" className="hover:bg-gray-800 text-gray-300">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-gray-100 text-gray-600 dark:hover:bg-gray-800 dark:text-gray-300"
+            >
               <Filter className="h-4 w-4" />
             </Button>
           </div>,
@@ -156,8 +190,10 @@ const Messages = () => {
             filteredMessages.map((message) => (
               <div
                 key={message.id}
-                className={`bg-gray-800 border rounded-2xl p-6 transition hover:bg-gray-700 cursor-pointer ${
-                  message.status === 'unread' ? 'border-emerald-500 bg-emerald-900/10' : 'border-gray-700'
+                className={`bg-white dark:bg-gray-800 border rounded-2xl p-6 transition hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${
+                  message.status === 'unread'
+                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10'
+                    : 'border-gray-200 dark:border-gray-700'
                 }`}
                 onClick={() => {
                   setSelectedMessage(message);
@@ -181,7 +217,7 @@ const Messages = () => {
                       <Mail className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-white font-semibold flex items-center gap-2">
+                      <h3 className="text-gray-900 dark:text-white font-semibold flex items-center gap-2">
                         {message.name}
                         {message.status === 'unread' && (
                           <span
@@ -190,18 +226,22 @@ const Messages = () => {
                           />
                         )}
                       </h3>
-                      <p className="text-gray-400 text-sm">{message.email}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">{message.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     {getPriorityBadge(message.priority)}
-                    <span className="text-gray-400 text-sm">{message.date}</span>
+                    <span className="text-gray-500 dark:text-gray-400 text-sm">{message.date}</span>
                   </div>
                 </div>
 
                 <div className="mb-5">
-                  <h4 className="text-white font-medium mb-2 truncate">{message.subject}</h4>
-                  <p className="text-gray-300 leading-relaxed line-clamp-2">{message.message}</p>
+                  <h4 className="text-gray-900 dark:text-white font-medium mb-2 truncate">
+                    {message.subject}
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-2">
+                    {message.message}
+                  </p>
                 </div>
 
                 <div className="flex gap-3">
@@ -219,7 +259,7 @@ const Messages = () => {
                     <Mail className="h-4 w-4" />
                     Reply
                   </Button>
-                  <Button
+                  {/* <Button
                     onClick={(e) => handleMarkAsRead(message.id, e)}
                     variant="ghost"
                     size="sm"
@@ -228,9 +268,26 @@ const Messages = () => {
                   >
                     <CheckCircle className="h-4 w-4" />
                     Mark Read
+                  </Button> */}
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(message.id);
+                    }}
+                    variant="danger"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
                   </Button>
                   {message.priority === 'high' && (
-                    <Button variant="warning" size="sm" className="flex items-center gap-2" disabled>
+                    <Button
+                      variant="warning"
+                      size="sm"
+                      className="flex items-center gap-2"
+                      disabled
+                    >
                       <AlertTriangle className="h-4 w-4" />
                       Urgent
                     </Button>
@@ -239,7 +296,9 @@ const Messages = () => {
               </div>
             ))
           ) : (
-            <div className="text-center text-gray-400 p-6">No messages found.</div>
+            <div className="text-center text-gray-500 dark:text-gray-400 p-6">
+              No messages found.
+            </div>
           )}
         </div>
       </Table>
@@ -259,26 +318,36 @@ const Messages = () => {
                   <Mail className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white">{selectedMessage.name}</h3>
-                  <p className="text-gray-400">{selectedMessage.email}</p>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {selectedMessage.name}
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400">{selectedMessage.email}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 {getPriorityBadge(selectedMessage.priority)}
-                <span className="text-gray-400 text-sm">{selectedMessage.date}</span>
+                <span className="text-gray-500 dark:text-gray-400 text-sm">
+                  {selectedMessage.date}
+                </span>
               </div>
             </div>
 
             <div>
-              <h4 className="text-lg font-semibold text-white mb-4 truncate">{selectedMessage.subject}</h4>
-              <div className="bg-gray-800 p-5 rounded-xl border border-gray-700">
-                <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">{selectedMessage.message}</p>
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 truncate">
+                {selectedMessage.subject}
+              </h4>
+              <div className="bg-gray-50 dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                  {selectedMessage.message}
+                </p>
               </div>
             </div>
 
             {selectedMessage.attachments?.length > 0 && (
               <div>
-                <h4 className="text-lg font-semibold text-white mb-3">Attachments</h4>
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                  Attachments
+                </h4>
                 <div className="space-y-2">
                   {selectedMessage.attachments.map((attachment) => (
                     <a
@@ -286,7 +355,7 @@ const Messages = () => {
                       href={attachment.path}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-emerald-500 hover:underline block"
+                      className="text-emerald-600 dark:text-emerald-500 hover:underline block"
                     >
                       {attachment.filename} ({(attachment.size / 1024).toFixed(2)} KB)
                     </a>
@@ -307,10 +376,11 @@ const Messages = () => {
               >
                 Reply to Message
               </Button>
-              <Button variant="secondary" className="flex-1">
-                Forward
-              </Button>
-              <Button variant="danger" className="flex-1">
+              <Button
+                onClick={() => handleDelete(selectedMessage.id)}
+                variant="danger"
+                className="flex-1"
+              >
                 Delete
               </Button>
             </div>
@@ -331,43 +401,52 @@ const Messages = () => {
         {selectedMessage && (
           <form onSubmit={handleReplySubmit} className="space-y-6">
             {error && (
-              <div className="bg-red-600/20 text-red-500 p-3 rounded-lg border border-red-600">
+              <div className="bg-red-100 text-red-600 p-3 rounded-lg border border-red-500 dark:bg-red-600/20 dark:text-red-400 dark:border-red-600">
                 {error}
               </div>
             )}
             <div>
-              <label htmlFor="reply-to" className="block text-sm font-semibold text-gray-300 mb-2">
+              <label
+                htmlFor="reply-to"
+                className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+              >
                 To
               </label>
               <Input
                 id="reply-to"
                 value={selectedMessage.email}
                 disabled
-                className="bg-gray-800 text-gray-300 cursor-not-allowed"
+                className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 cursor-not-allowed border border-gray-300 dark:border-gray-700"
               />
             </div>
 
             <div>
-              <label htmlFor="reply-subject" className="block text-sm font-semibold text-gray-300 mb-2">
+              <label
+                htmlFor="reply-subject"
+                className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Subject
               </label>
               <Input
                 id="reply-subject"
                 value={replyForm.subject}
                 onChange={(e) => setReplyForm({ ...replyForm, subject: e.target.value })}
-                className="bg-gray-900 text-white"
+                className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700"
               />
             </div>
 
             <div>
-              <label htmlFor="reply-message" className="block text-sm font-semibold text-gray-300 mb-2">
+              <label
+                htmlFor="reply-message"
+                className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Message
               </label>
               <textarea
                 id="reply-message"
                 value={replyForm.reply}
                 onChange={(e) => setReplyForm({ ...replyForm, reply: e.target.value })}
-                className="w-full bg-gray-900 border border-gray-700 rounded-xl p-4 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/40"
+                className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/40"
                 rows={8}
                 placeholder="Type your reply..."
               />

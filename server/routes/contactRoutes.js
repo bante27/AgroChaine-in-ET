@@ -4,8 +4,11 @@ import { contactUpload } from "../middleware/upload.js";
 
 const router = express.Router();
 
-// Route: POST /api/chat
+/**
+ * @route   POST /api/contact
+ * @desc    Submit contact form with optional files and voice attachment
+ * @access  Public
+ */
 router.post("/", contactUpload, handleContactForm);
 
-// 👇 This makes it a default export, so you can import it in server.js
 export default router;

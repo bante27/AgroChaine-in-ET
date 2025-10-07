@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, MapPin, Camera, Save, Lock } from 'lucide-react';
 import Card from '../components/common/Card';
-import Button from '../components/common/Button';
-import Input from '../components/common/Input';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
@@ -39,7 +36,7 @@ const AdminProfile = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get('http://157.245.187.246:5000/api/admin/users', {
+      const response = await axios.get('http://localhost:5000/api/admin/users', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -56,81 +53,82 @@ const AdminProfile = () => {
     }
   };
 
-  const handleSaveProfile = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    setError(null);
-    try {
-      const response = await axios.put(
-        'http://157.245.187.246:5000/api/users/profile',
-        {
-          fullName: profile.fullName,
-          email: profile.email,
-          phone: profile.phone,
-          location: profile.location,
-          avatar: profile.avatar,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data.success) {
-        alert('Profile updated successfully!');
-      } else {
-        setError(response.data.error || 'Failed to update profile');
-      }
-    } catch (error) {
-      setError(error.response?.data?.error || 'Error saving profile');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleInputChange = (field, value) => {
-    setProfile((prev) => ({ ...prev, [field]: value }));
-  };
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-96 bg-gray-950">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-emerald-400"></div>
+      <div className="flex items-center justify-center min-h-96 bg-gray-50 dark:bg-gray-950">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-emerald-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 py-8 px-4">
-      
+    <div className="max-w-6xl mx-auto space-y-8 py-8 px-4">
+      {/* Error Display */}
+      {error && (
+        <div className="p-4 rounded-lg bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200">
+          {error}
+        </div>
+      )}
+
       {/* Admins List */}
-      <Card gradient className="p-6">
-        <h3 className="text-lg font-semibold bg-gray-950  text-white mb-4">Admins</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-white  border border-white/10 rounded-lg">
-            <thead>
+      <Card gradient className="p-6 shadow-lg">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+          Admins
+        </h3>
+
+        <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+          <table className="min-w-full text-sm text-left">
+            <thead className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-200">
               <tr>
-                <th className="px-4 py-2 text-left">Name</th>
-                <th className="px-4 py-2 text-left">Email</th>
-                <th className="px-4 py-2 text-left">Role</th>
-                <th className="px-4 py-2 text-left">Status</th>
+                <th className="px-4 py-3 font-medium">Name</th>
+                <th className="px-4 py-3 font-medium">Email</th>
+                <th className="px-4 py-3 font-medium">Role</th>
+                <th className="px-4 py-3 font-medium">Status</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {admins.length > 0 ? (
                 admins.map((admin) => (
-                  <tr key={admin._id} className="border-t border-white/10">
-                    <td className="px-4 py-2">{admin.fullName || admin.name}</td>
-                    <td className="px-4 py-2">{admin.email}</td>
-                    <td className="px-4 py-2">{admin.isAdmin ? 'Admin' : 'User'}</td>
-                    <td className="px-4 py-2">{admin.isRestricted ? 'Restricted' : 'Active'}</td>
+                  <tr
+                    key={admin._id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                  >
+                    <td className="px-4 py-3 text-gray-800 dark:text-gray-100">
+                      {admin.fullName || admin.name}
+                    </td>
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                      {admin.email}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          admin.isAdmin
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200'
+                            : 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                        }`}
+                      >
+                        {admin.isAdmin ? 'Admin' : 'User'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          admin.isRestricted
+                            ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200'
+                            : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200'
+                        }`}
+                      >
+                        {admin.isRestricted ? 'Restricted' : 'Active'}
+                      </span>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" className="px-4 py-2 text-center text-white/80">
+                  <td
+                    colSpan="4"
+                    className="px-4 py-6 text-center text-gray-500 dark:text-gray-400"
+                  >
                     No admins found.
                   </td>
                 </tr>

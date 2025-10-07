@@ -15,9 +15,7 @@ const generateProductId = () =>
 const restrictUnverifiedUsers = async (req, res, next) => {
   try {
     const user = await User.findOne({ userId: req.user.userId });
-    if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
     if (user.govIdStatus !== 'verified') {
       return res.status(403).json({
         success: false,
@@ -35,12 +33,9 @@ const restrictUnverifiedUsers = async (req, res, next) => {
 router.post("/", auth, restrictUnverifiedUsers, productImageUpload.array("images", 5), async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.user.userId });
-    if (user.isRestricted) {
-      return res.status(403).json({ success: false, error: "Restricted users cannot add products" });
-    }
+    if (user.isRestricted) return res.status(403).json({ success: false, error: "Restricted users cannot add products" });
 
     const { title, price, originAddress, type, quantity, description, comment } = req.body;
-
     if (!title || !price || !originAddress || !type || !quantity) {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
@@ -64,7 +59,6 @@ router.post("/", auth, restrictUnverifiedUsers, productImageUpload.array("images
     });
 
     await newProduct.save();
-
     await User.findOneAndUpdate(
       { userId: req.user.userId },
       { $push: { postedProducts: newProduct._id } }
@@ -112,18 +106,13 @@ router.get("/:id", async (req, res) => {
     const { id } = req.params;
 
     let product;
-
     if (mongoose.Types.ObjectId.isValid(id)) {
       product = await Product.findById(id);
     }
-
     if (!product) {
       product = await Product.findOne({ productId: id });
     }
-
-    if (!product) {
-      return res.status(404).json({ success: false, error: "Product not found" });
-    }
+    if (!product) return res.status(404).json({ success: false, error: "Product not found" });
 
     res.json({ success: true, product });
   } catch (error) {
@@ -132,24 +121,30 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// --------------- Get user's products ----------------
+router.get("/my-products", auth, async (req, res) => {
+  try {
+    const user = await User.findOne({ userId: req.user.userId }).populate('postedProducts');
+    if (!user) return res.status(404).json({ success: false, error: "User not found" });
+
+    res.json({ success: true, products: user.postedProducts || [] });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: "Server error fetching user products" });
+  }
+});
+
 // --------------- Add a review to a product ----------------
 router.post("/:productId/review", auth, async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.user.userId });
-    if (user.isRestricted) {
-      return res.status(403).json({ success: false, error: "Restricted users cannot add reviews" });
-    }
+    if (user.isRestricted) return res.status(403).json({ success: false, error: "Restricted users cannot add reviews" });
 
     const { comment } = req.body;
-
-    if (!comment) {
-      return res.status(400).json({ success: false, error: "Review comment is required" });
-    }
+    if (!comment) return res.status(400).json({ success: false, error: "Review comment is required" });
 
     const product = await Product.findOne({ productId: req.params.productId });
-    if (!product) {
-      return res.status(404).json({ success: false, error: "Product not found" });
-    }
+    if (!product) return res.status(404).json({ success: false, error: "Product not found" });
 
     const review = {
       comment,
@@ -173,14 +168,10 @@ router.post("/:productId/review", auth, async (req, res) => {
 router.post("/:productId/like", auth, async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.user.userId });
-    if (user.isRestricted) {
-      return res.status(403).json({ success: false, error: "Restricted users cannot like products" });
-    }
+    if (user.isRestricted) return res.status(403).json({ success: false, error: "Restricted users cannot like products" });
 
     const product = await Product.findOne({ productId: req.params.productId });
-    if (!product) {
-      return res.status(404).json({ success: false, error: "Product not found" });
-    }
+    if (!product) return res.status(404).json({ success: false, error: "Product not found" });
 
     product.likesCount += 1;
     product.updatedAt = new Date();
@@ -202,14 +193,10 @@ router.post("/:productId/like", auth, async (req, res) => {
 router.post("/:productId/unlike", auth, async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.user.userId });
-    if (user.isRestricted) {
-      return res.status(403).json({ success: false, error: "Restricted users cannot unlike products" });
-    }
+    if (user.isRestricted) return res.status(403).json({ success: false, error: "Restricted users cannot unlike products" });
 
     const product = await Product.findOne({ productId: req.params.productId });
-    if (!product) {
-      return res.status(404).json({ success: false, error: "Product not found" });
-    }
+    if (!product) return res.status(404).json({ success: false, error: "Product not found" });
 
     if (product.likesCount > 0) {
       product.likesCount -= 1;
@@ -228,6 +215,5 @@ router.post("/:productId/unlike", auth, async (req, res) => {
     res.status(500).json({ success: false, error: "Server error unliking product" });
   }
 });
-
 
 export default router;

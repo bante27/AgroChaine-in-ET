@@ -12,10 +12,8 @@ import {
 } from 'lucide-react';
 import Button from '../common/Button';
 
-
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const navigate = useNavigate();
-
 
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/' },
@@ -29,24 +27,23 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
   const handleLogout = () => {
     try {
-      // Clear all tokens and data from localStorage
-      // Note: Use localStorage.removeItem('userToken') to remove only specific keys if needed
       localStorage.clear();
       console.log('Logged out and localStorage cleared');
-      console.log('Attempting to navigate to /login');
       navigate('/login');
-
-      // Fallback: Use window.location if navigate fails
-      window.location.href = '/l';
+      window.location.href = '/login'; // fallback
     } catch (error) {
       console.error('Error during logout:', error);
     }
   };
 
   return (
-    <aside className={`fixed top-0 left-0 h-full w-64 bg-black/40 backdrop-blur-xl border-r border-white/10 transform transition-transform duration-300 z-40 ${
-      sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-    } lg:translate-x-0`}>
+    <aside
+      className={`fixed top-0 left-0 h-full w-64 
+      bg-white/70 dark:bg-black/40 
+      backdrop-blur-xl border-r border-gray-200 dark:border-white/10 
+      transform transition-transform duration-300 z-40
+      ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+    >
       <div className="p-6 pt-20">
         <nav className="space-y-2">
           {sidebarItems.map((item) => {
@@ -55,11 +52,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               <NavLink
                 key={item.id}
                 to={item.path}
-                className={({ isActive }) => 
+                className={({ isActive }) =>
                   `w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
                     isActive
-                      ? 'bg-gradient-to-r from-emerald-500/20 to-blue-500/20 text-emerald-400 border border-emerald-500/30'
-                      : 'text-white/70 hover:bg-white/5 hover:text-white'
+                      ? 'bg-gradient-to-r from-emerald-500/20 to-blue-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                      : 'text-gray-700 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
                   }`
                 }
                 onClick={() => setSidebarOpen(false)}
@@ -75,12 +72,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             );
           })}
         </nav>
-        
-        <div className="mt-8 pt-8 border-t border-white/10">
+
+        {/* Sign Out Button */}
+        <div className="mt-8 pt-8 border-t border-gray-200 dark:border-white/10">
           <Button 
             onClick={handleLogout}
-            variant="danger" 
-            className="w-full flex items-center gap-3"
+            variant="danger"
+            className="w-full flex items-center gap-3 text-gray-800 dark:text-white"
           >
             <LogOut className="h-5 w-5" />
             Sign Out

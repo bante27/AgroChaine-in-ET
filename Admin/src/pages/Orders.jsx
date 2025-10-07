@@ -32,7 +32,7 @@ const Orders = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get('http://157.245.187.246:5000/api/admin/transactions', {
+      const response = await axios.get('http://localhost:5000/api/admin/transactions', {
         headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` },
       });
       const transactions = response.data.transactions || [];
@@ -61,7 +61,7 @@ const Orders = () => {
 
   const fetchUserData = async (userId) => {
     try {
-      const response = await axios.get(`http://157.245.187.246:5000/api/admin/users/${userId}`, {
+      const response = await axios.get(`http://localhost:5000/api/admin/users/${userId}`, {
         headers: {
           accept: 'application/json',
           Authorization: `Bearer ${localStorage.getItem('userToken')}`,
@@ -76,7 +76,7 @@ const Orders = () => {
 
   const fetchProductData = async (productId) => {
     try {
-      const response = await axios.get(`http://157.245.187.246:5000/api/admin/${productId}`, {
+      const response = await axios.get(`http://localhost:5000/api/admin/${productId}`, {
         headers: {
           accept: 'application/json',
           Authorization: `Bearer ${localStorage.getItem('userToken')}`,
@@ -379,12 +379,12 @@ const Orders = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Username</label>
                 <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-gray-900 dark:text-gray-100">
                   {selectedUser.username || '-'}
                 </div>
-              </div>
+              </div> */}
               <div>
                 <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Phone</label>
                 <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-gray-900 dark:text-gray-100">

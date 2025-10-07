@@ -115,6 +115,59 @@ router.post(
   }
 );
 
+// Delete a message
+router.delete(
+  '/messages/:messageId',
+  auth,
+  admin,
+  [
+    param('messageId').notEmpty().withMessage('Message ID is required'),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
+      }
+
+      const message = await Message.findById(req.params.messageId);
+      if (!message) {
+        return res.status(404).json({ success: false, error: 'Message not found' });
+      }
+
+      // Optional: Notify user that their message was deleted
+      try {
+        await transporter.sendMail({
+          from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+          to: message.email,
+          subject: 'Your Message Has Been Removed',
+          html: `
+            <p>Hi ${message.name},</p>
+            <p>Your message with subject "${message.subject}" has been removed by the admin.</p>
+            <p>If you have questions, please contact our support team.</p>
+            <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+          `,
+        });
+      } catch (emailErr) {
+        console.error('Error sending deletion email:', emailErr);
+      }
+
+      // Delete the message
+      await message.deleteOne();
+
+      res.json({
+        success: true,
+        message: 'Message deleted successfully',
+        messageId: req.params.messageId,
+      });
+    } catch (err) {
+      console.error('Error deleting message:', err);
+      res.status(500).json({ success: false, error: 'Server error deleting message' });
+    }
+  }
+);
+
+
 // Get pending government ID verifications
 router.get('/verifications/pending', auth, admin, async (req, res) => {
   try {
@@ -327,22 +380,27 @@ router.get('/users/suspicious', auth, admin, async (req, res) => {
 });
 
 // -------------------- Make Admin (for dev only) --------------------
+// Toggle admin status
 router.post('/make-admin/:userId', auth, async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.params.userId });
     if (!user) return res.status(404).json({ success: false, error: 'User not found' });
 
-    user.isAdmin = true;
+    // Toggle admin
+    user.isAdmin = !user.isAdmin;
     await user.save();
 
-    res.json({ success: true, message: 'User promoted to admin', user });
+    res.json({
+      success: true,
+      message: user.isAdmin ? 'User promoted to admin' : 'Admin privileges removed',
+      user,
+    });
   } catch (err) {
-    console.error('Error promoting admin:', err);
-    res
-      .status(500)
-      .json({ success: false, error: 'Server error promoting admin' });
+    console.error('Error toggling admin:', err);
+    res.status(500).json({ success: false, error: 'Server error toggling admin' });
   }
 });
+
 
 router.get("/platform-fees", auth, async (req, res) => {
   try {

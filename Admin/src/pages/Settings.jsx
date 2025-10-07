@@ -22,7 +22,7 @@ const Verifications = () => {
   const fetchVerifications = async () => {
     try {
       const token = localStorage.getItem('userToken');
-      const response = await fetch('http://157.245.187.246:5000/api/admin/verifications/pending', {
+      const response = await fetch('http://localhost:5000/api/admin/verifications/pending', {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -45,7 +45,7 @@ const Verifications = () => {
   const handleVerificationAction = async (userId, action) => {
     try {
       const token = localStorage.getItem('userToken');
-      const response = await fetch(`http://157.245.187.246:5000/api/admin/verify/${userId}`, {
+      const response = await fetch(`http://localhost:5000/api/admin/verify/${userId}`, {
         method: 'PATCH',
         headers: {
           Accept: 'application/json',
@@ -56,9 +56,9 @@ const Verifications = () => {
       });
 
       if (response.ok) {
-        fetchVerifications(); // Refresh verifications list
+        fetchVerifications();
         setShowActionModal(false);
-        setShowDetailsModal(false); // Close details modal after action
+        setShowDetailsModal(false);
       } else {
         console.error(`Failed to ${action} verification:`, response.status);
       }
@@ -81,7 +81,6 @@ const Verifications = () => {
     );
   }
 
-  // Keyboard handler for cards (Enter or Space opens details modal)
   const onCardKeyDown = (e, verification) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -91,7 +90,7 @@ const Verifications = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-8 text-gray-800">
       <Table
         title="Pending Verifications"
         icon={UserCheck}
@@ -113,7 +112,7 @@ const Verifications = () => {
             <Card
               key={verification._id}
               gradient
-              className="p-6 cursor-pointer"
+              className="p-6 cursor-pointer bg-white hover:shadow-md border border-gray-200"
               role="button"
               tabIndex={0}
               aria-label={`View verification details for ${verification.fullName}`}
@@ -129,14 +128,14 @@ const Verifications = () => {
                     <UserCheck className="h-6 w-6 text-white" aria-hidden="true" />
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold">{verification.fullName}</h3>
-                    <p className="text-white/60 text-sm">{verification.email}</p>
-                    <p className="text-white/60 text-sm">User ID: {verification.userId}</p>
+                    <h3 className="text-gray-900 font-semibold">{verification.fullName}</h3>
+                    <p className="text-gray-600 text-sm">{verification.email}</p>
+                    <p className="text-gray-600 text-sm">User ID: {verification.userId}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span
-                    className="px-3 py-1 rounded-full text-xs font-medium border bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                    className="px-3 py-1 rounded-full text-xs font-medium border bg-yellow-100 text-yellow-700 border-yellow-300"
                     aria-label={`Verification status: ${verification.govIdStatus}`}
                   >
                     {verification.govIdStatus}
@@ -195,7 +194,7 @@ const Verifications = () => {
         </div>
       </Table>
 
-      {/* Verification Details Modal */}
+      {/* Details Modal */}
       <Modal
         isOpen={showDetailsModal}
         onClose={() => setShowDetailsModal(false)}
@@ -203,45 +202,45 @@ const Verifications = () => {
         size="lg"
       >
         {selectedVerification && (
-          <div className="space-y-6">
+          <div className="space-y-6 text-gray-800">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-xl font-bold text-white">{selectedVerification.fullName}</h3>
-                <p className="text-white/60">Email: {selectedVerification.email}</p>
-                <p className="text-white/60">User ID: {selectedVerification.userId}</p>
-                <p className="text-white/60">Status: {selectedVerification.govIdStatus}</p>
+                <h3 className="text-xl font-bold text-gray-900">{selectedVerification.fullName}</h3>
+                <p className="text-gray-600">Email: {selectedVerification.email}</p>
+                <p className="text-gray-600">User ID: {selectedVerification.userId}</p>
+                <p className="text-gray-600">Status: {selectedVerification.govIdStatus}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <h4 className="text-lg font-semibold text-white mb-3">Government ID (Front)</h4>
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">Government ID (Front)</h4>
                 <img
                   src={selectedVerification.govIdFront}
                   alt="Government ID Front"
-                  className="w-full h-auto rounded-lg border border-white/20"
+                  className="w-full h-auto rounded-lg border border-gray-300"
                 />
                 <a
                   href={selectedVerification.govIdFront}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-400 hover:underline mt-2 block"
+                  className="text-emerald-600 hover:underline mt-2 block"
                 >
                   View Full Size
                 </a>
               </div>
               <div>
-                <h4 className="text-lg font-semibold text-white mb-3">Government ID (Back)</h4>
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">Government ID (Back)</h4>
                 <img
                   src={selectedVerification.govIdBack}
                   alt="Government ID Back"
-                  className="w-full h-auto rounded-lg border border-white/20"
+                  className="w-full h-auto rounded-lg border border-gray-300"
                 />
                 <a
                   href={selectedVerification.govIdBack}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-400 hover:underline mt-2 block"
+                  className="text-emerald-600 hover:underline mt-2 block"
                 >
                   View Full Size
                 </a>
@@ -257,12 +256,10 @@ const Verifications = () => {
                 variant="success"
                 className="flex-1 flex items-center gap-2"
                 size="sm"
-                aria-label={`Verify ${selectedVerification.fullName}`}
               >
-                <Check className="h-4 w-4" aria-hidden="true" />
+                <Check className="h-4 w-4" />
                 Verify
               </Button>
-      
               <Button
                 onClick={() => {
                   setActionType('reject');
@@ -270,7 +267,6 @@ const Verifications = () => {
                 }}
                 variant="danger"
                 className="flex-1"
-                aria-label={`Reject verification for ${selectedVerification.fullName}`}
               >
                 Reject Verification
               </Button>
@@ -279,7 +275,7 @@ const Verifications = () => {
         )}
       </Modal>
 
-      {/* Action Confirmation Modal */}
+      {/* Action Modal */}
       <Modal
         isOpen={showActionModal}
         onClose={() => setShowActionModal(false)}
@@ -287,9 +283,13 @@ const Verifications = () => {
         size="sm"
       >
         {selectedVerification && (
-          <div className="space-y-4">
-            <p className="text-white/90">
-              Are you sure you want to {actionType === 'approve' ? 'approve' : 'reject'} the verification for{' '}
+          <div className="space-y-4 text-gray-800">
+            <p>
+              Are you sure you want to{' '}
+              <span className="font-semibold">
+                {actionType === 'approve' ? 'approve' : 'reject'}
+              </span>{' '}
+              the verification for{' '}
               <span className="font-semibold">{selectedVerification.fullName}</span>?
             </p>
             <div className="flex gap-2">
@@ -297,7 +297,6 @@ const Verifications = () => {
                 onClick={() => handleVerificationAction(selectedVerification.userId, actionType)}
                 variant={actionType === 'approve' ? 'success' : 'danger'}
                 className="flex-1"
-                aria-label={`${actionType === 'approve' ? 'Approve' : 'Reject'} verification for ${selectedVerification.fullName}`}
               >
                 {actionType === 'approve' ? 'Approve' : 'Reject'}
               </Button>

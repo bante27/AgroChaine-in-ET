@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 
 const ThemeContext = createContext();
 
+// Custom hook for consuming context
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
@@ -11,21 +12,16 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  const [isDark, setIsDark] = useState(true);
-
-  // Load saved theme on mount
-  useEffect(() => {
+  // ✅ Initialize theme immediately from localStorage or system preference
+  const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem("adminTheme");
     if (saved) {
-      setIsDark(saved === "dark");
-    } else {
-      // optional: check system preference
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setIsDark(prefersDark);
+      return saved === "dark";
     }
-  }, []);
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
 
-  // Apply theme class to <html> or <body>
+  // ✅ Apply theme class & save in localStorage
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add("dark");
@@ -36,6 +32,7 @@ export const ThemeProvider = ({ children }) => {
     }
   }, [isDark]);
 
+  // ✅ Toggle theme
   const toggleTheme = () => setIsDark((prev) => !prev);
 
   return (

@@ -16,15 +16,25 @@ import LiveChat from '../components/LiveChat';
 const OTPInput = ({ email, otp, onVerify, onResend }) => {
   const [inputOtp, setInputOtp] = useState('');
   const [timer, setTimer] = useState(300);
+  
   useEffect(() => {
     setInputOtp(otp || '');
     const interval = setInterval(() => setTimer(prev => (prev > 0 ? prev - 1 : 0)), 1000);
     return () => clearInterval(interval);
   }, [otp]);
+  
   const handleVerify = () => {
     if (!inputOtp || inputOtp.length !== 6) return toast.error('Enter a valid 6-digit OTP');
     onVerify(inputOtp);
   };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleVerify();
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center py-6 px-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <motion.div
@@ -38,11 +48,18 @@ const OTPInput = ({ email, otp, onVerify, onResend }) => {
             <h2 className="text-2xl font-bold text-gray-900">Verify Your Email</h2>
             <p className="text-gray-500 text-sm mt-2">Enter the OTP sent to <span className="font-medium">{email}</span></p>
           </div>
-          <form className="space-y-4 mt-6">
+          <form 
+            className="space-y-4 mt-6"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleVerify();
+            }}
+          >
             <Input
               label="OTP Code"
               value={inputOtp}
               onChange={e => setInputOtp(e.target.value)}
+              onKeyPress={handleKeyPress}
               placeholder="Enter 6-digit OTP"
               className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
             />
@@ -58,8 +75,7 @@ const OTPInput = ({ email, otp, onVerify, onResend }) => {
               </button>
             </div>
             <Button
-              type="button"
-              onClick={handleVerify}
+              type="submit"
               className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
             >
               Verify OTP
@@ -170,7 +186,7 @@ const Login = () => {
 
   const handleVerifyOTP = async (otp) => {
     try {
-      const res = await axios.post('http://157.245.187.246:5000/api/users/verify-otp', { email: otpEmail, otp });
+      const res = await axios.post('http://localhost:5000/api/users/verify-otp', { email: otpEmail, otp });
       if (res.data.success) {
         await login(res.data.token);
         toast.success('OTP verified! Redirecting...');
@@ -185,7 +201,7 @@ const Login = () => {
 
   const handleResendOTP = async () => {
     try {
-      const res = await axios.post('http://157.245.187.246:5000/api/users/register', { email: otpEmail });
+      const res = await axios.post('http://localhost:5000/api/users/register', { email: otpEmail });
       if (res.data.success) {
         setInitialOtp(res.data.otp);
         toast.success('OTP resent.');
@@ -215,7 +231,7 @@ const Login = () => {
       }
 
       try {
-        const response = await axios.post('http://157.245.187.246:5000/api/users/login', { email: formData.email, password: formData.password });
+        const response = await axios.post('http://localhost:5000/api/users/login', { email: formData.email, password: formData.password });
         if (response.data.success && response.data.token) {
           await login(response.data.token);
           toast.success('Login successful!');
@@ -266,7 +282,7 @@ const Login = () => {
       }
 
       try {
-        const response = await axios.post('http://157.245.187.246:5000/api/users/register', { fullName, email, password, phone, address, agreeToTerms });
+        const response = await axios.post('http://localhost:5000/api/users/register', { fullName, email, password, phone, address, agreeToTerms });
         if (response.data.success) {
           setOtpEmail(email);
           setInitialOtp(response.data.otp);
@@ -281,6 +297,14 @@ const Login = () => {
     setIsLoading(false);
   };
 
+  // Handle Enter key press for form submission
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
   const renderBasicInfo = () => (
     <div className="space-y-4">
       <div className="text-center">
@@ -293,6 +317,7 @@ const Login = () => {
           type="text"
           value={formData.fullName}
           onChange={handleInputChange}
+          onKeyPress={handleKeyPress}
           placeholder="Tilahun Sitotaw"
           icon={<User className="h-5 w-5 text-gray-500" />}
           className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
@@ -302,6 +327,7 @@ const Login = () => {
           name="phone"
           value={formData.phone}
           onChange={handlePhoneChange}
+          onKeyPress={handleKeyPress}
           placeholder="+251912345678"
           className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
         />
@@ -312,6 +338,7 @@ const Login = () => {
         type="email"
         value={formData.email}
         onChange={handleInputChange}
+        onKeyPress={handleKeyPress}
         placeholder="user@gmail.com"
         icon={<Mail className="h-5 w-5 text-gray-500" />}
         className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
@@ -322,6 +349,7 @@ const Login = () => {
         type="text"
         value={formData.address}
         onChange={handleInputChange}
+        onKeyPress={handleKeyPress}
         placeholder="123 Main St, Addis Ababa"
         icon={<MapPin className="h-5 w-5 text-gray-500" />}
         className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
@@ -334,6 +362,7 @@ const Login = () => {
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
             placeholder="Create a password"
             className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
           />
@@ -351,6 +380,7 @@ const Login = () => {
           type={showPassword ? 'text' : 'password'}
           value={formData.confirmPassword}
           onChange={handleInputChange}
+          onKeyPress={handleKeyPress}
           placeholder="Confirm your password"
           className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
         />
@@ -404,6 +434,7 @@ const Login = () => {
                   type="email"
                   value={formData.email}
                   onChange={handleInputChange}
+                  onKeyPress={handleKeyPress}
                   placeholder="user@gmail.com"
                   icon={<Mail className="h-5 w-5 text-gray-500" />}
                   className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
@@ -415,6 +446,7 @@ const Login = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={handleInputChange}
+                    onKeyPress={handleKeyPress}
                     placeholder="Enter your password"
                     className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
                   />
@@ -445,7 +477,7 @@ const Login = () => {
                 <Button
                   type="submit"
                   loading={isLoading}
-                  className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
                 >
                   Sign In
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -457,7 +489,7 @@ const Login = () => {
                 <Button
                   type="submit"
                   loading={isLoading}
-                  className="w- bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
                 >
                   Create Account
                   <ArrowRight className="ml-2 h-5 w-5" />

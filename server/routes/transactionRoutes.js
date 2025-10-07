@@ -1,8 +1,10 @@
+
 import express from "express";
 import auth from "../middleware/auth.js";
 import Transaction from "../models/Transaction.js";
 import Product from "../models/Product.js";
 import User from "../models/User.js";
+import nodemailer from "nodemailer";
 
 const router = express.Router();
 
@@ -28,7 +30,8 @@ const restrictUnverifiedUsers = async (req, res, next) => {
   }
 };
 
-// Create a purchase (buy a product) using custom productId
+// ---------------------------- BUY PRODUCT ----------------------------
+
 router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
   try {
     const buyer = await User.findOne({ userId: req.user.userId });
@@ -39,7 +42,6 @@ router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
     const { productId, quantity, deliveryAddress } = req.body;
     const buyerUserId = req.user.userId;
 
-    // Validate request
     if (!productId || !quantity || !deliveryAddress) {
       return res.status(400).json({
         success: false,
@@ -47,38 +49,26 @@ router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
       });
     }
 
-    // Find product by custom productId instead of Mongo _id
     const product = await Product.findOne({ productId });
-    if (!product) {
-      return res.status(404).json({ success: false, error: "Product not found" });
-    }
+    if (!product) return res.status(404).json({ success: false, error: "Product not found" });
 
-    // Prevent buying your own product
     if (product.ownerUserId.toString() === buyerUserId) {
       return res.status(400).json({ success: false, error: "Cannot buy your own product" });
     }
 
-    // Check quantity availability
     if (product.quantityAvailable < quantity) {
       return res.status(400).json({ success: false, error: "Not enough quantity available" });
     }
 
     const totalPrice = product.price * quantity;
-
-    // Calculate service fees
     const buyerFee = (SERVICE_FEE_PERCENT / 100) * totalPrice;
     const sellerFee = (SERVICE_FEE_PERCENT / 100) * totalPrice;
     const totalChargeToBuyer = totalPrice + buyerFee;
     const netAmountToSeller = totalPrice - sellerFee;
 
-    // Fetch seller
     const seller = await User.findOne({ userId: product.ownerUserId });
+    if (!seller) return res.status(404).json({ success: false, error: "Seller not found" });
 
-    if (!seller) {
-      return res.status(404).json({ success: false, error: "Seller not found" });
-    }
-
-    // Check buyer balance
     if (buyer.balance < totalChargeToBuyer) {
       return res.status(400).json({ success: false, error: "Insufficient balance (includes 5% fee)" });
     }
@@ -98,7 +88,7 @@ router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
     const transaction = new Transaction({
       buyerUserId,
       sellerUserId: product.ownerUserId,
-      productId: product._id, // still store Mongo _id for internal tracking
+      productId: product._id,
       quantity,
       totalPrice,
       deliveryAddress,
@@ -112,7 +102,7 @@ router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
 
     await transaction.save();
 
-    // Update buyer and seller relationships
+    // Update buyer & seller relationships
     await User.updateOne(
       { userId: buyerUserId },
       { 
@@ -137,161 +127,170 @@ router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
       }
     );
 
+    // Notify seller via email
+    if (seller?.email && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+      });
+
+      await transporter.sendMail({
+        from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+        to: seller.email,
+        subject: "New Order Placed!",
+        html: `<p>Hi ${seller.fullName || "Seller"},</p>
+               <p>You have a new order <strong>${transaction._id}</strong> for <strong>${transaction.quantity} item(s)</strong>.</p>
+               <p>Please mark the order as shipped once it is ready.</p>
+               <p>Thank you for using Agrochain Ethiopia!</p>`,
+      });
+    }
+
     res.json({
       success: true,
-      message: "Purchase successful. Awaiting delivery confirmation.",
+      message: "Purchase successful. Seller has been notified. Awaiting delivery confirmation.",
       transaction,
     });
 
   } catch (error) {
-    console.error("Transaction error:", error); // log full error
+    console.error("Transaction error:", error);
     res.status(500).json({ success: false, error: "Server error during transaction" });
   }
 });
 
-// Mark transaction as shipped (seller action)
+// ---------------------------- MARK SHIPPED ----------------------------
+
 router.post("/mark-shipped/:transactionId", auth, restrictUnverifiedUsers, async (req, res) => {
   try {
     const seller = await User.findOne({ userId: req.user.userId });
-    if (seller.isRestricted) {
-      return res.status(403).json({ success: false, error: "Restricted users cannot mark transactions as shipped" });
-    }
+    if (seller.isRestricted) return res.status(403).json({ success: false, error: "Restricted users cannot mark transactions as shipped" });
 
     const { transactionId } = req.params;
-    const sellerUserId = req.user.userId;
 
-    // Find the transaction
     const transaction = await Transaction.findById(transactionId);
-    if (!transaction) {
-      return res.status(404).json({ success: false, error: "Transaction not found" });
-    }
+    if (!transaction) return res.status(404).json({ success: false, error: "Transaction not found" });
+    if (transaction.sellerUserId !== seller.userId) return res.status(403).json({ success: false, error: "Only the seller can mark as shipped" });
+    if (transaction.status !== "pending") return res.status(400).json({ success: false, error: "Transaction cannot be marked as shipped in current status" });
 
-    // Verify the seller is the one updating
-    if (transaction.sellerUserId !== sellerUserId) {
-      return res.status(403).json({ success: false, error: "Only the seller can mark as shipped" });
-    }
-
-    // Check if transaction is in a valid state
-    if (transaction.status !== "pending") {
-      return res.status(400).json({ success: false, error: "Transaction cannot be marked as shipped in current status" });
-    }
-
-    // Update transaction status
     transaction.status = "shipped";
     await transaction.save();
 
-    res.json({
-      success: true,
-      message: "Transaction marked as shipped. Awaiting buyer confirmation.",
-      transaction,
-    });
+    // Notify buyer
+    const buyer = await User.findOne({ userId: transaction.buyerUserId });
+    if (buyer?.email && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+      });
+
+      await transporter.sendMail({
+        from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+        to: buyer.email,
+        subject: "Your order has been shipped!",
+        html: `<p>Hi ${buyer.fullName || "Customer"},</p>
+               <p>Your order <strong>${transaction._id}</strong> for <strong>${transaction.quantity} item(s)</strong> has been shipped.</p>
+               <p>Estimated delivery: 2-3 business weeks.</p>
+               <p>Thank you for using Agrochain Ethiopia!</p>`,
+      });
+    }
+
+    res.json({ success: true, message: "Transaction marked as shipped. Buyer notified via email.", transaction });
+
   } catch (error) {
     console.error("Mark shipped error:", error);
     res.status(500).json({ success: false, error: "Server error during status update" });
   }
 });
 
-// Confirm delivery of a transaction (buyer action)
+// ---------------------------- CONFIRM DELIVERY ----------------------------
+
 router.post("/confirm-delivery/:transactionId", auth, restrictUnverifiedUsers, async (req, res) => {
   try {
     const buyer = await User.findOne({ userId: req.user.userId });
-    if (buyer.isRestricted) {
-      return res.status(403).json({ success: false, error: "Restricted users cannot confirm delivery" });
-    }
+    if (buyer.isRestricted) return res.status(403).json({ success: false, error: "Restricted users cannot confirm delivery" });
 
     const { transactionId } = req.params;
-    const buyerUserId = req.user.userId;
 
-    // Find the transaction
     const transaction = await Transaction.findById(transactionId);
-    if (!transaction) {
-      return res.status(404).json({ success: false, error: "Transaction not found" });
-    }
+    if (!transaction) return res.status(404).json({ success: false, error: "Transaction not found" });
+    if (transaction.buyerUserId !== buyer.userId) return res.status(403).json({ success: false, error: "Only the buyer can confirm delivery" });
+    if (!["pending", "shipped"].includes(transaction.status)) return res.status(400).json({ success: false, error: "Transaction cannot be confirmed in current status" });
 
-    // Verify the buyer is the one confirming
-    if (transaction.buyerUserId !== buyerUserId) {
-      return res.status(403).json({ success: false, error: "Only the buyer can confirm delivery" });
-    }
-
-    // Check if transaction is in a valid state
-    if (transaction.status !== "pending" && transaction.status !== "shipped") {
-      return res.status(400).json({ success: false, error: "Transaction cannot be confirmed in current status" });
-    }
-
-    // Fetch seller
     const seller = await User.findOne({ userId: transaction.sellerUserId });
+    if (!seller) return res.status(404).json({ success: false, error: "Seller not found" });
 
-    if (!seller) {
-      return res.status(404).json({ success: false, error: "Seller not found" });
-    }
-
-    // Update transaction
+    // Complete transaction
     transaction.status = "completed";
     transaction.buyerConfirmed = true;
     transaction.paymentHeld = false;
     transaction.releaseDate = new Date();
 
-    // Release funds: deduct from buyer's pending balance, credit seller
     buyer.pendingBalance -= (transaction.totalPrice + transaction.platformFeeBuyer);
     seller.balance += transaction.netSellerAmount;
 
-    // Save changes
     await transaction.save();
     await buyer.save();
     await seller.save();
 
-    res.json({
-      success: true,
-      message: "Delivery confirmed. Funds released to seller.",
-      transaction,
-    });
+    // Notify seller
+    if (seller?.email && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+      });
+
+      await transporter.sendMail({
+        from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+        to: seller.email,
+        subject: "Your product has been delivered!",
+        html: `<p>Hi ${seller.fullName || "Seller"},</p>
+               <p>Your product <strong>${transaction._id}</strong> sold to <strong>${buyer.fullName || "Buyer"}</strong> has been confirmed delivered.</p>
+               <p>Funds have been released to your balance: ${transaction.netSellerAmount}.</p>
+               <p>Thank you for using Agrochain Ethiopia!</p>`,
+      });
+    }
+
+    res.json({ success: true, message: "Delivery confirmed. Seller notified via email.", transaction });
+
   } catch (error) {
     console.error("Confirm delivery error:", error);
     res.status(500).json({ success: false, error: "Server error during delivery confirmation" });
   }
 });
 
-// Get all transactions related to the logged-in user (buyer or seller)
+// ---------------------------- GET USER TRANSACTIONS ----------------------------
+
 router.get("/my", auth, async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    // Find transactions where user is buyer or seller
     const transactions = await Transaction.find({
       $or: [{ buyerUserId: userId }, { sellerUserId: userId }],
-    }).sort({ createdAt: -1 }); // latest first
+    }).sort({ createdAt: -1 });
 
-    res.json({
-      success: true,
-      transactions,
-    });
+    res.json({ success: true, transactions });
+
   } catch (error) {
     console.error("Get user transactions error:", error);
     res.status(500).json({ success: false, error: "Server error fetching transactions" });
   }
 });
 
-// Get detailed info of a specific transaction by ID
+// ---------------------------- GET TRANSACTION DETAIL ----------------------------
+
 router.get("/:transactionId", auth, async (req, res) => {
   try {
     const { transactionId } = req.params;
     const userId = req.user.userId;
 
-    // Find the transaction
     const transaction = await Transaction.findById(transactionId);
-    if (!transaction) {
-      return res.status(404).json({ success: false, error: "Transaction not found" });
-    }
+    if (!transaction) return res.status(404).json({ success: false, error: "Transaction not found" });
 
-    // Check if user is either buyer or seller in this transaction
     if (transaction.buyerUserId !== userId && transaction.sellerUserId !== userId) {
       return res.status(403).json({ success: false, error: "Access denied to this transaction" });
     }
 
-    res.json({
-      success: true,
-      transaction,
-    });
+    res.json({ success: true, transaction });
+
   } catch (error) {
     console.error("Get transaction detail error:", error);
     res.status(500).json({ success: false, error: "Server error fetching transaction details" });

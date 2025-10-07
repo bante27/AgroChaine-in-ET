@@ -18,4 +18,4 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // app.use("/api/products", productRoutes);
 
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}, Swagger at http://157.245.187.246:${PORT}/docs`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}, Swagger at http://localhost:${PORT}/docs`));
