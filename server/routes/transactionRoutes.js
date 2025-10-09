@@ -8,7 +8,6 @@ import nodemailer from "nodemailer";
 const router = express.Router();
 const SERVICE_FEE_PERCENT = 5; // 5% from buyer and seller
 
-// -----------------------------
 // Reusable modern email sender
 // -----------------------------
 const sendEmail = async (to, subject, htmlBody) => {
@@ -46,9 +45,8 @@ const sendEmail = async (to, subject, htmlBody) => {
   }
 };
 
-// -----------------------------
 // Middleware: Restrict Unverified Users
-// -----------------------------
+
 const restrictUnverifiedUsers = async (req, res, next) => {
   try {
     const user = await User.findOne({ userId: req.user.userId });
@@ -71,149 +69,125 @@ const restrictUnverifiedUsers = async (req, res, next) => {
   }
 };
 
-// -----------------------------
+
 // BUY PRODUCT
 // -----------------------------
 router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
   try {
     const buyer = await User.findOne({ userId: req.user.userId });
     if (buyer.isRestricted)
-      return res
-        .status(403)
-        .json({ success: false, error: "Restricted users cannot buy" });
+      return res.status(403).json({ success: false, error: "Restricted users cannot buy" });
 
-    const { productId, quantity, deliveryAddress } = req.body;
+    const { orders, deliveryAddress } = req.body;
     const buyerUserId = req.user.userId;
 
-    if (!productId || !quantity || !deliveryAddress)
+    if (!orders || !Array.isArray(orders) || orders.length === 0 || !deliveryAddress)
       return res.status(400).json({
         success: false,
         error: "Product ID, quantity, and delivery address required",
       });
 
-    const product = await Product.findOne({ productId });
-    if (!product)
-      return res
-        .status(404)
-        .json({ success: false, error: "Product not found" });
+    // Calculate total charges for all orders
+    let totalChargeToBuyer = 0;
+    const transactionList = [];
 
-    if (product.ownerUserId.toString() === buyerUserId)
-      return res
-        .status(400)
-        .json({ success: false, error: "Cannot buy your own product" });
+    for (const order of orders) {
+      const { productId, quantity } = order;
 
-    if (product.quantityAvailable < quantity)
-      return res
-        .status(400)
-        .json({ success: false, error: "Not enough quantity available" });
+      if (!productId || !quantity || quantity <= 0)
+        return res.status(400).json({
+          success: false,
+          error: "All items must have a valid product ID and quantity",
+        });
 
-    const totalPrice = product.price * quantity;
-    const buyerFee = (SERVICE_FEE_PERCENT / 100) * totalPrice;
-    const sellerFee = (SERVICE_FEE_PERCENT / 100) * totalPrice;
-    const totalChargeToBuyer = totalPrice + buyerFee;
-    const netAmountToSeller = totalPrice - sellerFee;
+      const product = await Product.findOne({ productId });
+      if (!product)
+        return res.status(404).json({ success: false, error: `Product ${productId} not found` });
 
-    const seller = await User.findOne({ userId: product.ownerUserId });
-    if (!seller)
-      return res
-        .status(404)
-        .json({ success: false, error: "Seller not found" });
+      if (product.ownerUserId.toString() === buyerUserId)
+        return res.status(400).json({ success: false, error: "Cannot buy your own product" });
 
-    if (buyer.balance < totalChargeToBuyer)
-      return res.status(400).json({
-        success: false,
-        error: "Insufficient balance (includes 5% fee)",
+      if (product.quantityAvailable < quantity)
+        return res.status(400).json({ success: false, error: `Not enough quantity for ${product.title}` });
+
+      const totalPrice = product.price * quantity;
+      const buyerFee = (SERVICE_FEE_PERCENT / 100) * totalPrice;
+      const sellerFee = (SERVICE_FEE_PERCENT / 100) * totalPrice;
+      const netAmountToSeller = totalPrice - sellerFee;
+      totalChargeToBuyer += totalPrice + buyerFee;
+
+      if (buyer.balance < totalChargeToBuyer)
+        return res.status(400).json({
+          success: false,
+          error: "Insufficient balance (includes 5% fee)",
+        });
+
+      // Deduct buyer funds
+      buyer.balance -= totalPrice + buyerFee;
+      buyer.pendingBalance += totalPrice + buyerFee;
+      await buyer.save();
+
+      // Update product stock
+      product.quantityAvailable -= quantity;
+      product.soldQuantity += quantity;
+      if (product.quantityAvailable === 0) product.status = "sold out";
+      await product.save();
+
+      const seller = await User.findOne({ userId: product.ownerUserId });
+      if (!seller)
+        return res.status(404).json({ success: false, error: "Seller not found" });
+
+      // Create transaction
+      const transaction = new Transaction({
+        buyerUserId,
+        sellerUserId: product.ownerUserId,
+        productId: product._id,
+        quantity,
+        totalPrice,
+        deliveryAddress,
+        status: "pending",
+        paymentHeld: true,
+        platformFeeBuyer: buyerFee,
+        platformFeeSeller: sellerFee,
+        netSellerAmount: netAmountToSeller,
+        serviceFeePercent: SERVICE_FEE_PERCENT,
       });
+      await transaction.save();
+      transactionList.push(transaction);
 
-    // Hold buyer funds
-    buyer.balance -= totalChargeToBuyer;
-    buyer.pendingBalance += totalChargeToBuyer;
-    await buyer.save();
+      // Update buyer & seller relations
+      await User.updateOne(
+        { userId: buyerUserId },
+        {
+          $addToSet: { boughtProducts: product._id, closeCustomers: seller._id, transactionHistory: transaction._id },
+          $inc: { rank: 0.5 },
+        }
+      );
+      await User.updateOne(
+        { userId: product.ownerUserId },
+        {
+          $addToSet: { soldProducts: product._id, closeCustomers: buyer._id, transactionHistory: transaction._id },
+          $inc: { rank: 0.5 },
+        }
+      );
 
-    // Update product stock
-    product.quantityAvailable -= quantity;
-    product.soldQuantity += quantity;
-    if (product.quantityAvailable === 0) product.status = "sold out";
-    await product.save();
+      // Record recent activity
+      await User.updateOne(
+        { userId: buyerUserId },
+        { $push: { recentActivity: { type: "purchase", message: `You purchased ${quantity}x ${product.title}`, date: new Date() } } }
+      );
+      await User.updateOne(
+        { userId: seller.userId },
+        { $push: { recentActivity: { type: "order-received", message: `You received a new order for ${product.title} (${quantity}x)`, date: new Date() } } }
+      );
 
-    // Create transaction
-    const transaction = new Transaction({
-      buyerUserId,
-      sellerUserId: product.ownerUserId,
-      productId: product._id,
-      quantity,
-      totalPrice,
-      deliveryAddress,
-      status: "pending",
-      paymentHeld: true,
-      platformFeeBuyer: buyerFee,
-      platformFeeSeller: sellerFee,
-      netSellerAmount: netAmountToSeller,
-      serviceFeePercent: SERVICE_FEE_PERCENT,
-    });
-    await transaction.save();
-
-    // Update buyer & seller relations
-    await User.updateOne(
-      { userId: buyerUserId },
-      {
-        $addToSet: {
-          boughtProducts: product._id,
-          closeCustomers: seller._id,
-          transactionHistory: transaction._id,
-        },
-        $inc: { rank: 0.5 },
-      }
-    );
-
-    await User.updateOne(
-      { userId: product.ownerUserId },
-      {
-        $addToSet: {
-          soldProducts: product._id,
-          closeCustomers: buyer._id,
-          transactionHistory: transaction._id,
-        },
-        $inc: { rank: 0.5 },
-      }
-    );
-
-    // ✅ Record Recent Activity
-    await User.updateOne(
-      { userId: buyerUserId },
-      {
-        $push: {
-          recentActivity: {
-            type: "purchase",
-            message: `You purchased ${quantity}x ${product.title}`,
-            date: new Date(),
-          },
-        },
-      }
-    );
-
-    await User.updateOne(
-      { userId: seller.userId },
-      {
-        $push: {
-          recentActivity: {
-            type: "order-received",
-            message: `You received a new order for ${product.title} (${quantity}x)`,
-            date: new Date(),
-          },
-        },
-      }
-    );
-
-    // ---------- Notifications (modern HTML emails) ----------
-    // Seller email: full order + delivery address
-    await sendEmail(
-      seller.email,
-      "🎉 New Order Received – Delivery Details Included",
-      `
+      // Send emails (keep your HTML style)
+      await sendEmail(
+        seller.email,
+        "🎉 New Order Received – Delivery Details Included",
+        `
         <p>Dear <strong>${seller.fullName}</strong>,</p>
         <p>You received a new order from <strong>${buyer.fullName}</strong>.</p>
-
         <table style="width:100%;border-collapse:collapse;margin:12px 0;">
           <tr><td style="padding:6px 8px;"><strong>Product</strong></td><td style="padding:6px 8px;">${product.title}</td></tr>
           <tr><td style="padding:6px 8px;"><strong>Quantity</strong></td><td style="padding:6px 8px;">${quantity}</td></tr>
@@ -223,68 +197,53 @@ router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
           <tr><td style="padding:6px 8px;"><strong>Net to you</strong></td><td style="padding:6px 8px;">${netAmountToSeller.toFixed(2)} ETB</td></tr>
           <tr><td style="padding:6px 8px;"><strong>Order ID</strong></td><td style="padding:6px 8px;">${transaction._id}</td></tr>
         </table>
-
         <div style="margin-top:12px;background:#eefaf6;padding:12px;border-left:4px solid #22a45d;">
           <h4 style="margin:0 0 6px 0;color:#22a45d;">📍 Delivery Address</h4>
           <p style="margin:0;line-height:1.4;">${deliveryAddress}</p>
         </div>
-
         <p style="margin-top:14px;">Please prepare the order and mark it as <strong>Shipped</strong> once it is ready.</p>
       `
-    ).catch(err => {
-      // sendEmail already logs errors; catch here to avoid failing response
-      console.error("Seller email send failed:", err);
-    });
+      ).catch(console.error);
 
-    // Buyer email: order summary (includes fee)
-    await sendEmail(
-      buyer.email,
-      "Order Placed Successfully – Summary",
-      `
+      await sendEmail(
+        buyer.email,
+        "Order Placed Successfully – Summary",
+        `
         <p>Hi <strong>${buyer.fullName}</strong>,</p>
         <p>Your order has been placed successfully. Below is a summary:</p>
-
         <table style="width:100%;border-collapse:collapse;margin:12px 0;">
           <tr><td style="padding:6px 8px;"><strong>Product</strong></td><td style="padding:6px 8px;">${product.title}</td></tr>
           <tr><td style="padding:6px 8px;"><strong>Quantity</strong></td><td style="padding:6px 8px;">${quantity}</td></tr>
           <tr><td style="padding:6px 8px;"><strong>Unit Price</strong></td><td style="padding:6px 8px;">${product.price.toFixed(2)} ETB</td></tr>
           <tr><td style="padding:6px 8px;"><strong>Subtotal</strong></td><td style="padding:6px 8px;">${totalPrice.toFixed(2)} ETB</td></tr>
           <tr><td style="padding:6px 8px;"><strong>Service Fee (5%)</strong></td><td style="padding:6px 8px;">${buyerFee.toFixed(2)} ETB</td></tr>
-          <tr><td style="padding:6px 8px;"><strong>Total Charged</strong></td><td style="padding:6px 8px;">${totalChargeToBuyer.toFixed(2)} ETB</td></tr>
+          <tr><td style="padding:6px 8px;"><strong>Total Charged</strong></td><td style="padding:6px 8px;">${(totalPrice+buyerFee).toFixed(2)} ETB</td></tr>
           <tr><td style="padding:6px 8px;"><strong>Seller</strong></td><td style="padding:6px 8px;">${seller.fullName}</td></tr>
           <tr><td style="padding:6px 8px;"><strong>Order ID</strong></td><td style="padding:6px 8px;">${transaction._id}</td></tr>
         </table>
-
         <div style="margin-top:12px;background:#eefaf6;padding:12px;border-left:4px solid #22a45d;">
           <h4 style="margin:0 0 6px 0;color:#22a45d;">📍 Delivery Address</h4>
           <p style="margin:0;line-height:1.4;">${deliveryAddress}</p>
         </div>
-
         <p style="margin-top:14px;">Thank you for choosing Agrochain Ethiopia. We will notify you when the seller ships your order.</p>
       `
-    ).catch(err => {
-      console.error("Buyer email send failed:", err);
-    });
-
-    // ---------- end notifications ----------
+      ).catch(console.error);
+    }
 
     res.json({
       success: true,
-      message:
-        "Purchase successful. Seller notified. Awaiting delivery confirmation.",
-      transaction,
+      message: `Purchase successful. Seller notified. Total charged: ${totalChargeToBuyer.toFixed(2)} ETB.`,
+      transactions: transactionList,
     });
   } catch (error) {
     console.error("Transaction error:", error);
-    res
-      .status(500)
-      .json({ success: false, error: "Server error during transaction" });
+    res.status(500).json({ success: false, error: "Server error during transaction" });
   }
 });
 
-// -----------------------------
+
 // MARK SHIPPED
-// -----------------------------
+
 router.post(
   "/mark-shipped/:transactionId",
   auth,
@@ -381,9 +340,8 @@ router.post(
   }
 );
 
-// -----------------------------
+
 // CONFIRM DELIVERY
-// -----------------------------
 router.post(
   "/confirm-delivery/:transactionId",
   auth,
@@ -515,9 +473,7 @@ router.post(
   }
 );
 
-// -----------------------------
 // GET USER TRANSACTIONS
-// -----------------------------
 router.get("/my", auth, async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -533,9 +489,9 @@ router.get("/my", auth, async (req, res) => {
   }
 });
 
-// -----------------------------
+
 // GET TRANSACTION DETAIL
-// -----------------------------
+
 router.get("/:transactionId", auth, async (req, res) => {
   try {
     const { transactionId } = req.params;

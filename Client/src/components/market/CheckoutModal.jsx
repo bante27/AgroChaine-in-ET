@@ -46,6 +46,7 @@ const CheckoutModal = ({
     setItemQuantities({ ...itemQuantities, [productId]: qty });
   };
 
+  // Handles order submission
   const handleOrder = async () => {
     if (!token) {
       toast.error("Please login to place the order", {
@@ -62,43 +63,56 @@ const CheckoutModal = ({
       return;
     }
 
+    if (!cartItems || cartItems.length === 0) {
+      toast.error("Your cart is empty", {
+        style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
+      });
+      return;
+    }
+
     try {
       setLoading(true);
 
-      for (let item of cartItems) {
-        const productId = String(item.productId); // always send custom productId
+      // Prepare orders array
+      const orders = cartItems.map((item) => ({
+        productId: String(item.productId),
+        quantity: itemQuantities[item.productId] || 1,
+      }));
 
-        const payload = {
-          productId,
-          quantity: itemQuantities[productId] || 1,
-          deliveryAddress: deliveryAddress.trim(),
-        };
-
-        const { data } = await axios.post(
-          "http://localhost:5000/api/transactions/buy",
-          payload,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        if (data.success) {
-          const txn = data.transaction;
-          toast.success(
-            `Purchased "${item.title}" successfully!\n` +
-              `Total: ${txn.totalPrice + (txn.platformFeeBuyer || 0)} ETB\n` +
-              `Platform Fee: ${txn.platformFeeBuyer || 0} ETB\n` +
-              `Net to Seller: ${txn.netSellerAmount || 0} ETB\n` +
-              `Delivery: ${txn.deliveryAddress || deliveryDate.toLocaleDateString()}`,
-            { style: { background: "#10b981", color: "#fff", borderRadius: "8px" } }
-          );
-        } else {
-          toast.error(data.error || `Failed to purchase ${item.title}`, {
-            style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
-          });
-        }
+      // Validate orders before sending
+      const invalidOrder = orders.find(
+        (o) => !o.productId || !o.quantity || o.quantity <= 0
+      );
+      if (invalidOrder) {
+        toast.error("All items must have a valid quantity and product ID", {
+          style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
+        });
+        setLoading(false);
+        return;
       }
 
-      onOrderSuccess?.();
-      onClose();
+      const payload = { orders, deliveryAddress: deliveryAddress.trim() };
+
+      const { data } = await axios.post(
+        "http://localhost:5000/api/transactions/buy",
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (data.success) {
+        toast.success(
+          `Order placed successfully! Total charged: ${total.toFixed(2)} ETB`,
+          {
+            style: { background: "#10b981", color: "#fff", borderRadius: "8px" },
+          }
+        );
+        onOrderSuccess?.();
+        onClose();
+      } else {
+        toast.error(data.error || "Failed to place order", {
+          style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
+        });
+      }
     } catch (error) {
       console.error("Order Error:", error.response?.data || error.message);
       toast.error(error.response?.data?.error || "Server error during purchase", {
@@ -125,9 +139,7 @@ const CheckoutModal = ({
       >
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-gray-50">
-          <h2 className="text-2xl font-bold text-emerald-800 font-inter">
-            Checkout
-          </h2>
+          <h2 className="text-2xl font-bold text-emerald-800 font-inter">Checkout</h2>
           <button
             onClick={onClose}
             className="text-gray-600 hover:text-gray-800 text-2xl transition"
@@ -149,22 +161,16 @@ const CheckoutModal = ({
                 className="w-20 h-20 object-cover rounded-lg"
               />
               <div className="flex-1 px-4">
-                <p className="font-semibold text-gray-900 truncate">
-                  {item.title}
-                </p>
+                <p className="font-semibold text-gray-900 truncate">{item.title}</p>
                 <div className="flex items-center gap-3 mt-2">
                   <input
                     type="number"
                     min="1"
                     value={itemQuantities[item.productId] || 1}
-                    onChange={(e) =>
-                      handleQuantityChange(item.productId, e.target.value)
-                    }
+                    onChange={(e) => handleQuantityChange(item.productId, e.target.value)}
                     className="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
-                  <span className="text-gray-700 text-sm">
-                    × {item.price} ETB
-                  </span>
+                  <span className="text-gray-700 text-sm">× {item.price} ETB</span>
                 </div>
               </div>
               <p className="font-bold text-emerald-700">
@@ -180,9 +186,7 @@ const CheckoutModal = ({
               <span>{subtotal.toFixed(2)} ETB</span>
             </div>
             <div className="flex justify-between">
-              <span className="font-medium">
-                Platform Fee ({SERVICE_FEE_PERCENT}%)
-              </span>
+              <span className="font-medium">Platform Fee ({SERVICE_FEE_PERCENT}%)</span>
               <span>{serviceFee.toFixed(2)} ETB</span>
             </div>
             <div className="flex justify-between">
@@ -197,16 +201,12 @@ const CheckoutModal = ({
 
           <p className="text-gray-700 text-sm mt-4">
             Delivery Date:{" "}
-            <span className="font-semibold">
-              {deliveryDate.toLocaleDateString()}
-            </span>
+            <span className="font-semibold">{deliveryDate.toLocaleDateString()}</span>
           </p>
 
           {token && (
             <div className="mt-4">
-              <label className="block text-gray-900 font-semibold mb-2">
-                Delivery Address
-              </label>
+              <label className="block text-gray-900 font-semibold mb-2">Delivery Address</label>
               <input
                 type="text"
                 value={deliveryAddress}

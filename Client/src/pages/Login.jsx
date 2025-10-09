@@ -477,7 +477,7 @@ const Login = () => {
                 <Button
                   type="submit"
                   loading={isLoading}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
+                  className="w-md bg-gradient-to-r from-lime-900 to-green-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
                 >
                   Sign In
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -489,7 +489,7 @@ const Login = () => {
                 <Button
                   type="submit"
                   loading={isLoading}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
+                  className="w-md mt-4 border-gray-200 text-gray-800 hover:bg-indigo-600 hover:text-white py-2 rounded-xl text-sm font-semibold transition-all duration-300"
                 >
                   Create Account
                   <ArrowRight className="ml-2 h-5 w-5" />
