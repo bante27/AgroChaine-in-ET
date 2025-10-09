@@ -2,14 +2,14 @@ import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { v2 as cloudinary } from "cloudinary";
 
-// Configure Cloudinary
+// ===================== CLOUDINARY CONFIG =====================
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Helper to create Cloudinary storage for a folder
+// ===================== GENERIC STORAGE MAKER =====================
 const makeStorage = (folder) =>
   new CloudinaryStorage({
     cloudinary,
@@ -27,40 +27,47 @@ const makeStorage = (folder) =>
 // Profile Picture (2MB max)
 export const profilePicUpload = multer({
   storage: makeStorage("profilePics"),
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  limits: { fileSize: 2 * 1024 * 1024 },
 });
 
 // Product Image (5MB max)
 export const productImageUpload = multer({
   storage: makeStorage("productImages"),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
 // Government ID (5MB max)
 export const govIdUpload = multer({
   storage: makeStorage("govIds"),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// ===================== CONTACT UPLOADS =====================
+// ===================== CONTACT UPLOADS (FIXED) =====================
 
-// General contact uploads (files + voice)
 const contactStorage = new CloudinaryStorage({
   cloudinary,
-  params: {
-    folder: "uploads/contact",
-    public_id: (req, file) => {
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      return uniqueSuffix + "-" + file.originalname;
-    },
+  params: async (req, file) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    let resourceType = "auto"; // auto-detect images, pdfs, etc.
+
+    // Cloudinary needs resource_type = "video" for audio files
+    if (file.mimetype.startsWith("audio")) {
+      resourceType = "video";
+    }
+
+    return {
+      folder: "uploads/contact",
+      resource_type: resourceType,
+      public_id: uniqueSuffix + "-" + file.originalname,
+    };
   },
 });
 
 export const contactUpload = multer({
   storage: contactStorage,
   limits: {
-    fileSize: 15 * 1024 * 1024, // ✅ 15MB per file
-    files: 6, // max 5 attachments + 1 voice
+    fileSize: 20 * 1024 * 1024, // ✅ 20MB max per file
+    files: 6, // 5 attachments + 1 voice
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
@@ -73,6 +80,8 @@ export const contactUpload = multer({
       "audio/mpeg",
       "audio/wav",
       "audio/ogg",
+      "application/zip",
+      "application/x-zip-compressed",
     ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);

@@ -1,14 +1,14 @@
 import Message from "../models/Message.js";
 import nodemailer from "nodemailer";
 
-// Helper function to send emails
+// Helper to send emails
 const sendEmail = async (to, subject, html, attachments = []) => {
   try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // App password (not your Gmail password)
+        pass: process.env.EMAIL_PASS, // Use App password
       },
     });
 
@@ -35,51 +35,51 @@ export const handleContactForm = async (req, res) => {
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    // Prepare arrays for DB + email
     const attachments = [];
     const attachmentLinks = [];
 
-    // Process files (general attachments)
+    // ===== Process general files =====
     if (req.files?.files) {
       req.files.files.forEach((file) => {
+        const url = file.path || file.location; // Cloudinary URL
         attachments.push({
           filename: file.originalname,
-          path: file.path, // Cloudinary URL
+          path: url,
         });
         attachmentLinks.push({
           filename: file.originalname,
-          url: file.path,
+          url,
         });
       });
     }
 
-    // Process voice (audio recording)
+    // ===== Process voice/audio =====
     if (req.files?.voice) {
       req.files.voice.forEach((file) => {
+        const url = file.path || file.location; // Cloudinary URL
         attachments.push({
           filename: file.originalname,
-          path: file.path, // Cloudinary URL
+          path: url,
         });
         attachmentLinks.push({
           filename: file.originalname,
-          url: file.path,
+          url,
         });
       });
     }
 
-    // Save message in DB
+    // ===== Save to MongoDB =====
     const newMessage = new Message({
       name,
       email,
       subject,
       message,
-      attachments: attachmentLinks, // store URLs in MongoDB
+      attachments: attachmentLinks, // store URLs
     });
-
     await newMessage.save();
     console.log("Message saved to DB");
 
-    // Email to admin
+    // ===== Email to Admin =====
     let adminHtml = `
       <h2>📩 New Contact Form Submission</h2>
       <p><strong>Name:</strong> ${name}</p>
@@ -100,11 +100,11 @@ export const handleContactForm = async (req, res) => {
       process.env.EMAIL_USER,
       `📩 Contact Form: ${subject}`,
       adminHtml,
-      attachments // include files as attachments
+      attachments
     );
     console.log("Admin email sent");
 
-    // Auto-reply to user
+    // ===== Auto-reply to user =====
     await sendEmail(
       email,
       "✅ We Received Your Message - Agrochain Ethiopia",

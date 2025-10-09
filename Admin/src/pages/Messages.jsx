@@ -259,16 +259,7 @@ const Messages = () => {
                     <Mail className="h-4 w-4" />
                     Reply
                   </Button>
-                  {/* <Button
-                    onClick={(e) => handleMarkAsRead(message.id, e)}
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center gap-2"
-                    disabled={message.status === 'read'}
-                  >
-                    <CheckCircle className="h-4 w-4" />
-                    Mark Read
-                  </Button> */}
+                 
                   <Button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -344,25 +335,55 @@ const Messages = () => {
             </div>
 
             {selectedMessage.attachments?.length > 0 && (
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                  Attachments
-                </h4>
-                <div className="space-y-2">
-                  {selectedMessage.attachments.map((attachment) => (
-                    <a
+  <div>
+    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+      Attachments
+    </h4>
+    <div className="space-y-3">
+                {selectedMessage.attachments.map((attachment) => {
+                  const isAudio = attachment.mimetype?.startsWith("audio/");
+                  const fileName = attachment.filename || attachment.originalname;
+                  const fileSize = attachment.size
+                    ? `(${(attachment.size / 1024).toFixed(2)} KB)`
+                    : "";
+
+                  return (
+                    <div
                       key={attachment._id}
-                      href={attachment.path}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-emerald-600 dark:text-emerald-500 hover:underline block"
+                      className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-between"
                     >
-                      {attachment.filename} ({(attachment.size / 1024).toFixed(2)} KB)
-                    </a>
-                  ))}
-                </div>
+                      <div className="flex-1">
+                        {isAudio ? (
+                          <>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 font-medium">
+                              🎧 {fileName} {fileSize}
+                            </p>
+                            <audio
+                              controls
+                              className="w-full rounded-lg"
+                              src={attachment.path}
+                            >
+                              Your browser does not support the audio element.
+                            </audio>
+                          </>
+                        ) : (
+                          <a
+                            href={attachment.path}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-emerald-600 dark:text-emerald-500 hover:underline text-sm font-medium"
+                          >
+                            📎 {fileName} {fileSize}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
+          )}
+
 
             <div className="flex gap-4 mt-6">
               <Button

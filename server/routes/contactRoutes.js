@@ -9,6 +9,14 @@ const router = express.Router();
  * @desc    Submit contact form with optional files and voice attachment
  * @access  Public
  */
-router.post("/", contactUpload, handleContactForm);
+router.post("/", (req, res, next) => {
+  contactUpload(req, res, (err) => {
+    if (err) {
+      // Multer / Cloudinary errors
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+}, handleContactForm);
 
 export default router;
