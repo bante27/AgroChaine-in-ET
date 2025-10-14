@@ -7,6 +7,13 @@ import Modal from '../components/common/Modal';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
+// ✅ Add below your imports (right after "import { useAuth } from '../context/AuthContext';")
+const getFullURL = (path) => {
+  if (!path) return '#';
+  if (path.startsWith('http')) return path; // Cloudinary or absolute URL
+  return `http://localhost:5000${path}`; // Prepend backend base URL
+};
+
 const Messages = () => {
   const { token } = useAuth();
   const [messages, setMessages] = useState([]);
@@ -354,28 +361,29 @@ const Messages = () => {
                     >
                       <div className="flex-1">
                         {isAudio ? (
-                          <>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 font-medium">
-                              🎧 {fileName} {fileSize}
-                            </p>
-                            <audio
-                              controls
-                              className="w-full rounded-lg"
-                              src={attachment.path}
-                            >
-                              Your browser does not support the audio element.
-                            </audio>
-                          </>
-                        ) : (
-                          <a
-                            href={attachment.path}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-emerald-600 dark:text-emerald-500 hover:underline text-sm font-medium"
-                          >
-                            📎 {fileName} {fileSize}
-                          </a>
-                        )}
+                                  <>
+                                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 font-medium">
+                                      🎧 {fileName} {fileSize}
+                                    </p>
+                                    <audio
+                                      controls
+                                      className="w-full rounded-lg"
+                                      src={attachment.path}
+                                    >
+                                      Your browser does not support the audio element.
+                                    </audio>
+                                  </>
+                                ) : (
+                                  <a
+                                    href={attachment.path}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-emerald-600 dark:text-emerald-500 hover:underline text-sm font-medium"
+                                  >
+                                    📎 {fileName} {fileSize}
+                                  </a>
+                                )}
+
                       </div>
                     </div>
                   );
