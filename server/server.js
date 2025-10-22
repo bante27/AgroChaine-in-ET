@@ -33,6 +33,22 @@ app.use(
     credentials: true,
   })
 );
+
+// app.use(
+//   cors({
+//     origin: [
+//       "https://agrochain-ethiopia-admin-page12.netlify.app",  //  admin site
+//       "https://agrochain-ethiopia-2025.netlify.app",          // client site
+//       "http://localhost:5174", 
+//       "http://localhost:5175", 
+//       "http://localhost:5001", 
+//       "http://localhost:3000"
+//     ],
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//     credentials: true,
+//   })
+// );
+
 app.use(helmet());
 app.use(morgan("combined"));
 app.use(express.json());

@@ -303,10 +303,11 @@ const Verifications = () => {
               <Button
                 onClick={() => setShowActionModal(false)}
                 variant="secondary"
-                className="flex-1"
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 rounded-lg shadow-sm"
               >
                 Cancel
               </Button>
+
             </div>
           </div>
         )}
