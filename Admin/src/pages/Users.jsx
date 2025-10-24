@@ -220,7 +220,6 @@ const Users = () => {
                 <th className="text-left p-4 font-medium">Contact</th>
                 <th className="text-left p-4 font-medium">Status</th>
                 <th className="text-left p-4 font-medium">Joined</th>
-                <th className="text-left p-4 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>

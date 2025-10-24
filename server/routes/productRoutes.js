@@ -216,4 +216,46 @@ router.post("/:productId/unlike", auth, async (req, res) => {
   }
 });
 
+// --------------- Purchase (reduce quantity) ----------------
+router.post("/:productId/purchase", auth, async (req, res) => {
+  try {
+    const { quantity = 1 } = req.body;
+    const { productId } = req.params;
+
+    const product = await Product.findOne({ productId });
+    if (!product)
+      return res.status(404).json({ success: false, error: "Product not found" });
+
+    if (product.quantityAvailable < quantity) {
+      return res.status(400).json({
+        success: false,
+        error: `Only ${product.quantityAvailable} item(s) left in stock`,
+      });
+    }
+
+    // Decrease available quantity
+    product.quantityAvailable -= quantity;
+    if (product.quantityAvailable <= 0) product.quantityAvailable = 0;
+
+    // Update sold quantity
+    const soldQuantity = product.initialQuantity - product.quantityAvailable;
+
+    await product.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Purchase successful",
+      updatedProduct: {
+        ...product.toObject(),
+        soldQuantity, // Include sold quantity
+      },
+    });
+  } catch (error) {
+    console.error("Error processing purchase:", error);
+    res.status(500).json({ success: false, error: "Server error processing purchase" });
+  }
+});
+
+
+
 export default router;

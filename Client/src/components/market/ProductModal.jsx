@@ -142,7 +142,7 @@ const ProductModal = ({
           {/* Details */}
           <div className="space-y-2 text-sm text-gray-900">
             <p><strong>Price:</strong> {product.price} ETB</p>
-            <p><strong>Initial Stock:</strong> {availableCount}KG</p>
+            <p><strong>Available:</strong> {availableCount}KG</p>
             <p><strong>Type:</strong> {product.type || "N/A"}</p>
             <p><strong>Origin:</strong> {product.originAddress || "Unknown"}</p>
             <p><strong>Description:</strong> {product.description || "No description"}</p>

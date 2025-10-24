@@ -4,7 +4,19 @@ import Button from '../common/Button';
 import ProductCard from './ProductCard';
 import { Search } from 'lucide-react';
 
-const ProductsDisplay = ({ products, viewMode, page, totalPages, onPageChange, onProductClick, onAddToCart, onBuyNow }) => {
+const ProductsDisplay = ({
+  products,
+  viewMode,
+  page,
+  totalPages,
+  onPageChange,
+  onProductClick,
+  onAddToCart,
+  onBuyNow,
+}) => {
+  // Check if all products are sold out
+  const allSoldOut = products.length > 0 && products.every(p => p.quantity === 0);
+
   return (
     <section className="section-padding text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -38,6 +50,13 @@ const ProductsDisplay = ({ products, viewMode, page, totalPages, onPageChange, o
           </div>
         </div>
 
+        {/* All Sold Out message */}
+        {allSoldOut && (
+          <div className="text-center text-red-600 font-bold text-xl mb-6">
+            All Products Are Sold Out
+          </div>
+        )}
+
         {/* Empty state */}
         {products.length === 0 ? (
           <div className="text-center py-16 bg-white/5 rounded-2xl shadow-xl backdrop-blur-md">
@@ -67,6 +86,7 @@ const ProductsDisplay = ({ products, viewMode, page, totalPages, onPageChange, o
                 <ProductCard
                   product={product}
                   viewMode={viewMode}
+                  soldOut={product.quantity === 0} // ✅ sold-out logic
                   onClick={() => onProductClick(product)}
                   onAddToCart={onAddToCart}
                   onBuyNow={onBuyNow}

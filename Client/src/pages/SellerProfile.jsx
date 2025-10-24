@@ -95,14 +95,17 @@ const SellerProfile = () => {
             <p className="text-gray-800 text-center py-6 text-lg">No products posted yet.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {postedProducts.map((prod) => {
-                const isExpanded = expandedReviews[prod._id] || false;
-                const reviewsToShow = isExpanded ? prod.reviews : prod.reviews?.slice(0, 1) || [];
-                const totalQuantity = prod.quantityAvailable ?? prod.initialQuantity ?? 0;
+           {postedProducts.map((prod) => {
+  // Calculate sold and available properly
+                const totalQuantity = prod.initialQuantity ?? 0;
                 const soldCount = prod.soldQuantity ?? 0;
                 const availableCount = Math.max(totalQuantity - soldCount, 0);
-                const likesCount = prod.likesCount ?? 0;
+
+                // Reviews and likes
                 const reviewsCount = prod.reviews?.length ?? 0;
+                const likesCount = prod.likesCount ?? 0;
+                const isExpanded = expandedReviews[prod._id] || false;
+                const reviewsToShow = isExpanded ? prod.reviews : prod.reviews?.slice(0, 1) || [];
 
                 return (
                   <div key={prod._id} className="bg-white/30 backdrop-blur-sm border border-white/20 rounded-2xl shadow-md hover:shadow-xl transition overflow-hidden">
@@ -113,7 +116,7 @@ const SellerProfile = () => {
                         className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                       <span className={`absolute top-3 left-3 text-xs px-2 py-1 rounded-full font-semibold shadow-md ${
-                        availableCount > 0 ? "bg-gray-700 text-white" : "bg-red-600 text-white"
+                        availableCount > 0 ? "bg-green-600 text-white" : "bg-red-600 text-white"
                       }`}>
                         {availableCount > 0 ? `Available: ${availableCount}` : "Sold Out"}
                       </span>
@@ -127,9 +130,11 @@ const SellerProfile = () => {
                       </div>
                       <div className="flex justify-between text-xs text-gray-700 mt-1">
                         <span className="flex items-center gap-1 text-red-500"><FaHeart /> {likesCount} Likes</span>
-                        <span className="flex items-center gap-1 text-yellow-500"><FaStar /> {getProductAvgRating(prod)} ({reviewsCount})</span>
+                        <span className="flex items-center gap-1 text-yellow-500">
+                          <FaStar /> {getProductAvgRating(prod)} ({reviewsCount})
+                        </span>
                       </div>
-                      {prod.reviews?.length > 0 && (
+                      {reviewsCount > 0 && (
                         <div className="mt-3 border-t border-white/30 pt-2">
                           {reviewsToShow.map((rev, i) => (
                             <div key={i} className="mb-1 bg-white/20 p-2 rounded text-xs text-gray-800">
@@ -137,7 +142,7 @@ const SellerProfile = () => {
                               <p>{rev.comment}</p>
                             </div>
                           ))}
-                          {prod.reviews.length > 1 && (
+                          {reviewsCount > 1 && (
                             <button
                               className="text-gray-800 text-xs hover:underline mt-1"
                               onClick={() => toggleReviews(prod._id)}
@@ -151,12 +156,13 @@ const SellerProfile = () => {
                   </div>
                 );
               })}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
+
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              };
 
 export default SellerProfile;
