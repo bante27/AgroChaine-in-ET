@@ -1,12 +1,24 @@
 # AgroChain Ethiopia - National ID-Integrated Food Traceability Platform
 
 ## Project Overview
-AgroChain Ethiopia is a comprehensive food traceability platform that integrates with Ethiopia's National ID system to create transparency, trust, and efficiency in the food supply chain. The platform connects farmers, distributors, retailers, and consumers through  technology.
+AgroChain Ethiopia is a comprehensive food traceability platform that integrates with Ethiopia's National ID system to create transparency, trust, and efficiency in the food supply chain. The platform connects farmers, distributors, retailers, and consumers through advanced technology.
 
 ## Project Structure
 
 ```
 AgroChain-Ethiopia/
+├── Agrochain-New/
+├── Client/
+├── tsconfig.node.json
+├── vite.config.ts
+├── server.config.js
+├── package-lock.json
+├── package.json
+├── index.html
+├── .gitignore
+├── .eslintrc.js
+├── .env
+├── README.md
 ├── public/
 │   ├── assets/
 │   │   ├── images/
@@ -15,174 +27,94 @@ AgroChain-Ethiopia/
 │   ├
 │   └
 ├── src/
-│   ├── components/
-│   │   ├── layout/
-│   │   │   ├── Header.jsx
-│   │   │   ├── Footer.jsx
-│   │   │   ├── Navigation.jsx
-│   │   │   └── Layout.jsx
-│   │   ├── common/
-│   │   │   ├── Button.jsx
-│   │   │   ├── Input.jsx
-│   │   │   ├── Modal.jsx
-│   │   │   ├── Card.jsx
-│   │   │   ├── Loading.jsx
-│   │   │   └── 
-│   │   ├── forms/
-│   │   │   ├── LoginForm.jsx
-│   │   │   ├── RegisterForm.jsx
-│   │   │   ├── KYCForm.jsx
-│   │   │   └── ContactForm.jsx
-│   │   ├── dashboard/
-│   │   │   ├── DashboardLayout.jsx
-│   │   │   ├── StatsCard.jsx
-│   │   │   ├── RecentActivity.jsx
-│   │   │   └── QuickActions.jsx
-│   │   ├── marketplace/
-│   │   │   ├── ProductCard.jsx
-│   │   │   ├── ProductList.jsx
-│   │   │   ├── SearchFilter.jsx
-│   │   │   └── CategoryFilter.jsx
-│   │   ├── farmer/
-│   │   │   ├── FarmerProfile.jsx
-│   │   │   ├── ProductManagement.jsx
-│   │   │   └── SalesTracking.jsx
-│   │   ├── traceability/
-│   │   │   ├── TraceabilityChart.jsx
-│   │   │   ├── QRCodeGenerator.jsx
-│   │   │   └── ProductHistory.jsx
-│   │   └── kyc/
-│   │       ├── DocumentUpload.jsx
-│   │       ├── NationalIDVerification.jsx
-│   │       └── VerificationStatus.jsx
-│   ├── pages/
-│   │   ├── Home.jsx
-│   │   ├── About.jsx
-│   │   ├── Services.jsx
-│   │   ├── Contact.jsx
-│   │   ├── Login.jsx
-│   │   ├── Register.jsx
-│   │   ├── Dashboard.jsx
-│   │   ├── Marketplace.jsx
-│   │   ├── FarmerPortal.jsx
-│   │   ├── DistributorPortal.jsx
-│   │   ├── RetailerPortal.jsx
-│   │   └── ConsumerPortal.jsx
-│   ├── services/
-│   │   ├── api/
-│   │   │   ├── auth.js
-│   │   │   ├── users.js
-│   │   │   ├── products.js
-│   │   │   ├── traceability.js
-│   │   │   └── kyc.js
-│   │   ├
-│   │   ├── nationalId/
-│   │   │   ├── verification.js
-│   │   │   └── validation.js
-│   │   └── utils/
-│   │       ├── storage.js
-│   │       ├── encryption.js
-│   │       └── validation.js
-│   ├── contexts/
-│   │   ├── AuthContext.jsx
-│   │   ├── UserContext.jsx
-│   │   ├── ThemeContext.jsx
-│   │   └── LanguageContext.jsx
-│   ├── hooks/
-│   │   ├── useAuth.js
-│   │   ├── useLocalStorage.js
-│   │   ├── useApi.js
-│   │   └── useNotification.js
-│   ├── utils/
-│   │   ├── constants.js
-│   │   ├── helpers.js
-│   │   ├── formatters.js
-│   │   └── validators.js
-│   ├── styles/
-│   │   ├── globals.css
-│   │   ├── components.css
-│   │   └── utilities.css
-│   ├── assets/
-│   │   ├── images/
-│   │   ├── videos/
-│   │   ├── icons/
-│   │   └── fonts/
+│   ├── admin.css
 │   ├── App.jsx
-│   ├── main.jsx
-│   └── index.css
-├── backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   │   ├── authController.js
-│   │   │   ├── userController.js
-│   │   │   ├── productController.js
-│   │   │   ├── traceabilityController.js
-│   │   │   └── kycController.js
-│   │   ├── models/
-│   │   │   ├── User.js
-│   │   │   ├── Product.js
-│   │   │   ├── TraceabilityRecord.js
-│   │   │   ├── KYCVerification.js
-│   │   │   └── Transaction.js
-│   │   ├── routes/
-│   │   │   ├── auth.js
-│   │   │   ├── users.js
-│   │   │   ├── products.js
-│   │   │   ├── traceability.js
-│   │   │   └── kyc.js
-│   │   ├── middleware/
-│   │   │   ├── auth.js
-│   │   │   ├── validation.js
-│   │   │   ├── rateLimiter.js
-│   │   │   └── errorHandler.js
-│   │   ├── services/
-│   │   │   ├── authService.js
-│   │   │   ├── userService.js
-│   │   │   ├── productService.js
-│   │   │   ├── traceabilityService.js
-│   │   │   ├── kycService.js
-│   │   │   └── blockchainService.js
-│   │   ├── utils/
-│   │   │   ├── database.js
-│   │   │   ├── encryption.js
-│   │   │   ├── validation.js
-│   │   │   └── helpers.js
-│   │   ├── config/
-│   │   │   ├── database.js
-│   │   │   ├── blockchain.js
-│   │   │   ├── nationalId.js
-│   │   │   └── environment.js
-│   │   └── app.js
-│   ├── package.json
-│   └── server.js
-├── docs/
-│   ├── API_DOCUMENTATION.md
-│   ├── DEPLOYMENT_GUIDE.md
-│   ├── USER_MANUAL.md
-│   └── TECHNICAL_SPECIFICATIONS.md
+│   ├── index.css
+│   ├── main.tsx
+│   ├── vite-env.d.ts
+│   ├── env/
+│   │   ├── .env
+│   │   └── gitignore
+│   ├── assets/
+│   │   ├── common/
+│   │   │   ├── layout/
+│   │   │   │   ├── AuthModal.jsx
+│   │   │   │   ├── card.jsx
+│   │   │   │   ├── CartSidebar.jsx
+│   │   │   │   ├── CheckoutModal.jsx
+│   │   │   │   ├── FiltersSection.jsx
+│   │   │   │   ├── HeroSection.jsx
+│   │   │   │   ├── ProductCard.jsx
+│   │   │   │   ├── ProductModal.jsx
+│   │   │   │   ├── ProductsDisplay.jsx
+│   │   │   │   └── useCart.jsx
+│   │   │   ├── Button.jsx
+│   │   │   ├── Card.jsx
+│   │   │   ├── LiveChat.jsx
+│   │   │   ├── PaymentModal.jsx
+│   │   │   ├── ProfileImageUploadModal.jsx
+│   │   │   ├── VerificationModal.jsx
+│   │   └── components/
+│   ├── components/
+│   │   ├── contexts/
+│   │   │   ├── AuthContext.jsx
+│   │   │   ├── ThemeContext.jsx
+│   │   │   └── pages/
+│   │   │       ├── About.jsx
+│   │   │       ├── Contact.jsx
+│   │   │       ├── Dashboard.jsx
+│   │   │       ├── ForgotPassword.jsx
+│   │   │       ├── Home.jsx
+│   │   │       ├── Login.jsx
+│   │   │       ├── Marketplace.jsx
+│   │   │       ├── Orders.jsx
+│   │   │       ├── SellerProfile.jsx
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── chatController.js
+│   │   ├── contactController.js
+│   │   ├── userController.js
+│   ├── middleware/
+│   │   ├── adminMiddleware.js
+│   │   ├── auth.js
+│   │   ├── authMiddleware.js
+│   │   ├── cloudinaryUpload.js
+│   │   ├── errorHandler.js
+│   │   └── upload.js
+│   ├── db.js
+│   ├── modules/
+│   │   ├── admin.js
+│   │   ├── chatRoutes.js
+│   │   ├── contactRoutes.js
+│   │   ├── productRoutes.js
+│   │   ├── transactionRoutes.js
+│   │   └── userRoutes.js
+│   ├── routes/
+│   │   ├── admin.js
+│   │   ├── chatRoutes.js
+│   │   ├── contactRoutes.js
+│   │   ├── productRoutes.js
+│   │   ├── transactionRoutes.js
+│   │   └── userRoutes.js
 ├── tests/
-│   ├── unit/
-│   ├── integration/
-│   └── e2e/
-├── .env.example
-├── .gitignore
-├── package.json
-├── vite.config.js
+│   ├── test.py
+│   ├── test.rest
+│   
+├── tsconfig.json
 ├── tailwind.config.js
 ├── postcss.config.js
+├── tsconfig.app.json
+├── tsconfig.node.json
+├── vite.config.ts
 └── README.md
-```
 
 ## Key Features
 
 ### 🔐 **Authentication & KYC System**
 - National ID integration for secure user verification
 - Document upload and verification system
-- Multi-role authentication (Farmer, Distributor, Retailer, Consumer)
 
 ### 🌾 **Food Traceability**
-
-- QR code generation and scanning
 - Complete supply chain visibility
 - Real-time product location tracking
 
@@ -199,9 +131,7 @@ AgroChain-Ethiopia/
 - Supply chain insights
 
 ### 🌍 **Multi-Language Support**
-- English and Amharic support
-oromogna  tgregna , and like include the local language?
-
+- English, Amharic, and other local languages
 - Localized content
 - Cultural adaptation
 
@@ -212,34 +142,31 @@ oromogna  tgregna , and like include the local language?
 - **Vite** - Fast build tool
 - **Tailwind CSS** - Utility-first styling
 - **React Router** - Client-side routing
-- **Zustand** - State management
+
 
 ### Backend
 - **Node.js** - Server runtime
 - **Express.js** - Web framework
-- **MongoDB** - Database
+- **MongoDBAtlas** - Database
 - **JWT** - Authentication
 - **Multer** - File uploads
 
-
-
 ### DevOps
-- **Docker** - Containerization
 - **GitHub Actions** - CI/CD
-- **Nginx** - Web server
+- **netlify** - Web server
 
 ## Getting Started
 
 ### Prerequisites
 - Node.js (v18 or higher)
 - MongoDB
-- Docker (optional)
+
 
 ### Installation
 
 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/agrochain-ethiopia.git
+git clone https://github.com/Tilahun-Sitotaw/agrochain-ethiopia.git
 cd agrochain-ethiopia
 ```
 
@@ -284,18 +211,20 @@ npm run dev
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This prils.oject is licensed under the MIT License - see the LICENSE file for deta
 
 ## Support
 
 For support, please contact:
-- Email: support@agrochain-ethiopia.com
+- Email: tilahunsitotaw87@gmail.com
 - Website: https://agrochain-ethiopia.com
+- Frontend: [https://agrochain-ethiopia-2025.netlify.app/](https://agrochain-ethiopia-2025.netlify.app/)
+- Admin Page: [https://agrochain-ethiopia-admin-page12.netlify.app/](https://agrochain-ethiopia-admin-page12.netlify.app/)
 - Documentation: https://docs.agrochain-ethiopia.com
 
 ## Acknowledgments
 
 - Ethiopian National ID System
-
 - Open source contributors
 - Ethiopian agricultural sector stakeholders
+
