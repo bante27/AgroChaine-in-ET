@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -19,6 +19,14 @@ import {
   Twitter,
   Instagram,
   Send,
+  Cloud,
+  Thermometer,
+  Wind,
+  Droplet,
+  MapPin,
+  Sun,
+  CloudRain,
+  AlertCircle,
 } from 'lucide-react';
 import LiveChat from '../components/LiveChat';
 
@@ -176,7 +184,97 @@ const About = () => {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [weather, setWeather] = useState(null);
+  const [weatherError, setWeatherError] = useState(null);
+  const [isLoadingWeather, setIsLoadingWeather] = useState(true);
+  const [userCity, setUserCity] = useState('Addis Ababa'); // Default
 
+  // All major Ethiopian places
+ // All major Ethiopian places (fixed spellings, no trailing spaces, added more)
+const locations = [
+  'Addis Ababa',
+  'Bahir Dar',
+  'Debre Markos',
+  'Mek\'ele',
+  'Gondar',
+  'Hawassa',
+  'Jimma',
+  'Dire Dawa',
+  'Harar',
+  'Adama',
+  'Dessie',
+  'Aksum',
+  'Lalibela',
+  'Jijiga',
+  'Semera',
+  'Gambela',
+  'Arba Minch',
+  'Asosa',
+  'Shashamane', // Added
+];
+
+  // Define fetchWeather at the component level with useCallback for memoization
+  const fetchWeather = useCallback(async (city) => {
+    setIsLoadingWeather(true);
+    setWeatherError(null);
+    try {
+      const response = await fetch(`http://localhost:5000/api/weather?city=${encodeURIComponent(city)}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.success) {
+        setWeather(data.weather);
+      } else {
+        setWeatherError(data.error);
+      }
+    } catch (err) {
+      setWeatherError('Failed to load weather data');
+      console.error(err);
+    } finally {
+      setIsLoadingWeather(false);
+    }
+  }, []); // Empty deps: only created once
+
+  // Define getUserLocation at the component level
+  const getUserLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            const response = await fetch(`http://localhost:5000/api/weather?lat=${latitude}&lon=${longitude}`);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            if (data.success) {
+              setWeather(data.weather);
+              setUserCity(data.weather.city);
+              setSelectedLocation(data.weather.city);
+            } else {
+              setWeatherError(data.error);
+            }
+          } catch (err) {
+            setWeatherError('Failed to load weather data');
+            console.error(err);
+          } finally {
+            setIsLoadingWeather(false);
+          }
+        },
+        (err) => {
+          setWeatherError('Geolocation denied. Using default.');
+          fetchWeather('Addis Ababa');
+        }
+      );
+    } else {
+      setWeatherError('Geolocation not supported.');
+      fetchWeather('Addis Ababa');
+    }
+  };
+
+  // First useEffect: intervals and initial location fetch
   useEffect(() => {
     const imageInterval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % storyImages.length);
@@ -184,11 +282,21 @@ const About = () => {
     const testimonialInterval = setInterval(() => {
       setCurrentTestimonialIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
     }, 5000);
+
+    getUserLocation(); // Call the function (now defined outside)
+
     return () => {
       clearInterval(imageInterval);
       clearInterval(testimonialInterval);
     };
-  }, []);
+  }, []); // Note: fetchWeather not in deps since it's memoized
+
+  // Second useEffect: fetch on city selection change
+  useEffect(() => {
+    if (selectedLocation && selectedLocation !== userCity) {
+      fetchWeather(selectedLocation);
+    }
+  }, [selectedLocation, userCity, fetchWeather]); // Add fetchWeather as dep
 
   const handlePrevImage = () => {
     setCurrentImageIndex((prevIndex) => (prevIndex - 1 + storyImages.length) % storyImages.length);
@@ -208,6 +316,20 @@ const About = () => {
   ];
 
   const currentStoryImage = storyImages[currentImageIndex];
+
+  // Get background gradient based on condition
+  const getBackground = (condition) => {
+    switch (condition?.toLowerCase()) {
+      case 'clear':
+        return 'from-yellow-100 to-blue-200';
+      case 'clouds':
+        return 'from-gray-200 to-blue-300';
+      case 'rain':
+        return 'from-blue-200 to-gray-300';
+      default:
+        return 'from-teal-50 to-emerald-100';
+    }
+  };
 
   return (
     <div className="min-h-screen font-sans text-gray-800 bg-gradient-to-br from-green-100 to-emerald-200">
@@ -615,6 +737,115 @@ const About = () => {
         <svg className="w-full h-24 text-emerald-200" viewBox="0 0 1440 120" preserveAspectRatio="none">
           <path d="M0,0 L1440,0 L1440,120 C1200,60 900,120 600,60 C300,0 0,60 0,0 Z" fill="currentColor" />
         </svg>
+      </section>
+
+      {/* Modern & Attractive Weather Section with Real Fetch */}
+      <section className={`py-20 bg-gradient-to-br ${getBackground(weather?.condition)} rounded-3xl mx-4 md:mx-0 shadow-2xl relative overflow-hidden`}>
+        <div className="absolute inset-0 opacity-20" style={{ background: 'url("https://source.unsplash.com/random/1920x1080/?weather,ethiopia") no-repeat center center / cover' }}></div>
+        <div className="max-w-7xl mx-auto px-10 sm:px-12 lg:px-16 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, type: 'spring', stiffness: 80 }}
+            viewport={{ once: true, amount: 0.3 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 drop-shadow-md">
+              Real-Time Weather in <span className="text-teal-600">{selectedLocation || userCity}</span>
+            </h2>
+            <p className="text-xl text-gray-700 mb-6 drop-shadow-sm">Auto-detected from your location or select from Ethiopian places for accurate planning.</p>
+            <div className="flex justify-center items-center gap-4">
+              <MapPin className="h-6 w-6 text-teal-600 animate-pulse" />
+              <select
+                value={selectedLocation}
+                onChange={(e) => setSelectedLocation(e.target.value)}
+                className="p-3 bg-white/80 backdrop-blur-md border border-teal-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition hover:scale-105"
+              >
+                <option value="">Use Current Location</option>
+                {locations.map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </motion.div>
+          {isLoadingWeather ? (
+            <div className="text-center">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                className="inline-block h-12 w-12 border-4 border-teal-600 border-t-transparent rounded-full mb-4"
+              ></motion.div>
+              <p className="text-gray-600 font-medium drop-shadow">Fetching real-time weather...</p>
+            </div>
+          ) : weatherError ? (
+            <div className="text-center p-8 bg-red-50/80 backdrop-blur-md rounded-2xl border border-red-200 shadow-inner">
+              <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-600" />
+              <p className="text-red-600 font-medium mb-4">{weatherError}</p>
+              <button
+                onClick={() => fetchWeather(selectedLocation || userCity)}
+                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300 hover:scale-105"
+              >
+                Retry
+              </button>
+            </div>
+          ) : weather ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 max-w-6xl mx-auto"
+            >
+              {/* Condition Card - Animated Icon */}
+              <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg text-center hover:shadow-2xl transition-all duration-300 col-span-1 md:col-span-1">
+                <motion.img 
+                  src={weather.icon} 
+                  alt={weather.condition} 
+                  className="mx-auto w-32 h-32 mb-6" // Increased size for clearer visibility
+                />
+                <h3 className="text-3xl font-bold text-teal-800 mb-2">{weather.condition}</h3>
+                <p className="text-xl text-gray-700 capitalize font-semibold">{weather.description}</p>
+              </div>
+
+              {/* Temperature Card */}
+              <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg text-center hover:shadow-2xl transition-all duration-300">
+                <Thermometer className="h-12 w-12 mx-auto mb-4 text-orange-600" />
+                <h3 className="text-3xl font-bold text-orange-800">{weather.temperature}°C</h3>
+                <p className="text-gray-700">Feels like {weather.feelsLike}°C</p>
+                <div className="flex justify-between mt-2 text-sm">
+                  <span className="text-red-600 flex items-center"><Sun className="h-4 w-4 mr-1" /> High: {weather.high}°C (Today's maximum temperature)</span>
+                  <span className="text-blue-600 flex items-center"><Cloud className="h-4 w-4 mr-1" /> Low: {weather.low}°C (Today's minimum temperature)</span>
+                </div>
+              </div>
+
+              {/* Humidity Card */}
+              <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg text-center hover:shadow-2xl transition-all duration-300">
+                <Droplet className="h-12 w-12 mx-auto mb-4 text-blue-600" />
+                <h3 className="text-3xl font-bold text-blue-800">{weather.humidity}%</h3>
+                <p className="text-gray-700">Humidity</p>
+              </div>
+
+              {/* Wind Card */}
+              <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg text-center hover:shadow-2xl transition-all duration-300">
+                <Wind className="h-12 w-12 mx-auto mb-4 text-gray-600" />
+                <h3 className="text-3xl font-bold text-gray-800">{weather.windSpeed} m/s</h3>
+                <p className="text-gray-700">Wind Speed</p>
+              </div>
+
+              {/* Precipitation & Tip Card */}
+              <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg text-center hover:shadow-2xl transition-all duration-300 col-span-1 md:col-span-2 lg:col-span-1">
+                <CloudRain className="h-12 w-12 mx-auto mb-4 text-green-600" />
+                <h3 className="text-3xl font-bold text-green-800">{weather.precipitation || 0} mm</h3>
+                <p className="text-gray-700">Precipitation</p>
+                <p className="mt-4 text-sm text-gray-600 font-medium">Tip: Monitor for rain; prepare irrigation if dry.</p>
+              </div>
+            </motion.div>
+          ) : (
+            <p className="text-center text-gray-600 text-xl">No weather data available.</p>
+          )}
+          <p className="text-center text-sm text-gray-500 mt-8">Weather data fetched in real-time from backend. Updated every load.</p>
+        </div>
       </section>
 
       {/* Call to Action Section - Premium Design */}

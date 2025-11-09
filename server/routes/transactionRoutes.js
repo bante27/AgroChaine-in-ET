@@ -8,6 +8,9 @@ import nodemailer from "nodemailer";
 const router = express.Router();
 const SERVICE_FEE_PERCENT = 5; // 5% from buyer and seller
 
+// Website URL
+const WEBSITE_URL = "https://agrochain-ethiopia-2025.netlify.app";
+
 // Reusable modern email sender
 // -----------------------------
 const sendEmail = async (to, subject, htmlBody) => {
@@ -22,7 +25,7 @@ const sendEmail = async (to, subject, htmlBody) => {
       <div style="font-family: Arial, sans-serif; background:#f4f7f9; padding:20px;">
         <div style="max-width:650px;margin:auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);">
           <div style="background:#22a45d;color:#fff;padding:16px;text-align:center;">
-            <h2 style="margin:0;">🌿 Agrochain Ethiopia</h2>
+            <h2 style="margin:0;">Agrochain Ethiopia</h2>
             <p style="margin:0;font-size:14px;">Empowering Farmers & Buyers Nationwide</p>
           </div>
           <div style="padding:25px;color:#333;line-height:1.6;">
@@ -46,7 +49,6 @@ const sendEmail = async (to, subject, htmlBody) => {
 };
 
 // Middleware: Restrict Unverified Users
-
 const restrictUnverifiedUsers = async (req, res, next) => {
   try {
     const user = await User.findOne({ userId: req.user.userId });
@@ -69,6 +71,10 @@ const restrictUnverifiedUsers = async (req, res, next) => {
   }
 };
 
+// Helper: Encode address for Google Maps
+const encodeAddressForMaps = (address) => {
+  return encodeURIComponent(address.trim());
+};
 
 // BUY PRODUCT
 // -----------------------------
@@ -86,6 +92,9 @@ router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
         success: false,
         error: "Product ID, quantity, and delivery address required",
       });
+
+    // Google Maps URL
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeAddressForMaps(deliveryAddress)}`;
 
     // Calculate total charges for all orders
     let totalChargeToBuyer = 0;
@@ -181,10 +190,10 @@ router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
         { $push: { recentActivity: { type: "order-received", message: `You received a new order for ${product.title} (${quantity}x)`, date: new Date() } } }
       );
 
-      // Send emails (keep your HTML style)
+      // Send emails with Google Maps + Website Link
       await sendEmail(
         seller.email,
-        "🎉 New Order Received – Delivery Details Included",
+        "New Order Received – View on Map",
         `
         <p>Dear <strong>${seller.fullName}</strong>,</p>
         <p>You received a new order from <strong>${buyer.fullName}</strong>.</p>
@@ -198,16 +207,26 @@ router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
           <tr><td style="padding:6px 8px;"><strong>Order ID</strong></td><td style="padding:6px 8px;">${transaction._id}</td></tr>
         </table>
         <div style="margin-top:12px;background:#eefaf6;padding:12px;border-left:4px solid #22a45d;">
-          <h4 style="margin:0 0 6px 0;color:#22a45d;">📍 Delivery Address</h4>
+          <h4 style="margin:0 0 6px 0;color:#22a45d;">Delivery Location</h4>
           <p style="margin:0;line-height:1.4;">${deliveryAddress}</p>
+          <p style="margin:8px 0 0 0;">
+            <a href="${mapsUrl}" target="_blank" style="color:#22a45d;font-weight:600;text-decoration:none;">
+              View on Google Maps
+            </a>
+          </p>
         </div>
-        <p style="margin-top:14px;">Please prepare the order and mark it as <strong>Shipped</strong> once it is ready.</p>
+        <p style="margin-top:14px;">
+          <a href="${WEBSITE_URL}/dashboard/orders" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
+            View Order in Dashboard
+          </a>
+        </p>
+        <p style="margin-top:10px;">Please prepare the order and mark it as <strong>Shipped</strong> once ready.</p>
       `
       ).catch(console.error);
 
       await sendEmail(
         buyer.email,
-        "Order Placed Successfully – Summary",
+        "Order Placed – Track Delivery",
         `
         <p>Hi <strong>${buyer.fullName}</strong>,</p>
         <p>Your order has been placed successfully. Below is a summary:</p>
@@ -222,10 +241,20 @@ router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
           <tr><td style="padding:6px 8px;"><strong>Order ID</strong></td><td style="padding:6px 8px;">${transaction._id}</td></tr>
         </table>
         <div style="margin-top:12px;background:#eefaf6;padding:12px;border-left:4px solid #22a45d;">
-          <h4 style="margin:0 0 6px 0;color:#22a45d;">📍 Delivery Address</h4>
+          <h4 style="margin:0 0 6px 0;color:#22a45d;">Delivery Location</h4>
           <p style="margin:0;line-height:1.4;">${deliveryAddress}</p>
+          <p style="margin:8px 0 0 0;">
+            <a href="${mapsUrl}" target="_blank" style="color:#22a45d;font-weight:600;text-decoration:none;">
+              Open in Google Maps
+            </a>
+          </p>
         </div>
-        <p style="margin-top:14px;">Thank you for choosing Agrochain Ethiopia. We will notify you when the seller ships your order.</p>
+        <p style="margin-top:14px;">
+          <a href="${WEBSITE_URL}/dashboard/orders" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
+            Track Order in Dashboard
+          </a>
+        </p>
+        <p style="margin-top:10px;">Thank you for choosing Agrochain Ethiopia. We will notify you when the seller ships your order.</p>
       `
       ).catch(console.error);
     }
@@ -243,7 +272,6 @@ router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
 
 
 // MARK SHIPPED
-
 router.post(
   "/mark-shipped/:transactionId",
   auth,
@@ -277,6 +305,7 @@ router.post(
 
       const buyer = await User.findOne({ userId: transaction.buyerUserId });
       const product = await Product.findById(transaction.productId);
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeAddressForMaps(transaction.deliveryAddress)}`;
 
       // Record Recent Activity
       await User.updateOne(
@@ -308,7 +337,7 @@ router.post(
       // Notify buyer via modern email
       await sendEmail(
         buyer.email,
-        "📦 Your Order Has Been Shipped!",
+        "Your Order is On the Way!",
         `
           <p>Hi <strong>${buyer.fullName}</strong>,</p>
           <p>Your order <strong>${transaction._id}</strong> has been marked as <strong>Shipped</strong> by <strong>${seller.fullName}</strong>.</p>
@@ -320,7 +349,19 @@ router.post(
             <tr><td style="padding:6px 8px;"><strong>Estimated Delivery</strong></td><td style="padding:6px 8px;">2–3 business weeks</td></tr>
           </table>
 
-          <p style="margin-top:12px;">Thank you for using Agrochain Ethiopia. Track your order using Order ID: <strong>${transaction._id}</strong>.</p>
+          <p style="margin:12px 0;">
+            <a href="${mapsUrl}" target="_blank" style="color:#22a45d;font-weight:600;text-decoration:none;">
+              View Delivery Location on Google Maps
+            </a>
+          </p>
+
+          <p style="margin:12px 0;">
+            <a href="${WEBSITE_URL}/dashboard/orders" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
+              Track Order Now
+            </a>
+          </p>
+
+          <p>Track your order using Order ID: <strong>${transaction._id}</strong>.</p>
         `
       ).catch(err => {
         console.error("Buyer shipped email failed:", err);
@@ -391,7 +432,7 @@ router.post(
       await buyer.save();
       await seller.save();
 
-      //  Record Recent Activity
+      // Record Recent Activity
       await User.updateOne(
         { userId: buyer.userId },
         {
@@ -418,10 +459,10 @@ router.post(
         }
       );
 
-      // Notify seller (delivery confirmed + funds released)
+      // Notify seller
       await sendEmail(
         seller.email,
-        "🎉 Delivery Confirmed – Payment Released",
+        "Payment Released – Order Completed",
         `
           <p>Hi <strong>${seller.fullName}</strong>,</p>
           <p>Buyer <strong>${buyer.fullName}</strong> confirmed delivery for order <strong>${transaction._id}</strong>.</p>
@@ -434,16 +475,22 @@ router.post(
             <tr><td style="padding:6px 8px;"><strong>Order ID</strong></td><td style="padding:6px 8px;">${transaction._id}</td></tr>
           </table>
 
+          <p style="margin:12px 0;">
+            <a href="${WEBSITE_URL}/dashboard/wallet" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
+              View Earnings
+            </a>
+          </p>
+
           <p style="margin-top:12px;">Funds have been released to your account. Thank you for selling with Agrochain Ethiopia.</p>
         `
       ).catch(err => {
         console.error("Seller delivery-confirm email failed:", err);
       });
 
-      // Notify buyer (confirmation receipt)
+      // Notify buyer
       await sendEmail(
         buyer.email,
-        "✅ Delivery Confirmed – Thank You!",
+        "Delivery Confirmed – Thank You!",
         `
           <p>Hi <strong>${buyer.fullName}</strong>,</p>
           <p>Thanks for confirming delivery for order <strong>${transaction._id}</strong>.</p>
@@ -453,6 +500,11 @@ router.post(
             <tr><td style="padding:6px 8px;"><strong>Total Paid</strong></td><td style="padding:6px 8px;">${(transaction.totalPrice + transaction.platformFeeBuyer).toFixed(2)} ETB</td></tr>
             <tr><td style="padding:6px 8px;"><strong>Seller</strong></td><td style="padding:6px 8px;">${seller.fullName}</td></tr>
           </table>
+          <p style="margin:12px 0;">
+            <a href="${WEBSITE_URL}/dashboard/orders" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
+              View Order History
+            </a>
+          </p>
           <p style="margin-top:12px;">We hope you enjoyed your purchase. We look forward to serving you again!</p>
         `
       ).catch(err => {
@@ -489,9 +541,7 @@ router.get("/my", auth, async (req, res) => {
   }
 });
 
-
 // GET TRANSACTION DETAIL
-
 router.get("/:transactionId", auth, async (req, res) => {
   try {
     const { transactionId } = req.params;
