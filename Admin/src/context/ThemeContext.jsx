@@ -21,7 +21,7 @@ export const ThemeProvider = ({ children }) => {
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
-  // ✅ Apply theme class & save in localStorage
+  // Apply theme class & save in localStorage
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add("dark");
@@ -32,7 +32,7 @@ export const ThemeProvider = ({ children }) => {
     }
   }, [isDark]);
 
-  // ✅ Toggle theme
+  // Toggle theme
   const toggleTheme = () => setIsDark((prev) => !prev);
 
   return (
