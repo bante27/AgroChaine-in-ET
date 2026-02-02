@@ -11,6 +11,7 @@ import CheckoutModal from "../components/market/CheckoutModal";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { API_URL } from '../utils/apiConfig';
+import { useAuth } from '../contexts/AuthContext';
 
 
 const modalBackdrop = {
@@ -21,6 +22,7 @@ const modalBackdrop = {
 };
 
 const Marketplace = () => {
+  const { user } = useAuth();
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [searchTerm, setSearchTerm] = useState("");
   const [inputValue, setInputValue] = useState("");
@@ -152,6 +154,9 @@ const Marketplace = () => {
   const closeModal = () => setIsModalOpen(false);
 
   const handleAddToCart = (product) => {
+    if (user?.isRestricted) {
+      return toast.error("Your account is restricted. You cannot add products to cart.");
+    }
     const exist = cartItems.find((i) => i._id === product._id);
     const updated = exist
       ? cartItems.map((i) =>
@@ -166,6 +171,9 @@ const Marketplace = () => {
   };
 
   const handleBuyNow = (product) => {
+    if (user?.isRestricted) {
+      return toast.error("Your account is restricted. You cannot buy products.");
+    }
     setCartItems([{ ...product, quantity: 1 }]);
     setIsCheckoutOpen(true);
   };

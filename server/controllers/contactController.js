@@ -106,7 +106,6 @@ export const handleContactForm = async (req, res) => {
     // Send auto-reply to user (no attachments)
     try {
       await transporter.sendMail({
-        from: `AgroChain Ethiopia <onboarding@resend.dev>`,
         to: email,
         subject: `Re: ${subject}`,
         html: `<p>Hi ${name},</p>

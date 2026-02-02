@@ -49,7 +49,6 @@ router.post(
 
       // Send email reply to the user
       const mailOptions = {
-        from: `AgroChain Ethiopia <onboarding@resend.dev>`,
         to: message.email,
         subject: `Re: ${message.subject}`,
         html: `
@@ -64,7 +63,7 @@ router.post(
       try {
         await transporter.sendMail(mailOptions);
       } catch (emailErr) {
-        console.error('Error sending reply email (likely Resend domain restriction):', emailErr.message);
+        console.error('Error sending reply email:', emailErr.message);
         // Don't throw error, continue with the response
       }
 
@@ -123,7 +122,6 @@ router.delete(
       // Optional: Notify user that their message was deleted
       try {
         await transporter.sendMail({
-          from: `AgroChain Ethiopia <onboarding@resend.dev>`,
           to: message.email,
           subject: 'Your Message Has Been Removed',
           html: `
@@ -187,7 +185,6 @@ router.patch('/verify/:userId', auth, admin, async (req, res) => {
     // Notify user via email
     try {
       await transporter.sendMail({
-        from: `AgroChain Ethiopia <onboarding@resend.dev>`,
         to: user.email,
         subject: `ID Verification ${status.charAt(0).toUpperCase() + status.slice(1)}`,
         html: `
@@ -316,7 +313,6 @@ router.delete(
         // Notify user about product deletion
         try {
           await transporter.sendMail({
-            from: `AgroChain Ethiopia <onboarding@resend.dev>`,
             to: user.email,
             subject: 'Your Product Has Been Removed',
             html: `

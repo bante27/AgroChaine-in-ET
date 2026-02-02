@@ -31,8 +31,7 @@ transporter.verify((err, success) => {
 
 // Middleware to check email credentials
 const checkEmailCredentials = (req, res, next) => {
-  // No need to check EMAIL_USER/EMAIL_PASS - using Resend now
-  if (!process.env.RESEND_API_KEY) {
+  if (!process.env.NODEMAILER_EMAIL || !process.env.NODEMAILER_PASS) {
     return res
       .status(500)
       .json({ success: false, error: 'Email credentials missing' });
@@ -110,7 +109,6 @@ router.post(
 
       try {
         await transporter.sendMail({
-          from: `AgroChain Ethiopia <onboarding@resend.dev>`,
           to: email,
           subject: 'Your OTP Code',
           html: `
@@ -242,7 +240,6 @@ router.post(
 
       try {
         await transporter.sendMail({
-          from: `AgroChain Ethiopia <onboarding@resend.dev>`,
           to: email,
           subject: 'Password Reset OTP',
           html: `

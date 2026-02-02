@@ -4,6 +4,7 @@ import Transaction from "../models/Transaction.js";
 import Product from "../models/Product.js";
 import User from "../models/User.js";
 import transporter from "../utils/mailer.js";
+import isNotRestricted from "../middleware/isNotRestricted.js";
 
 const router = express.Router();
 const SERVICE_FEE_PERCENT = 5; // 5% from buyer and seller
@@ -33,7 +34,6 @@ const sendEmail = async (to, subject, htmlBody) => {
       </div>`;
 
     await transporter.sendMail({
-      from: `AgroChain Ethiopia <onboarding@resend.dev>`,
       to,
       subject,
       html,
@@ -73,11 +73,9 @@ const encodeAddressForMaps = (address) => {
 
 // BUY PRODUCT
 // -----------------------------
-router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
+router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, res) => {
   try {
     const buyer = await User.findOne({ userId: req.user.userId });
-    if (buyer.isRestricted)
-      return res.status(403).json({ success: false, error: "Restricted users cannot buy" });
 
     const { orders, deliveryAddress } = req.body;
     const buyerUserId = req.user.userId;
@@ -271,13 +269,10 @@ router.post(
   "/mark-shipped/:transactionId",
   auth,
   restrictUnverifiedUsers,
+  isNotRestricted,
   async (req, res) => {
     try {
       const seller = await User.findOne({ userId: req.user.userId });
-      if (seller.isRestricted)
-        return res
-          .status(403)
-          .json({ success: false, error: "Restricted users cannot mark shipped" });
 
       const { transactionId } = req.params;
       const transaction = await Transaction.findById(transactionId);
@@ -382,13 +377,10 @@ router.post(
   "/confirm-delivery/:transactionId",
   auth,
   restrictUnverifiedUsers,
+  isNotRestricted,
   async (req, res) => {
     try {
       const buyer = await User.findOne({ userId: req.user.userId });
-      if (buyer.isRestricted)
-        return res
-          .status(403)
-          .json({ success: false, error: "Restricted users cannot confirm" });
 
       const { transactionId } = req.params;
       const transaction = await Transaction.findById(transactionId);

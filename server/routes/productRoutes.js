@@ -4,6 +4,7 @@ import Product from "../models/Product.js";
 import User from "../models/User.js";
 import { productImageUpload } from "../middleware/cloudinaryUpload.js";
 import mongoose from "mongoose";
+import isNotRestricted from "../middleware/isNotRestricted.js";
 
 const router = express.Router();
 
@@ -30,10 +31,8 @@ const restrictUnverifiedUsers = async (req, res, next) => {
 };
 
 // ---------------- Add a product ----------------
-router.post("/", auth, restrictUnverifiedUsers, productImageUpload.array("images", 5), async (req, res) => {
+router.post("/", auth, restrictUnverifiedUsers, isNotRestricted, productImageUpload.array("images", 5), async (req, res) => {
   try {
-    const user = await User.findOne({ userId: req.user.userId });
-    if (user.isRestricted) return res.status(403).json({ success: false, error: "Restricted users cannot add products" });
 
     const { title, price, originAddress, type, quantity, description, comment } = req.body;
     if (!title || !price || !originAddress || !type || !quantity) {

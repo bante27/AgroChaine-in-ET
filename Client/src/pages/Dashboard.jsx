@@ -21,7 +21,8 @@ import {
   XCircle,
   Clock,
   X,
-  MapPin // Added MapPin for Google Maps
+  MapPin,
+  AlertTriangle
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -765,525 +766,543 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white">
-      {/* Profile Section */}
-      <div ref={profileRef} className="fixed top-4 right-4 z-50">
-        <button
-          onClick={() => setIsProfileOpen(!isProfileOpen)}
-          className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border-2 border-blue-300/50 dark:border-blue-600/50 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 bg-white/10 dark:bg-gray-800/10 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          aria-label="Toggle profile menu"
-        >
-          {user?.profilePic ? (
-            <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-sm font-bold text-white bg-gradient-to-br from-blue-500 to-indigo-600 w-full h-full flex items-center justify-center">
-              {user?.fullName?.[0] || 'U'}
-            </span>
-          )}
-        </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
+        {user?.isRestricted && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-8 p-4 bg-red-100 border-2 border-red-500 rounded-xl flex items-center gap-4 text-red-700 shadow-lg"
+          >
+            <div className="bg-red-500 p-2 rounded-full text-white">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg">Account Restricted</h3>
+              <p className="text-sm">Your account has been restricted by an administrator. You cannot buy or sell products at this time. Please contact support for assistance.</p>
+            </div>
+          </motion.div>
+        )}
 
-        <AnimatePresence>
-          {isProfileOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-              className="absolute right-0 mt-2 w-64 sm:w-72 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg rounded-xl shadow-xl border border-blue-200/30 dark:border-blue-700/30 overflow-hidden"
-            >
-              <div className="flex items-center space-x-3 p-3 border-b border-blue-200/50 dark:border-blue-700/50 bg-gradient-to-r from-blue-50/30 to-indigo-50/30 dark:from-gray-800/30 dark:to-gray-700/30">
-                <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-blue-300/50 dark:border-blue-600/50 group">
-                  {user?.profilePic ? (
-                    <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-sm font-bold text-white bg-gradient-to-br from-blue-500 to-indigo-600 w-full h-full flex items-center justify-center">
-                      {user?.fullName?.[0] || 'U'}
+        {/* Profile Section */}
+        <div ref={profileRef} className="fixed top-4 right-4 z-50">
+          <button
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
+            className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border-2 border-blue-300/50 dark:border-blue-600/50 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 bg-white/10 dark:bg-gray-800/10 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Toggle profile menu"
+          >
+            {user?.profilePic ? (
+              <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-sm font-bold text-white bg-gradient-to-br from-blue-500 to-indigo-600 w-full h-full flex items-center justify-center">
+                {user?.fullName?.[0] || 'U'}
+              </span>
+            )}
+          </button>
+
+          <AnimatePresence>
+            {isProfileOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="absolute right-0 mt-2 w-64 sm:w-72 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg rounded-xl shadow-xl border border-blue-200/30 dark:border-blue-700/30 overflow-hidden"
+              >
+                <div className="flex items-center space-x-3 p-3 border-b border-blue-200/50 dark:border-blue-700/50 bg-gradient-to-r from-blue-50/30 to-indigo-50/30 dark:from-gray-800/30 dark:to-gray-700/30">
+                  <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-blue-300/50 dark:border-blue-600/50 group">
+                    {user?.profilePic ? (
+                      <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-sm font-bold text-white bg-gradient-to-br from-blue-500 to-indigo-600 w-full h-full flex items-center justify-center">
+                        {user?.fullName?.[0] || 'U'}
+                      </span>
+                    )}
+                    <div
+                      className="absolute inset-0 bg-blue-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowProfileImageModal(true);
+                      }}
+                      aria-label="Upload profile picture"
+                    >
+                      <Camera className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">{profileData.fullName}</h3>
+                    <span
+                      className={`inline-block text-xs px-2 py-0.5 rounded-full mt-1 ${verificationStatus === 'verified'
+                        ? 'bg-green-100 text-green-600 border-green-200'
+                        : verificationStatus === 'pending'
+                          ? 'bg-yellow-100 text-yellow-600 border-yellow-200'
+                          : 'bg-red-100 text-red-600 border-red-200'
+                        }`}
+                    >
+                      {verificationStatus.charAt(0).toUpperCase() + verificationStatus.slice(1)}
                     </span>
-                  )}
-                  <div
-                    className="absolute inset-0 bg-blue-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowProfileImageModal(true);
-                    }}
-                    aria-label="Upload profile picture"
+                  </div>
+                </div>
+                <div className="p-3 space-y-2 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 dark:scrollbar-thumb-blue-600">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Email</label>
+                    <p className="w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-xs shadow-sm">
+                      {user?.email || 'Not set'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Available Balance</label>
+                    <div className="flex items-center space-x-2 w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-xs shadow-sm">
+                      <Wallet className="h-3 w-3 text-blue-500 dark:text-blue-400" />
+                      <p>{user?.balance?.toFixed(2) || '0.00'} ETB</p>
+                    </div>
+                  </div>
+
+
+                  {[
+                    { label: 'Full Name', key: 'fullName', type: 'text' },
+                    { label: 'Phone', key: 'phone', type: 'tel' },
+                    { label: 'Address', key: 'address', type: 'text' },
+                    { label: 'Location', key: 'location', type: 'text' },
+                  ].map((field) => (
+                    <div key={field.key}>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">{field.label}</label>
+                      <input
+                        type={field.type}
+                        value={profileData[field.key]}
+                        onChange={(e) => setProfileData({ ...profileData, [field.key]: e.target.value })}
+                        className="w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50 text-gray-900 dark:text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm"
+                        placeholder={`Enter ${field.label.toLowerCase()}`}
+                        aria-label={field.label}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="border-t border-blue-200/50 dark:border-blue-700/50 p-3 space-y-2 bg-gradient-to-r from-blue-50/30 to-indigo-50/30 dark:from-gray-800/30 dark:to-gray-700/30">
+                  <Button
+                    onClick={saveProfile}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1.5 text-xs shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    aria-label="Save profile changes"
                   >
-                    <Camera className="w-4 h-4 text-white" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">{profileData.fullName}</h3>
-                  <span
-                    className={`inline-block text-xs px-2 py-0.5 rounded-full mt-1 ${verificationStatus === 'verified'
-                      ? 'bg-green-100 text-green-600 border-green-200'
-                      : verificationStatus === 'pending'
-                        ? 'bg-yellow-100 text-yellow-600 border-yellow-200'
-                        : 'bg-red-100 text-red-600 border-red-200'
-                      }`}
+                    Save Changes
+                  </Button>
+                  <Button
+                    onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                    variant="outline"
+                    className="w-full flex items-center justify-center space-x-2 border-blue-300/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 bg-blue-100/10 dark:bg-blue-900/10 hover:bg-blue-200/20 dark:hover:bg-blue-800/20 text-xs rounded-lg py-1.5 shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
                   >
-                    {verificationStatus.charAt(0).toUpperCase() + verificationStatus.slice(1)}
-                  </span>
+                    {theme === 'light' ? <Moon className="h-3 w-3" /> : <Sun className="h-3 w-3" />}
+                    <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center justify-center space-x-2 border-red-300/50 dark:border-red-600/50 text-red-600 dark:text-red-400 bg-red-100/10 dark:bg-red-900/10 hover:bg-red-200/20 dark:hover:bg-red-800/20 text-xs rounded-lg py-1.5 shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
+                    onClick={logout}
+                    aria-label="Logout"
+                  >
+                    <LogOut className="h-3 w-3" />
+                    <span>Logout</span>
+                  </Button>
                 </div>
-              </div>
-              <div className="p-3 space-y-2 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 dark:scrollbar-thumb-blue-600">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Email</label>
-                  <p className="w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-xs shadow-sm">
-                    {user?.email || 'Not set'}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Available Balance</label>
-                  <div className="flex items-center space-x-2 w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-xs shadow-sm">
-                    <Wallet className="h-3 w-3 text-blue-500 dark:text-blue-400" />
-                    <p>{user?.balance?.toFixed(2) || '0.00'} ETB</p>
-                  </div>
-                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-
-                {[
-                  { label: 'Full Name', key: 'fullName', type: 'text' },
-                  { label: 'Phone', key: 'phone', type: 'tel' },
-                  { label: 'Address', key: 'address', type: 'text' },
-                  { label: 'Location', key: 'location', type: 'text' },
-                ].map((field) => (
-                  <div key={field.key}>
-                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">{field.label}</label>
-                    <input
-                      type={field.type}
-                      value={profileData[field.key]}
-                      onChange={(e) => setProfileData({ ...profileData, [field.key]: e.target.value })}
-                      className="w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50 text-gray-900 dark:text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm"
-                      placeholder={`Enter ${field.label.toLowerCase()}`}
-                      aria-label={field.label}
-                    />
-                  </div>
-                ))}
-              </div>
-              <div className="border-t border-blue-200/50 dark:border-blue-700/50 p-3 space-y-2 bg-gradient-to-r from-blue-50/30 to-indigo-50/30 dark:from-gray-800/30 dark:to-gray-700/30">
-                <Button
-                  onClick={saveProfile}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1.5 text-xs shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  aria-label="Save profile changes"
-                >
-                  Save Changes
-                </Button>
-                <Button
-                  onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                  variant="outline"
-                  className="w-full flex items-center justify-center space-x-2 border-blue-300/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 bg-blue-100/10 dark:bg-blue-900/10 hover:bg-blue-200/20 dark:hover:bg-blue-800/20 text-xs rounded-lg py-1.5 shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-                >
-                  {theme === 'light' ? <Moon className="h-3 w-3" /> : <Sun className="h-3 w-3" />}
-                  <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full flex items-center justify-center space-x-2 border-red-300/50 dark:border-red-600/50 text-red-600 dark:text-red-400 bg-red-100/10 dark:bg-red-900/10 hover:bg-red-200/20 dark:hover:bg-red-800/20 text-xs rounded-lg py-1.5 shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
-                  onClick={logout}
-                  aria-label="Logout"
-                >
-                  <LogOut className="h-3 w-3" />
-                  <span>Logout</span>
-                </Button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-6 text-center"
-        >
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-            Welcome back, {user?.fullName || 'User'}!
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">Your modern agricultural marketplace dashboard</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="mb-6 flex flex-col sm:flex-row gap-3 justify-center"
-        >
-          <Button
-            onClick={handleBuyClick}
-            className="flex items-center justify-center space-x-2 w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Buy products"
+        <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-6 text-center"
           >
-            <ShoppingCart className="h-4 w-4" />
-            <span className="text-sm">Buy Products</span>
-          </Button>
-          <Button
-            onClick={handleSellClick}
-            className="flex items-center justify-center space-x-2 w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-gray-600 to-teal-600 hover:from-gray-700 hover:to-teal-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            aria-label="Sell products"
-          >
-            <Upload className="h-4 w-4" />
-            <span className="text-sm">Sell Products</span>
-          </Button>
-        </motion.div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+              Welcome back, {user?.fullName || 'User'}!
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">Your modern agricultural marketplace dashboard</p>
+          </motion.div>
 
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          {stats.map((stat, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-6 flex flex-col sm:flex-row gap-3 justify-center"
+          >
+            <Button
+              onClick={handleBuyClick}
+              className="flex items-center justify-center space-x-2 w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Buy products"
             >
-              <Card className="group relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-blue-200/20 dark:border-blue-700/20">
-                <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
-                <div className={`p-2 rounded-lg bg-gradient-to-br ${stat.gradient} mb-3 shadow-sm`}>
-                  <stat.icon className="h-5 w-5 text-white" />
+              <ShoppingCart className="h-4 w-4" />
+              <span className="text-sm">Buy Products</span>
+            </Button>
+            <Button
+              onClick={handleSellClick}
+              className="flex items-center justify-center space-x-2 w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-gray-600 to-teal-600 hover:from-gray-700 hover:to-teal-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              aria-label="Sell products"
+            >
+              <Upload className="h-4 w-4" />
+              <span className="text-sm">Sell Products</span>
+            </Button>
+          </motion.div>
+
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            {stats.map((stat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
+              >
+                <Card className="group relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-blue-200/20 dark:border-blue-700/20">
+                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
+                  <div className={`p-2 rounded-lg bg-gradient-to-br ${stat.gradient} mb-3 shadow-sm`}>
+                    <stat.icon className="h-5 w-5 text-white" />
+                  </div>
+                  <p className="text-xs font-medium text-gray-600 dark:text-gray-300">{stat.title}</p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                  <div className={`flex items-center text-xs ${stat.trend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {stat.trend === 'up' ? <ArrowUpRight className="h-3 w-3 mr-1" /> : null}
+                    {stat.change}
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="lg:col-span-2"
+            >
+              <Card className="p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-md border border-blue-200/20 dark:border-blue-700/20">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Activities</h2>
+                <div className="space-y-3">
+                  {orders.length > 0 ? (
+                    orders.slice(0, 5).map((order, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.4, delay: index * 0.1 }}
+                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-blue-100/10 dark:bg-blue-900/10 rounded-lg hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-700/20"
+                      >
+                        <div className="flex items-center space-x-3 mb-2 sm:mb-0">
+                          <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+                            <Activity className="h-4 w-4 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white text-sm">
+                              {order.sellerUserId === user?.userId ? (
+                                <>
+                                  You sold <span className="font-bold">{order.productName}</span> to {order.buyerUserId === user?.userId ? 'You' : order.buyerName}
+                                </>
+                              ) : (
+                                <>
+                                  You purchased <span className="font-bold">{order.productName}</span> from {order.sellerUserId === user?.userId ? 'You' : order.sellerName}
+                                </>
+                              )}
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-300">{new Date(order.date).toLocaleString()}</p>
+                            {/* UPDATED: Google Maps integration for delivery address */}
+                            <div className="flex items-center space-x-1 mt-1">
+                              <MapPin className="h-3 w-3 text-blue-500" />
+                              <button
+                                onClick={() => openGoogleMaps(order.deliveryAddress)}
+                                className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline cursor-pointer transition-colors"
+                                title="Open in Google Maps"
+                              >
+                                {order.deliveryAddress}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                          <p className="font-bold text-gray-900 dark:text-white text-sm">{order.totalPrice.toFixed(2)} ETB</p>
+                          {getStatusBadge(order.status)}
+                          {order.status === 'pending' && order.sellerUserId === user?.userId && (
+                            <Button
+                              onClick={() => handleDeliver(order._id)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              aria-label="Mark as shipped"
+                            >
+                              Mark Shipped
+                            </Button>
+                          )}
+                          {order.status === 'shipped' && order.buyerUserId === user?.userId && (
+                            <Button
+                              onClick={() => handleDelivered(order._id)}
+                              className="bg-green-600 hover:bg-green-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-green-500"
+                              aria-label="Confirm delivery"
+                            >
+                              Confirm Delivery
+                            </Button>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))
+                  ) : (
+                    <p className="text-gray-600 dark:text-gray-300 text-sm">No recent activities.</p>
+                  )}
                 </div>
-                <p className="text-xs font-medium text-gray-600 dark:text-gray-300">{stat.title}</p>
-                <p className="text-lg font-bold text-gray-900 dark:text-white">{stat.value}</p>
-                <div className={`flex items-center text-xs ${stat.trend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                  {stat.trend === 'up' ? <ArrowUpRight className="h-3 w-3 mr-1" /> : null}
-                  {stat.change}
+                {orders.length > 5 && (
+                  <Button
+                    onClick={() => setShowAllOrdersModal(true)}
+                    className="mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1.5 px-4 text-sm shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    aria-label="View all orders"
+                  >
+                    View All Orders
+                  </Button>
+                )}
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <Card className="p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-md border border-blue-200/20 dark:border-blue-700/20">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
+                <div className="space-y-3">
+                  {quickActions.map((action, index) => (
+                    <motion.button
+                      key={index}
+                      onClick={action.action}
+                      className={`w-full text-left p-3 rounded-lg transition-all duration-300 border border-blue-200/20 dark:border-blue-700/20 hover:bg-${action.color}-100/10 dark:hover:bg-${action.color}-900/10 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-${action.color}-500`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      aria-label={action.title}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-lg bg-${action.color}-100/20 dark:bg-${action.color}-900/20`}>
+                          <action.icon className={`h-4 w-4 text-${action.color}-500`} />
+                        </div>
+                        <div>
+                          <h3 className={`text-sm font-bold text-gray-900 dark:text-white`}>{action.title}</h3>
+                          <p className={`text-xs text-gray-600 dark:text-gray-300`}>{action.description}</p>
+                        </div>
+                      </div>
+                    </motion.button>
+                  ))}
                 </div>
               </Card>
             </motion.div>
-          ))}
-        </motion.div>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="lg:col-span-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
           >
-            <Card className="p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-md border border-blue-200/20 dark:border-blue-700/20">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Activities</h2>
-              <div className="space-y-3">
-                {orders.length > 0 ? (
-                  orders.slice(0, 5).map((order, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.4, delay: index * 0.1 }}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-blue-100/10 dark:bg-blue-900/10 rounded-lg hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-700/20"
+            <Card className="p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-md border border-blue-200/20 dark:border-blue-700/20 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-100/10 to-indigo-100/10 dark:from-blue-900/10 dark:to-indigo-900/10 opacity-50"></div>
+              <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-3">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Sales Overview</h2>
+                <div className="flex flex-wrap gap-2">
+                  {['7 Days', '30 Days', '90 Days'].map((period) => (
+                    <Button
+                      key={period}
+                      variant={selectedPeriod === period ? undefined : 'outline'}
+                      className={`py-1 px-3 text-xs rounded-lg transition-all duration-300 ${selectedPeriod === period
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm'
+                        : 'border-blue-300/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/10 dark:hover:bg-blue-900/10'
+                        }`}
+                      onClick={() => setSelectedPeriod(period)}
+                      aria-label={`Show sales for ${period}`}
                     >
-                      <div className="flex items-center space-x-3 mb-2 sm:mb-0">
-                        <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
-                          <Activity className="h-4 w-4 text-white" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white text-sm">
-                            {order.sellerUserId === user?.userId ? (
-                              <>
-                                You sold <span className="font-bold">{order.productName}</span> to {order.buyerUserId === user?.userId ? 'You' : order.buyerName}
-                              </>
-                            ) : (
-                              <>
-                                You purchased <span className="font-bold">{order.productName}</span> from {order.sellerUserId === user?.userId ? 'You' : order.sellerName}
-                              </>
-                            )}
-                          </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-300">{new Date(order.date).toLocaleString()}</p>
-                          {/* UPDATED: Google Maps integration for delivery address */}
-                          <div className="flex items-center space-x-1 mt-1">
-                            <MapPin className="h-3 w-3 text-blue-500" />
-                            <button
-                              onClick={() => openGoogleMaps(order.deliveryAddress)}
-                              className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline cursor-pointer transition-colors"
-                              title="Open in Google Maps"
-                            >
-                              {order.deliveryAddress}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-                        <p className="font-bold text-gray-900 dark:text-white text-sm">{order.totalPrice.toFixed(2)} ETB</p>
-                        {getStatusBadge(order.status)}
-                        {order.status === 'pending' && order.sellerUserId === user?.userId && (
-                          <Button
-                            onClick={() => handleDeliver(order._id)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            aria-label="Mark as shipped"
-                          >
-                            Mark Shipped
-                          </Button>
-                        )}
-                        {order.status === 'shipped' && order.buyerUserId === user?.userId && (
-                          <Button
-                            onClick={() => handleDelivered(order._id)}
-                            className="bg-green-600 hover:bg-green-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-green-500"
-                            aria-label="Confirm delivery"
-                          >
-                            Confirm Delivery
-                          </Button>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))
-                ) : (
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">No recent activities.</p>
-                )}
+                      {period}
+                    </Button>
+                  ))}
+                </div>
               </div>
-              {orders.length > 5 && (
-                <Button
-                  onClick={() => setShowAllOrdersModal(true)}
-                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1.5 px-4 text-sm shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  aria-label="View all orders"
-                >
-                  View All Orders
-                </Button>
-              )}
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
-            <Card className="p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-md border border-blue-200/20 dark:border-blue-700/20">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
-              <div className="space-y-3">
-                {quickActions.map((action, index) => (
-                  <motion.button
-                    key={index}
-                    onClick={action.action}
-                    className={`w-full text-left p-3 rounded-lg transition-all duration-300 border border-blue-200/20 dark:border-blue-700/20 hover:bg-${action.color}-100/10 dark:hover:bg-${action.color}-900/10 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-${action.color}-500`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    aria-label={action.title}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg bg-${action.color}-100/20 dark:bg-${action.color}-900/20`}>
-                        <action.icon className={`h-4 w-4 text-${action.color}-500`} />
-                      </div>
-                      <div>
-                        <h3 className={`text-sm font-bold text-gray-900 dark:text-white`}>{action.title}</h3>
-                        <p className={`text-xs text-gray-600 dark:text-gray-300`}>{action.description}</p>
-                      </div>
-                    </div>
-                  </motion.button>
-                ))}
+              <div className="h-48 sm:h-64 relative">
+                <canvas ref={chartRef}></canvas>
               </div>
             </Card>
           </motion.div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-        >
-          <Card className="p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-md border border-blue-200/20 dark:border-blue-700/20 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-100/10 to-indigo-100/10 dark:from-blue-900/10 dark:to-indigo-900/10 opacity-50"></div>
-            <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-3">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Sales Overview</h2>
-              <div className="flex flex-wrap gap-2">
-                {['7 Days', '30 Days', '90 Days'].map((period) => (
-                  <Button
-                    key={period}
-                    variant={selectedPeriod === period ? undefined : 'outline'}
-                    className={`py-1 px-3 text-xs rounded-lg transition-all duration-300 ${selectedPeriod === period
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm'
-                      : 'border-blue-300/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/10 dark:hover:bg-blue-900/10'
-                      }`}
-                    onClick={() => setSelectedPeriod(period)}
-                    aria-label={`Show sales for ${period}`}
-                  >
-                    {period}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <div className="h-48 sm:h-64 relative">
-              <canvas ref={chartRef}></canvas>
-            </div>
-          </Card>
-        </motion.div>
-      </div>
-
-      <VerificationModal
-        isOpen={showVerificationModal}
-        onClose={() => setShowVerificationModal(false)}
-        onVerify={handleVerify}
-        verificationStatus={verificationStatus}
-      />
-      <ProductUploadModal
-        isOpen={showProductModal}
-        onClose={() => setShowProductModal(false)}
-        onSubmit={handleProductSubmit}
-      />
-      <ProfileImageUploadModal
-        isOpen={showProfileImageModal}
-        onClose={() => setShowProfileImageModal(false)}
-        onImageSave={handleProfileImageSave}
-      />
-      <PaymentModal
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        onPaymentSuccess={fetchUserProfileLocal}
-      />
-      <AnimatePresence>
-        {showAllOrdersModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          >
+        <VerificationModal
+          isOpen={showVerificationModal}
+          onClose={() => setShowVerificationModal(false)}
+          onVerify={handleVerify}
+          verificationStatus={verificationStatus}
+        />
+        <ProductUploadModal
+          isOpen={showProductModal}
+          onClose={() => setShowProductModal(false)}
+          onSubmit={handleProductSubmit}
+        />
+        <ProfileImageUploadModal
+          isOpen={showProfileImageModal}
+          onClose={() => setShowProfileImageModal(false)}
+          onImageSave={handleProfileImageSave}
+        />
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onPaymentSuccess={fetchUserProfileLocal}
+        />
+        <AnimatePresence>
+          {showAllOrdersModal && (
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden"
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
             >
-              <div className="p-4 flex justify-between items-center border-b border-blue-200/20 dark:border-blue-700/20">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">All Orders</h2>
-                <Button
-                  onClick={() => setShowAllOrdersModal(false)}
-                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-2 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
-                  aria-label="Close orders popup"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="p-4 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 dark:scrollbar-thumb-blue-600">
-                <div className="space-y-3">
-                  {orders.map((order, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-blue-100/10 dark:bg-blue-900/10 rounded-lg hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-700/20"
-                    >
-                      <div className="flex items-center space-x-3 mb-2 sm:mb-0">
-                        <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
-                          <Activity className="h-4 w-4 text-white" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white text-sm">
-                            {order.sellerUserId === user?.userId ? (
-                              <>
-                                You sold <span className="font-bold">{order.productName}</span> to {order.buyerUserId === user?.userId ? 'You' : order.buyerName}
-                              </>
-                            ) : (
-                              <>
-                                You purchased <span className="font-bold">{order.productName}</span> from {order.sellerUserId === user?.userId ? 'You' : order.sellerName}
-                              </>
-                            )}
-                          </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-300">{new Date(order.date).toLocaleString()}</p>
-                          {/* UPDATED: Google Maps integration for delivery address */}
-                          <div className="flex items-center space-x-1 mt-1">
-                            <MapPin className="h-3 w-3 text-blue-500" />
-                            <span className="text-xs text-gray-500 dark:text-gray-400">Delivery Address:</span>
-                            <button
-                              onClick={() => openGoogleMaps(order.deliveryAddress)}
-                              className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline cursor-pointer transition-colors ml-1"
-                              title="Open in Google Maps"
-                            >
-                              {order.deliveryAddress}
-                            </button>
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden"
+              >
+                <div className="p-4 flex justify-between items-center border-b border-blue-200/20 dark:border-blue-700/20">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">All Orders</h2>
+                  <Button
+                    onClick={() => setShowAllOrdersModal(false)}
+                    className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-2 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
+                    aria-label="Close orders popup"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="p-4 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 dark:scrollbar-thumb-blue-600">
+                  <div className="space-y-3">
+                    {orders.map((order, index) => (
+                      <div
+                        key={index}
+                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-blue-100/10 dark:bg-blue-900/10 rounded-lg hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-700/20"
+                      >
+                        <div className="flex items-center space-x-3 mb-2 sm:mb-0">
+                          <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+                            <Activity className="h-4 w-4 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white text-sm">
+                              {order.sellerUserId === user?.userId ? (
+                                <>
+                                  You sold <span className="font-bold">{order.productName}</span> to {order.buyerUserId === user?.userId ? 'You' : order.buyerName}
+                                </>
+                              ) : (
+                                <>
+                                  You purchased <span className="font-bold">{order.productName}</span> from {order.sellerUserId === user?.userId ? 'You' : order.sellerName}
+                                </>
+                              )}
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-300">{new Date(order.date).toLocaleString()}</p>
+                            {/* UPDATED: Google Maps integration for delivery address */}
+                            <div className="flex items-center space-x-1 mt-1">
+                              <MapPin className="h-3 w-3 text-blue-500" />
+                              <span className="text-xs text-gray-500 dark:text-gray-400">Delivery Address:</span>
+                              <button
+                                onClick={() => openGoogleMaps(order.deliveryAddress)}
+                                className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline cursor-pointer transition-colors ml-1"
+                                title="Open in Google Maps"
+                              >
+                                {order.deliveryAddress}
+                              </button>
+                            </div>
                           </div>
                         </div>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                          <p className="font-bold text-gray-900 dark:text-white text-sm">{order.totalPrice.toFixed(2)} ETB</p>
+                          {getStatusBadge(order.status)}
+                          {order.status === 'pending' && order.sellerUserId === user?.userId && (
+                            <Button
+                              onClick={() => handleDeliver(order._id)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              aria-label="Mark as shipped"
+                            >
+                              Mark Shipped
+                            </Button>
+                          )}
+                          {order.status === 'shipped' && order.buyerUserId === user?.userId && (
+                            <Button
+                              onClick={() => handleDelivered(order._id)}
+                              className="bg-green-600 hover:bg-green-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-green-500"
+                              aria-label="Confirm delivery"
+                            >
+                              Confirm Delivery
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-                        <p className="font-bold text-gray-900 dark:text-white text-sm">{order.totalPrice.toFixed(2)} ETB</p>
-                        {getStatusBadge(order.status)}
-                        {order.status === 'pending' && order.sellerUserId === user?.userId && (
-                          <Button
-                            onClick={() => handleDeliver(order._id)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            aria-label="Mark as shipped"
-                          >
-                            Mark Shipped
-                          </Button>
-                        )}
-                        {order.status === 'shipped' && order.buyerUserId === user?.userId && (
-                          <Button
-                            onClick={() => handleDelivered(order._id)}
-                            className="bg-green-600 hover:bg-green-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-green-500"
-                            aria-label="Confirm delivery"
-                          >
-                            Confirm Delivery
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {orders.length === 0 && (
-                    <p className="text-gray-600 dark:text-gray-300 text-sm">No orders found.</p>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <Modal
-        isOpen={showCustomersModal}
-        onClose={() => setShowCustomersModal(false)}
-        title="Customers"
-        size="lg"
-      >
-        <div className="bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-md">
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Customer List</h2>
-              <Button
-                onClick={() => setShowCustomersModal(false)}
-                className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
-                aria-label="Close customers modal"
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-            <div className="space-y-3">
-              {customers.map((customer, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-blue-100/10 dark:bg-blue-900/10 rounded-lg hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-700/20"
-                >
-                  <div className="flex items-center space-x-3 mb-2 sm:mb-0">
-                    <div className="relative w-10 h-10 rounded-full overflow-hidden">
-                      <img src={customer.profilePic} alt={customer.fullName} className="w-full h-full object-cover" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white text-sm">{customer.fullName}</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-300">Rank: {customer.rank || 'N/A'}</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-300">Rating: {customer.customerRating}/5</p>
-                    </div>
+                    ))}
+                    {orders.length === 0 && (
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">No orders found.</p>
+                    )}
                   </div>
                 </div>
-              ))}
-              {customers.length === 0 && (
-                <p className="text-gray-600 dark:text-gray-300 text-sm">No customers found.</p>
-              )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <Modal
+          isOpen={showCustomersModal}
+          onClose={() => setShowCustomersModal(false)}
+          title="Customers"
+          size="lg"
+        >
+          <div className="bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-md">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Customer List</h2>
+                <Button
+                  onClick={() => setShowCustomersModal(false)}
+                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
+                  aria-label="Close customers modal"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+              <div className="space-y-3">
+                {customers.map((customer, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-blue-100/10 dark:bg-blue-900/10 rounded-lg hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-700/20"
+                  >
+                    <div className="flex items-center space-x-3 mb-2 sm:mb-0">
+                      <div className="relative w-10 h-10 rounded-full overflow-hidden">
+                        <img src={customer.profilePic} alt={customer.fullName} className="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white text-sm">{customer.fullName}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-300">Rank: {customer.rank || 'N/A'}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-300">Rating: {customer.customerRating}/5</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {customers.length === 0 && (
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">No customers found.</p>
+                )}
+              </div>
+            </div>
+            <div className="p-4 flex justify-end">
+              <Button
+                onClick={() => setShowCustomersModal(false)}
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1.5 px-4 text-sm shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Close customers modal"
+              >
+                Close
+              </Button>
             </div>
           </div>
-          <div className="p-4 flex justify-end">
-            <Button
-              onClick={() => setShowCustomersModal(false)}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1.5 px-4 text-sm shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
-              aria-label="Close customers modal"
-            >
-              Close
-            </Button>
-          </div>
-        </div>
-      </Modal>
-      <LiveChat />
+        </Modal>
+        <LiveChat />
+      </div>
     </div>
   );
 };
