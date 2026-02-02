@@ -14,8 +14,6 @@ services:
         value: 22
       - key: MONGODB_URI
         sync: false
-      - key: MONGO_URI
-        sync: false
       - key: JWT_SECRET
         sync: false
       - key: CLOUDINARY_CLOUD_NAME

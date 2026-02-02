@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Users, Package, ShoppingCart, MessageSquare, TrendingUp, Calendar } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { API_URL } from '../utils/apiConfig';
 
 // Custom ETB Icon Component
 const ETBIcon = ({ className }) => (
@@ -38,22 +37,22 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const usersResponse = await axios.get(`${API_URL}/api/admin/users`, {
+        const usersResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const users = usersResponse.data.users || [];
 
-        const productsResponse = await axios.get(`${API_URL}/api/admin/products`, {
+        const productsResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/products`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const products = productsResponse.data.products || [];
 
-        const transactionsResponse = await axios.get(`${API_URL}/api/admin/transactions`, {
+        const transactionsResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/transactions`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const transactions = transactionsResponse.data.transactions || [];
 
-        const messagesResponse = await axios.get(`${API_URL}/api/admin/messages`, {
+        const messagesResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/messages`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const messages = messagesResponse.data.messages || [];

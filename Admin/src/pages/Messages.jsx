@@ -6,13 +6,12 @@ import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { API_URL } from '../utils/apiConfig';
 
 // ✅ Add below your imports (right after "import { useAuth } from '../context/AuthContext';")
 const getFullURL = (path) => {
   if (!path) return '#';
   if (path.startsWith('http')) return path; // Cloudinary or absolute URL
-  return `${API_URL}${path}`; // Prepend backend base URL
+  return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${path}`; // Prepend backend base URL
 };
 
 const Messages = () => {
@@ -34,7 +33,7 @@ const Messages = () => {
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/api/admin/messages`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/messages`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
@@ -65,7 +64,7 @@ const Messages = () => {
     e?.stopPropagation();
     try {
       await axios.patch(
-        `${API_URL}/api/admin/messages/${messageId}/read`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/messages/${messageId}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -78,7 +77,7 @@ const Messages = () => {
   const handleDelete = async (messageId) => {
     if (!window.confirm('Are you sure you want to delete this message?')) return;
     try {
-      await axios.delete(`${API_URL}/api/admin/messages/${messageId}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/messages/${messageId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (selectedMessage?.id === messageId) setShowMessageModal(false);
@@ -100,7 +99,7 @@ const Messages = () => {
     setReplyLoading(true);
     try {
       await axios.post(
-        `${API_URL}/api/admin/messages/${selectedMessage.id}/reply`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/messages/${selectedMessage.id}/reply`,
         { reply: replyForm.reply },
         {
           headers: {
@@ -199,8 +198,8 @@ const Messages = () => {
               <div
                 key={message.id}
                 className={`bg-white dark:bg-gray-800 border rounded-2xl p-6 transition hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${message.status === 'unread'
-                  ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10'
-                  : 'border-gray-200 dark:border-gray-700'
+                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10'
+                    : 'border-gray-200 dark:border-gray-700'
                   }`}
                 onClick={() => {
                   setSelectedMessage(message);

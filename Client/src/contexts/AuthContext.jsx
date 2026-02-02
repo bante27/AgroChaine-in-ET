@@ -12,14 +12,14 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(localStorage.getItem('userToken'));
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('userToken'));
 
   // Check authentication on app load
   useEffect(() => {
     const checkAuth = async () => {
-      const storedToken = localStorage.getItem('token');
+      const storedToken = localStorage.getItem('userToken');
       if (!storedToken) {
         setIsAuthenticated(false);
         setLoading(false);
@@ -35,13 +35,13 @@ export const AuthProvider = ({ children }) => {
           setUser(res.data.user);
           setIsAuthenticated(true);
         } else {
-          localStorage.removeItem('token');
+          localStorage.removeItem('userToken');
           setToken(null);
           setIsAuthenticated(false);
         }
       } catch (err) {
         console.error('Auth check error:', err);
-        localStorage.removeItem('token');
+        localStorage.removeItem('userToken');
         setToken(null);
         setIsAuthenticated(false);
       } finally {
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
       const data = res.data;
 
       if (res.status === 200 && data.success) {
-        localStorage.setItem('token', data.token);
+        localStorage.setItem('userToken', data.token);
         setToken(data.token);
         setUser(data.user);
         setIsAuthenticated(true);
@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }) => {
 
   // Logout function
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('userToken');
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);

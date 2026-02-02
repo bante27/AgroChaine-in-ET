@@ -15,7 +15,6 @@ import {
   UserPlus,
 } from "lucide-react";
 import axios from "axios";
-import { API_URL } from "../utils/apiConfig";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -47,8 +46,8 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       setError(null);
-      const token = localStorage.getItem("token");
-      const res = await axios.get(`${API_URL}/api/admin/users`, {
+      const token = localStorage.getItem("userToken");
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data.users || []);
@@ -64,9 +63,9 @@ const Users = () => {
     try {
       setVerificationLoading(true);
       setError(null);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("userToken");
       const res = await axios.get(
-        `${API_URL}/api/admin/verifications/pending`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/verifications/pending`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -87,9 +86,9 @@ const Users = () => {
     setActionLoading(true);
     try {
       setError(null);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("userToken");
       await axios.post(
-        `${API_URL}/api/admin/users/${userId}/restrict`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${userId}/restrict`,
         {},
         {
           headers: {
@@ -116,9 +115,9 @@ const Users = () => {
     setActionLoading(true);
     try {
       setError(null);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("userToken");
       await axios.post(
-        `${API_URL}/api/admin/make-admin/${userId}`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/make-admin/${userId}`,
         {},
         {
           headers: {
@@ -229,8 +228,8 @@ const Users = () => {
                   <tr
                     key={user.userId}
                     className={`border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200 ${user.isRestricted
-                      ? "bg-red-50 dark:bg-red-900/10"
-                      : ""
+                        ? "bg-red-50 dark:bg-red-900/10"
+                        : ""
                       }`}
                   >
                     <td className="p-4 flex items-center gap-3">
@@ -281,8 +280,8 @@ const Users = () => {
                           handleRestrictUser(user.userId, user.isRestricted)
                         }
                         className={`p-2 rounded-lg ${user.isRestricted
-                          ? "bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/20"
-                          : "bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-200 dark:hover:bg-cyan-500/20"
+                            ? "bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/20"
+                            : "bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-200 dark:hover:bg-cyan-500/20"
                           } transition-colors duration-200 flex items-center gap-1`}
                         title={
                           user.isRestricted ? "Unrestrict User" : "Restrict User"
@@ -296,8 +295,8 @@ const Users = () => {
                           handleMakeAdmin(user.userId, user.isAdmin)
                         }
                         className={`p-2 rounded-lg ${user.isAdmin
-                          ? "bg-yellow-100 dark:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-500/20"
-                          : "bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-200 dark:hover:bg-cyan-500/20"
+                            ? "bg-yellow-100 dark:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-500/20"
+                            : "bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-200 dark:hover:bg-cyan-500/20"
                           } transition-colors duration-200 flex items-center gap-1`}
                         title={user.isAdmin ? "Remove Admin" : "Make Admin"}
                         disabled={actionLoading}
@@ -495,8 +494,8 @@ const Users = () => {
                         )
                       }
                       className={`flex-1 p-3 rounded-lg ${selectedUser.isRestricted
-                        ? "bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/20"
-                        : "bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-200 dark:hover:bg-cyan-500/20"
+                          ? "bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/20"
+                          : "bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-200 dark:hover:bg-cyan-500/20"
                         } transition-colors duration-200 flex items-center justify-center gap-2`}
                       disabled={actionLoading}
                     >
@@ -515,8 +514,8 @@ const Users = () => {
                         )
                       }
                       className={`flex-1 p-3 rounded-lg ${selectedUser.isAdmin
-                        ? "bg-yellow-100 dark:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-500/20"
-                        : "bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-200 dark:hover:bg-cyan-500/20"
+                          ? "bg-yellow-100 dark:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-500/20"
+                          : "bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-200 dark:hover:bg-cyan-500/20"
                         } transition-colors duration-200 flex items-center justify-center gap-2`}
                       disabled={actionLoading}
                     >

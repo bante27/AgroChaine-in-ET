@@ -1,12 +1,10 @@
 // API utility functions for the admin dashboard
 
-import { API_URL } from './apiConfig';
-
-const API_BASE_URL = `${API_URL}/api/admin`;
+const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin`;
 
 // Generic API call function
 const apiCall = async (endpoint, options = {}) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('adminToken');
 
   const config = {
     headers: {
@@ -128,7 +126,7 @@ export const settingsAPI = {
 
 // Authentication APIs
 export const authAPI = {
-  login: (credentials) => fetch(`${API_URL}/api/admin/login`, {
+  login: (credentials) => fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials),

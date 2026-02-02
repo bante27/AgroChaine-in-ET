@@ -189,7 +189,7 @@ const Login = () => {
     try {
       const res = await axios.post(`${API_URL}/api/users/verify-otp`, { email: otpEmail, otp });
       if (res.data.success) {
-        await login({ token: res.data.token, user: res.data.user });
+        await login(res.data.token, res.data.user);
         toast.success('OTP verified! Redirecting...');
         navigate(from, { replace: true });
       } else {

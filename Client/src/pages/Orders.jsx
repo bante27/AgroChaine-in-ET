@@ -7,7 +7,6 @@ import Modal from '../components/common/Modal';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import { API_URL } from '../utils/apiConfig';
 
 const Orders = () => {
   const { user: authUser } = useAuth();
@@ -34,7 +33,7 @@ const Orders = () => {
       }
       try {
         setLoading(true);
-        const res = await axios.get(`${API_URL}/api/transactions/my`, {
+        const res = await axios.get(`/api/transactions/my`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -50,7 +49,7 @@ const Orders = () => {
 
               // Fetch product
               try {
-                const productResponse = await axios.get(`${API_URL}/api/products/${txn.productId || firstItem.product?._id}`, {
+                const productResponse = await axios.get(`/api/products/${txn.productId || firstItem.product?._id}`, {
                   headers: { Authorization: `Bearer ${token}` },
                 });
                 productName = productResponse.data.name || productResponse.data.title || 'Unknown Product';
@@ -60,7 +59,7 @@ const Orders = () => {
 
               // Fetch buyer
               try {
-                const buyerResponse = await axios.get(`${API_URL}/api/users/${txn.buyerUserId}`, {
+                const buyerResponse = await axios.get(`/api/users/${txn.buyerUserId}`, {
                   headers: { Authorization: `Bearer ${token}` },
                 });
                 buyerName = buyerResponse.data.fullName || 'Unknown Buyer';
@@ -70,7 +69,7 @@ const Orders = () => {
 
               // Fetch seller
               try {
-                const sellerResponse = await axios.get(`${API_URL}/api/users/${txn.sellerUserId}`, {
+                const sellerResponse = await axios.get(`/api/users/${txn.sellerUserId}`, {
                   headers: { Authorization: `Bearer ${token}` },
                 });
                 sellerName = sellerResponse.data.fullName || 'Unknown Seller';
@@ -149,21 +148,21 @@ const Orders = () => {
       switch (status) {
         case 'delivered':
           response = await axios.post(
-            `${API_URL}/api/transactions/confirm-delivery/${orderId}`,
+            `/api//confirm-delivery/:transactionId/${orderId}`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           );
           break;
         case 'shipped':
           response = await axios.post(
-            `${API_URL}/api/transactions/${orderId}/deliver`,
+            `/api/transactions/${orderId}/deliver`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           );
           break;
         case 'canceled':
           response = await axios.post(
-            `${API_URL}/api/transactions/${orderId}/cancel`,
+            `/api/transactions/${orderId}/cancel`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           );

@@ -12,15 +12,15 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(localStorage.getItem('userToken'));
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('userToken'));
   const [role, setRole] = useState('guest'); // Default role
 
   // Check authentication on app load
   useEffect(() => {
     const checkAuth = async () => {
-      const storedToken = localStorage.getItem('token');
+      const storedToken = localStorage.getItem('userToken');
       if (!storedToken) {
         setIsAuthenticated(false);
         setRole('guest');
@@ -40,20 +40,20 @@ export const AuthProvider = ({ children }) => {
             setIsAuthenticated(true);
             setRole('admin');
           } else {
-            localStorage.removeItem('token');
+            localStorage.removeItem('userToken');
             setToken(null);
             setIsAuthenticated(false);
             setRole('guest');
           }
         } else {
-          localStorage.removeItem('token');
+          localStorage.removeItem('userToken');
           setToken(null);
           setIsAuthenticated(false);
           setRole('guest');
         }
       } catch (err) {
         console.error('Auth check error:', err);
-        localStorage.removeItem('token');
+        localStorage.removeItem('userToken');
         setToken(null);
         setIsAuthenticated(false);
         setRole('guest');
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }) => {
       if (res.status === 200 && data.success) {
         // Only allow login for admin users
         if (data.user.isAdmin) {
-          localStorage.setItem('token', data.token);
+          localStorage.setItem('userToken', data.token);
           setToken(data.token);
           setUser(data.user);
           setIsAuthenticated(true);
@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }) => {
 
   // Logout function
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('userToken');
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
