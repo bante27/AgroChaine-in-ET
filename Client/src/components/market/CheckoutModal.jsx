@@ -3,6 +3,8 @@ import Button from "../common/Button";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { motion } from "framer-motion";
+import { API_URL } from '../../utils/apiConfig';
+
 
 const SERVICE_FEE_PERCENT = 5;
 
@@ -94,7 +96,7 @@ const CheckoutModal = ({
       const payload = { orders, deliveryAddress: deliveryAddress.trim() };
 
       const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/transactions/buy`,
+        `${API_URL}/api/transactions/buy`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );

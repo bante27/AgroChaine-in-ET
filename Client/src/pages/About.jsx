@@ -41,6 +41,8 @@ import AgricultureHero from '../assets/images/Traceability-2.0-Digital-Solutions
 import MakingEffort from '../assets/images/Digital trac.png';
 import AgriculturalReforms from '../assets/images/image.png';
 import IvecoGenlyonTruckImage from '../assets/images/Iveco-Genlyon-Truck.jfif';
+import { API_URL } from '../utils/apiConfig';
+
 
 const About = () => {
   const values = [
@@ -219,7 +221,7 @@ const About = () => {
     setIsLoadingWeather(true);
     setWeatherError(null);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/weather?city=${encodeURIComponent(city)}`);
+      const response = await fetch(`${API_URL}/api/weather?city=${encodeURIComponent(city)}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -244,7 +246,7 @@ const About = () => {
         async (position) => {
           const { latitude, longitude } = position.coords;
           try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/weather?lat=${latitude}&lon=${longitude}`);
+            const response = await fetch(`${API_URL}/api/weather?lat=${latitude}&lon=${longitude}`);
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }

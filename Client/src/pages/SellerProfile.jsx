@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { API_URL } from '../utils/apiConfig';
+
 import {
   FaPhone,
   FaMapMarkerAlt,
@@ -26,7 +28,7 @@ const SellerProfile = () => {
       setLoading(true);
       setError(null);
       try {
-        const resSeller = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/${id}`);
+        const resSeller = await axios.get(`${API_URL}/api/users/${id}`);
         if (resSeller.data.success) {
           setSeller(resSeller.data.user);
           setPostedProducts(resSeller.data.user.postedProducts || []);

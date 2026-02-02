@@ -139,7 +139,7 @@ const Contact = () => {
       files.forEach((file) => payload.append('files', file));
       if (audioBlob) payload.append('voice', audioBlob, 'voice_message.webm');
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/contact`, {
+      const res = await fetch(`/api/contact`, {
         method: 'POST',
         body: payload,
       });

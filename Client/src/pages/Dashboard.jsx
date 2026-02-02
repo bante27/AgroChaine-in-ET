@@ -26,6 +26,7 @@ import {
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import { API_URL } from '../utils/apiConfig';
 import Card from '../components/Card';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
@@ -95,7 +96,7 @@ const Dashboard = () => {
       }
       const customerPromises = closeCustomerIds.map(async (customerId) => {
         try {
-          const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/${customerId.userId}`, {
+          const response = await axios.get(`/api/users/${customerId.userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const { user } = response.data;
@@ -129,7 +130,7 @@ const Dashboard = () => {
       return;
     }
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile`, {
+      const response = await axios.get(`/api/users/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(response.data.user);
@@ -160,7 +161,7 @@ const Dashboard = () => {
 
       // Try the API endpoint first
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/my-products`, {
+        const response = await axios.get(`/api/products/my-products`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         postedProducts = response.data.products || [];
@@ -170,7 +171,7 @@ const Dashboard = () => {
 
         // Fallback: get from user profile
         try {
-          const userResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile`, {
+          const userResponse = await axios.get(`/api/users/profile`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -270,7 +271,7 @@ const Dashboard = () => {
         setOrders([]);
         return;
       }
-      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/transactions/my`, {
+      const response = await axios.get(`/api/transactions/my`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const transactions = response.data.transactions || [];
@@ -292,7 +293,7 @@ const Dashboard = () => {
             let productName = 'Unknown Product';
             let productImage = '';
             try {
-              const productResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${tx.productId}`, {
+              const productResponse = await axios.get(`/api/products/${tx.productId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               productName = productResponse.data.product.title || 'Unknown Product';
@@ -304,7 +305,7 @@ const Dashboard = () => {
             let buyerName = 'Unknown Buyer';
             let buyerEmail = '';
             try {
-              const buyerResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/${tx.buyerUserId}`, {
+              const buyerResponse = await axios.get(`/api/users/${tx.buyerUserId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               buyerName = buyerResponse.data.user.fullName || 'Unknown Buyer';
@@ -316,7 +317,7 @@ const Dashboard = () => {
             let sellerName = 'Unknown Seller';
             let sellerEmail = '';
             try {
-              const sellerResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/${tx.sellerUserId}`, {
+              const sellerResponse = await axios.get(`/api/users/${tx.sellerUserId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               sellerName = sellerResponse.data.user.fullName || 'Unknown Seller';
@@ -362,7 +363,7 @@ const Dashboard = () => {
 
       // Mark order as shipped
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/transactions/mark-shipped/${transactionId}`,
+        `/api/transactions/mark-shipped/${transactionId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -383,7 +384,7 @@ const Dashboard = () => {
       if (transaction.buyerEmail) {
         try {
           await axios.post(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/email/shipped-notification`,
+            `/api/products/email/shipped-notification`,
             {
               to: transaction.buyerEmail,
               buyerName: transaction.buyerName || "Customer",
@@ -416,7 +417,7 @@ const Dashboard = () => {
 
       // Confirm delivery
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/transactions/confirm-delivery/${transactionId}`,
+        `/api/transactions/confirm-delivery/${transactionId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -437,7 +438,7 @@ const Dashboard = () => {
       if (transaction.sellerEmail) {
         try {
           await axios.post(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/email/delivery-confirmation`,
+            `/api/products/email/delivery-confirmation`,
             {
               to: transaction.sellerEmail,
               sellerName: transaction.sellerName || "Seller",
@@ -624,13 +625,13 @@ const Dashboard = () => {
       formData.append('govIdFront', data.govIdFront);
       formData.append('govIdBack', data.govIdBack);
       formData.append('role', data.role);
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/verify-id`, formData, {
+      await axios.post(`/api/users/verify-id`, formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
       setVerificationStatus('pending');
       setShowVerificationModal(false);
       await axios.patch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile`,
+        `/api/users/profile`,
         { fullName: data.name },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -644,7 +645,7 @@ const Dashboard = () => {
   const handleProductSubmit = async (productData) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products`, productData, {
+      await axios.post(`/api/products`, productData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
       setShowProductModal(false);
@@ -661,7 +662,7 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       const formData = new FormData();
       formData.append('profilePic', imageFile);
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile-pic`, formData, {
+      await axios.post(`/api/users/profile-pic`, formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
       fetchUserProfileLocal();
@@ -675,7 +676,7 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.patch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile`,
+        `/api/users/profile`,
         profileData,
         { headers: { Authorization: `Bearer ${token}` } }
       );

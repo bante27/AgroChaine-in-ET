@@ -10,6 +10,8 @@ import LiveChat from "../components/LiveChat";
 import CheckoutModal from "../components/market/CheckoutModal";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { API_URL } from '../utils/apiConfig';
+
 
 const modalBackdrop = {
   initial: { opacity: 0 },
@@ -65,7 +67,7 @@ const Marketplace = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products`, {
+      const response = await axios.get(`${API_URL}/api/products`, {
         headers: { Authorization: token ? `Bearer ${token}` : undefined },
       });
 

@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Button from "../common/Button";
+import { API_URL } from '../../utils/apiConfig';
+
 
 const fallbackImage = "https://via.placeholder.com/400";
 
@@ -44,7 +46,7 @@ const ProductModal = ({
     setIsSubmittingReview(true);
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${product.productId}/review`,
+        `${API_URL}/api/products/${product.productId}/review`,
         {
           method: "POST",
           headers: {
@@ -70,7 +72,7 @@ const ProductModal = ({
     setLikeLoading(true);
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${product.productId}/${liked ? "unlike" : "like"}`,
+        `${API_URL}/api/products/${product.productId}/${liked ? "unlike" : "like"}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },

@@ -3,6 +3,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Send, MessageCircle } from 'lucide-react';
 import Draggable from 'react-draggable';
 import { Resizable } from 're-resizable';
+import { API_URL } from '../utils/apiConfig';
+
 
 export default function LiveChat() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +21,7 @@ export default function LiveChat() {
     setInput('');
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat`, {
+      const res = await fetch(`${API_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text }),

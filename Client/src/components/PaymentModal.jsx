@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Smartphone, Banknote, Wallet } from "lucide-react";
 import Button from "./Button";
 import toast from "react-hot-toast";
+import { API_URL } from '../utils/apiConfig';
+
 
 const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
   const [amount, setAmount] = useState("");
@@ -31,7 +33,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Authentication required. Please log in.");
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/add-balance`, {
+      const response = await fetch(`${API_URL}/api/users/add-balance`, {
         method: "POST",
         headers: {
           accept: "application/json",
