@@ -84,7 +84,6 @@ export const handleContactForm = async (req, res) => {
     }
     // Send email to admin
     const adminEmailOptions = {
-      from: `AgroChain Ethiopia <onboarding@resend.dev>`,
       to: 'tilahunsitotaw87@gmail.com', // Admin email
       subject: `📩 Contact Form: ${subject}`,
       html: adminHtml,

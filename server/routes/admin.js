@@ -91,9 +91,7 @@ router.post(
       console.error('Error replying to message:', err);
       res.status(500).json({
         success: false,
-        error: err.message.includes('nodemailer')
-          ? 'Email service configuration error'
-          : 'Server error replying to message'
+        error: 'Server error replying to message'
       });
     }
   }

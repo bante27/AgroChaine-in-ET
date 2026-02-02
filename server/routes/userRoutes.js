@@ -19,22 +19,20 @@ const generateUserId = () =>
 const generateOtp = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
-// Nodemailer transporter
-// Transporter is now imported from ../utils/mailer.js
-
+// Email transporter is now imported from ../utils/mailer.js
 const pendingUsers = new Map();
 
 transporter.verify((err, success) => {
-  if (err) console.error('Nodemailer error:', err);
-  else console.log('Nodemailer ready');
+  if (err) console.error('Email service error:', err);
+  else console.log('Email service (Resend) ready');
 });
 
 // Middleware to check email credentials
 const checkEmailCredentials = (req, res, next) => {
-  if (!process.env.NODEMAILER_EMAIL || !process.env.NODEMAILER_PASS) {
+  if (!process.env.RESEND_API_KEY) {
     return res
       .status(500)
-      .json({ success: false, error: 'Email credentials missing' });
+      .json({ success: false, error: 'Email service (Resend) key missing' });
   }
   next();
 };
