@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       console.log('AuthContext: Checking auth status, token:', token);
       if (token) {
-        const response = await axios.get('http://localhost:5000/api/users/profile', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log('AuthContext: Profile response:', response.data);

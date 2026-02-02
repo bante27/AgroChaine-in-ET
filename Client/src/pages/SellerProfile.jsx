@@ -26,7 +26,7 @@ const SellerProfile = () => {
       setLoading(true);
       setError(null);
       try {
-        const resSeller = await axios.get(`http://localhost:5000/api/users/${id}`);
+        const resSeller = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/${id}`);
         if (resSeller.data.success) {
           setSeller(resSeller.data.user);
           setPostedProducts(resSeller.data.user.postedProducts || []);
@@ -95,8 +95,8 @@ const SellerProfile = () => {
             <p className="text-gray-800 text-center py-6 text-lg">No products posted yet.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-           {postedProducts.map((prod) => {
-  // Calculate sold and available properly
+              {postedProducts.map((prod) => {
+                // Calculate sold and available properly
                 const totalQuantity = prod.initialQuantity ?? 0;
                 const soldCount = prod.soldQuantity ?? 0;
                 const availableCount = Math.max(totalQuantity - soldCount, 0);
@@ -115,9 +115,8 @@ const SellerProfile = () => {
                         alt={prod.title}
                         className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                      <span className={`absolute top-3 left-3 text-xs px-2 py-1 rounded-full font-semibold shadow-md ${
-                        availableCount > 0 ? "bg-green-600 text-white" : "bg-red-600 text-white"
-                      }`}>
+                      <span className={`absolute top-3 left-3 text-xs px-2 py-1 rounded-full font-semibold shadow-md ${availableCount > 0 ? "bg-green-600 text-white" : "bg-red-600 text-white"
+                        }`}>
                         {availableCount > 0 ? `Available: ${availableCount}` : "Sold Out"}
                       </span>
                     </div>
@@ -157,12 +156,12 @@ const SellerProfile = () => {
                 );
               })}
 
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              };
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default SellerProfile;
