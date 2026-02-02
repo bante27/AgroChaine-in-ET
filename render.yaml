@@ -26,7 +26,7 @@ services:
         sync: false
 
   # 2. Client Static Site
-  - type: static
+  - type: static_site
     name: agrochain-client
     plan: free
     buildCommand: npm install && npm run build
@@ -40,7 +40,7 @@ services:
           property: host
 
   # 3. Admin Static Site
-  - type: static
+  - type: static_site
     name: agrochain-admin
     plan: free
     buildCommand: npm install && npm run build
