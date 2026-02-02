@@ -5,11 +5,10 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import nodemailer from 'nodemailer';
-
 import auth from '../middleware/auth.js';
 import User from '../models/User.js';
 import { profilePicUpload, govIdUpload } from '../middleware/upload.js';
+import transporter from '../utils/mailer.js';
 
 const router = express.Router();
 
@@ -21,16 +20,7 @@ const generateOtp = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
 // Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: process.env.EMAIL_SERVICE || 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
+// Transporter is now imported from ../utils/mailer.js
 
 const pendingUsers = new Map();
 

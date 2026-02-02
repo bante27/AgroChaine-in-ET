@@ -22,9 +22,11 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
-      - key: NODEMAILER_EMAIL
+      - key: EMAIL_USER
         sync: false
-      - key: NODEMAILER_PASS
+      - key: EMAIL_PASS
+        sync: false
+      - key: RESEND_API_KEY
         sync: false
 
   # 2. Client Static Site

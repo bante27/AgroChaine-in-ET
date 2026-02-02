@@ -1,29 +1,8 @@
 import Message from "../models/Message.js";
-import nodemailer from "nodemailer";
+import transporter from "../utils/mailer.js";
 
 // Helper to send emails
-const sendEmail = async (to, subject, html, attachments = []) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // Use App password
-      },
-    });
-
-    await transporter.sendMail({
-      from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html,
-      attachments,
-    });
-  } catch (err) {
-    console.error("Email send error:", err);
-    throw new Error("Failed to send email");
-  }
-};
+// sendEmail is now using the unified transporter
 
 // Main contact form handler
 export const handleContactForm = async (req, res) => {
@@ -96,22 +75,24 @@ export const handleContactForm = async (req, res) => {
       adminHtml += "</ul>";
     }
 
-    await sendEmail(
-      process.env.EMAIL_USER,
-      `📩 Contact Form: ${subject}`,
-      adminHtml,
+    await transporter.sendMail({
+      from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER,
+      subject: `📩 Contact Form: ${subject}`,
+      html: adminHtml,
       attachments
-    );
+    });
     console.log("Admin email sent");
 
     // ===== Auto-reply to user =====
-    await sendEmail(
-      email,
-      "✅ We Received Your Message - Agrochain Ethiopia",
-      `<p>Hi ${name},</p>
+    await transporter.sendMail({
+      from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "✅ We Received Your Message - Agrochain Ethiopia",
+      html: `<p>Hi ${name},</p>
        <p>Thank you for contacting us. We have received your message and will respond soon.</p>
        <p>Best regards,<br/>Agrochain Ethiopia Team</p>`
-    );
+    });
     console.log("User auto-reply sent");
 
     return res

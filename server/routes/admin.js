@@ -7,23 +7,11 @@ import Product from '../models/Product.js';
 import Transaction from '../models/Transaction.js';
 import Message from '../models/Message.js';
 import PlatformFee from "../models/PlatformFee.js";
-import nodemailer from 'nodemailer';
+import transporter from '../utils/mailer.js';
 
 const router = express.Router();
 
-// Configure Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: 'Gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-transporter.verify((err, success) => {
-  if (err) console.error('Nodemailer error:', err);
-  else console.log('Nodemailer ready for admin routes');
-});
+// Transporter is now imported from ../utils/mailer.js
 
 // Get all messages sent to admin
 router.get('/messages', auth, admin, async (req, res) => {
@@ -72,14 +60,6 @@ router.post(
         `,
       };
 
-      // Verify email configuration before sending
-      await new Promise((resolve, reject) => {
-        transporter.verify((err, success) => {
-          if (err) reject(err);
-          else resolve(success);
-        });
-      });
-
       // Send email
       await transporter.sendMail(mailOptions);
 
@@ -105,11 +85,11 @@ router.post(
       });
     } catch (err) {
       console.error('Error replying to message:', err);
-      res.status(500).json({ 
-        success: false, 
-        error: err.message.includes('nodemailer') 
+      res.status(500).json({
+        success: false,
+        error: err.message.includes('nodemailer')
           ? 'Email service configuration error'
-          : 'Server error replying to message' 
+          : 'Server error replying to message'
       });
     }
   }
@@ -207,10 +187,9 @@ router.patch('/verify/:userId', auth, admin, async (req, res) => {
       html: `
         <p>Dear ${user.fullName},</p>
         <p>Your government ID verification has been ${status}.</p>
-        <p>${
-          status === 'approved'
-            ? 'Your account is now fully verified.'
-            : 'Please upload valid ID documents and try again.'
+        <p>${status === 'approved'
+          ? 'Your account is now fully verified.'
+          : 'Please upload valid ID documents and try again.'
         }</p>
         <p>Best regards,<br/>Agrochain Ethiopia Team</p>
       `,
