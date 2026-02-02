@@ -234,16 +234,24 @@ const Login = () => {
       try {
         const response = await axios.post(`${API_URL}/api/users/login`, { email: formData.email, password: formData.password });
         if (response.data.success && response.data.token) {
-          await login(response.data.token, response.data.user);
-          toast.success('Login successful!');
-          // Small delay to ensure state updates complete
-          setTimeout(() => {
-            navigate(from, { replace: true });
-          }, 100);
+          const loginResult = await login(response.data.token, response.data.user);
+          console.log('Login result:', loginResult);
+
+          if (loginResult.success) {
+            toast.success('Login successful!');
+            // Longer delay to ensure state updates complete
+            setTimeout(() => {
+              console.log('Navigating to dashboard...');
+              navigate(from, { replace: true });
+            }, 300);
+          } else {
+            toast.error(loginResult.error || 'Login failed.');
+          }
         } else {
           toast.error(response.data.error || 'Login failed.');
         }
       } catch (error) {
+        console.error('Login error:', error);
         toast.error(error.response?.data?.error || 'Login error.');
       }
     } else {
