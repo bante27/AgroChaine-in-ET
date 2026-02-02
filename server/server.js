@@ -32,7 +32,20 @@ const __dirname = path.dirname(__filename);
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5174", "http://localhost:5175", "http://localhost:5001", "http://localhost:3000"],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        "http://localhost:5174",
+        "http://localhost:5175",
+        "http://localhost:5001",
+        "http://localhost:3000"
+      ];
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".onrender.com") || origin.endsWith(".netlify.app")) {
+        callback(null, true);
+      } else {
+        console.log("Blocked by CORS:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
@@ -44,7 +57,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // === NEW: Weather Route ===
-app.use("/api/weather", weatherRoutes); 
+app.use("/api/weather", weatherRoutes);
+
+// Root route for health check
+app.get("/", (req, res) => {
+  res.status(200).json({ status: "success", message: "AgroChain API is running" });
+});
 
 // Routes
 app.use("/api/transactions", transactionRoutes);

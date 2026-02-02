@@ -16,13 +16,13 @@ import LiveChat from '../components/LiveChat';
 const OTPInput = ({ email, otp, onVerify, onResend }) => {
   const [inputOtp, setInputOtp] = useState('');
   const [timer, setTimer] = useState(300);
-  
+
   useEffect(() => {
     setInputOtp(otp || '');
     const interval = setInterval(() => setTimer(prev => (prev > 0 ? prev - 1 : 0)), 1000);
     return () => clearInterval(interval);
   }, [otp]);
-  
+
   const handleVerify = () => {
     if (!inputOtp || inputOtp.length !== 6) return toast.error('Enter a valid 6-digit OTP');
     onVerify(inputOtp);
@@ -48,7 +48,7 @@ const OTPInput = ({ email, otp, onVerify, onResend }) => {
             <h2 className="text-2xl font-bold text-gray-900">Verify Your Email</h2>
             <p className="text-gray-500 text-sm mt-2">Enter the OTP sent to <span className="font-medium">{email}</span></p>
           </div>
-          <form 
+          <form
             className="space-y-4 mt-6"
             onSubmit={(e) => {
               e.preventDefault();
@@ -186,7 +186,7 @@ const Login = () => {
 
   const handleVerifyOTP = async (otp) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/users/verify-otp', { email: otpEmail, otp });
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/verify-otp`, { email: otpEmail, otp });
       if (res.data.success) {
         await login(res.data.token);
         toast.success('OTP verified! Redirecting...');
@@ -201,7 +201,7 @@ const Login = () => {
 
   const handleResendOTP = async () => {
     try {
-      const res = await axios.post('http://localhost:5000/api/users/register', { email: otpEmail });
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/register`, { email: otpEmail });
       if (res.data.success) {
         setInitialOtp(res.data.otp);
         toast.success('OTP resent.');
@@ -231,7 +231,7 @@ const Login = () => {
       }
 
       try {
-        const response = await axios.post('http://localhost:5000/api/users/login', { email: formData.email, password: formData.password });
+        const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/login`, { email: formData.email, password: formData.password });
         if (response.data.success && response.data.token) {
           await login(response.data.token);
           toast.success('Login successful!');
@@ -282,7 +282,7 @@ const Login = () => {
       }
 
       try {
-        const response = await axios.post('http://localhost:5000/api/users/register', { fullName, email, password, phone, address, agreeToTerms });
+        const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/register`, { fullName, email, password, phone, address, agreeToTerms });
         if (response.data.success) {
           setOtpEmail(email);
           setInitialOtp(response.data.otp);

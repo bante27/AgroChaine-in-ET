@@ -33,7 +33,7 @@ const Orders = () => {
       }
       try {
         setLoading(true);
-        const res = await axios.get('http://localhost:5000/api/transactions/my', {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/transactions/my`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -49,7 +49,7 @@ const Orders = () => {
 
               // Fetch product
               try {
-                const productResponse = await axios.get(`http://localhost:5000/api/products/${txn.productId || firstItem.product?._id}`, {
+                const productResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${txn.productId || firstItem.product?._id}`, {
                   headers: { Authorization: `Bearer ${token}` },
                 });
                 productName = productResponse.data.name || productResponse.data.title || 'Unknown Product';
@@ -59,7 +59,7 @@ const Orders = () => {
 
               // Fetch buyer
               try {
-                const buyerResponse = await axios.get(`http://localhost:5000/api/users/${txn.buyerUserId}`, {
+                const buyerResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/${txn.buyerUserId}`, {
                   headers: { Authorization: `Bearer ${token}` },
                 });
                 buyerName = buyerResponse.data.fullName || 'Unknown Buyer';
@@ -69,7 +69,7 @@ const Orders = () => {
 
               // Fetch seller
               try {
-                const sellerResponse = await axios.get(`http://localhost:5000/api/users/${txn.sellerUserId}`, {
+                const sellerResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/${txn.sellerUserId}`, {
                   headers: { Authorization: `Bearer ${token}` },
                 });
                 sellerName = sellerResponse.data.fullName || 'Unknown Seller';
@@ -131,9 +131,9 @@ const Orders = () => {
     (order) =>
       order &&
       (order._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       order.buyerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       order.sellerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       order.productName?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        order.buyerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.sellerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.productName?.toLowerCase().includes(searchTerm.toLowerCase())) &&
       (filterStatus === 'all' || order.status === filterStatus)
   );
 
@@ -148,21 +148,21 @@ const Orders = () => {
       switch (status) {
         case 'delivered':
           response = await axios.post(
-            `http://localhost:5000/api//confirm-delivery/:transactionId/${orderId}`,
+            `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api//confirm-delivery/:transactionId/${orderId}`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           );
           break;
         case 'shipped':
           response = await axios.post(
-            `http://localhost:5000/api/transactions/${orderId}/deliver`,
+            `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/transactions/${orderId}/deliver`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           );
           break;
         case 'canceled':
           response = await axios.post(
-            `http://localhost:5000/api/transactions/${orderId}/cancel`,
+            `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/transactions/${orderId}/cancel`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           );

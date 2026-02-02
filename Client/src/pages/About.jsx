@@ -191,35 +191,35 @@ const About = () => {
   const [userCity, setUserCity] = useState('Addis Ababa'); // Default
 
   // All major Ethiopian places
- // All major Ethiopian places (fixed spellings, no trailing spaces, added more)
-const locations = [
-  'Addis Ababa',
-  'Bahir Dar',
-  'Debre Markos',
-  'Mek\'ele',
-  'Gondar',
-  'Hawassa',
-  'Jimma',
-  'Dire Dawa',
-  'Harar',
-  'Adama',
-  'Dessie',
-  'Aksum',
-  'Lalibela',
-  'Jijiga',
-  'Semera',
-  'Gambela',
-  'Arba Minch',
-  'Asosa',
-  'Shashamane', // Added
-];
+  // All major Ethiopian places (fixed spellings, no trailing spaces, added more)
+  const locations = [
+    'Addis Ababa',
+    'Bahir Dar',
+    'Debre Markos',
+    'Mek\'ele',
+    'Gondar',
+    'Hawassa',
+    'Jimma',
+    'Dire Dawa',
+    'Harar',
+    'Adama',
+    'Dessie',
+    'Aksum',
+    'Lalibela',
+    'Jijiga',
+    'Semera',
+    'Gambela',
+    'Arba Minch',
+    'Asosa',
+    'Shashamane', // Added
+  ];
 
   // Define fetchWeather at the component level with useCallback for memoization
   const fetchWeather = useCallback(async (city) => {
     setIsLoadingWeather(true);
     setWeatherError(null);
     try {
-      const response = await fetch(`http://localhost:5000/api/weather?city=${encodeURIComponent(city)}`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/weather?city=${encodeURIComponent(city)}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -244,7 +244,7 @@ const locations = [
         async (position) => {
           const { latitude, longitude } = position.coords;
           try {
-            const response = await fetch(`http://localhost:5000/api/weather?lat=${latitude}&lon=${longitude}`);
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/weather?lat=${latitude}&lon=${longitude}`);
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -481,7 +481,7 @@ const locations = [
             className="text-center mb-16"
           >
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 rounded-2xl p-12" /* Increased padding */
-                style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'linear-gradient(135deg, #ffffff, #10b981)', boxShadow: '0 12px 25px rgba(0, 0, 0, 0.15)' }}>
+              style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'linear-gradient(135deg, #ffffff, #10b981)', boxShadow: '0 12px 25px rgba(0, 0, 0, 0.15)' }}>
               Our <span className="gradient-text">Core Values</span>
             </h2>
             <p className="text-xl sm:text-2xl text-gray-700 max-w-3xl mx-auto mt-6">
@@ -524,7 +524,7 @@ const locations = [
             className="text-center mb-16"
           >
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 rounded-2xl p-12" /* Increased padding */
-                style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'linear-gradient(135deg, #10b981, #3b82f6)', boxShadow: '0 15px 30px rgba(0, 0, 0, 0.2)' }}>
+              style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'linear-gradient(135deg, #10b981, #3b82f6)', boxShadow: '0 15px 30px rgba(0, 0, 0, 0.2)' }}>
               Our <span className="gradient-text">Core Services</span>
             </h2>
             <p className="text-xl sm:text-2xl text-gray-700 max-w-3xl mx-auto mt-6">
@@ -541,7 +541,7 @@ const locations = [
                 viewport={{ once: true, amount: 0.3 }}
                 className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${index % 2 === 1 ? 'lg:grid-flow-col-dense' : ''}`}
               >
-                <div 
+                <div
                   className={`${index % 2 === 1 ? 'lg:col-start-2 order-2 lg:order-1' : 'order-1'} rounded-2xl p-10 bg-white/80 backdrop-blur-md shadow-lg hover:shadow-2xl transition-all duration-500`}
                   style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', minHeight: '350px' }} /* Increased minHeight */
                 >
@@ -590,7 +590,7 @@ const locations = [
             className="text-center mb-16"
           >
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 rounded-2xl p-10" /* Increased padding */
-                style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'rgba(255, 255, 255, 0.9)', boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)' }}>
+              style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'rgba(255, 255, 255, 0.9)', boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)' }}>
               Additional <span className="gradient-text">Features</span>
             </h2>
             <p className="text-xl sm:text-2xl text-gray-700 max-w-3xl mx-auto mt-6">
@@ -633,7 +633,7 @@ const locations = [
             className="text-center mb-16"
           >
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 rounded-2xl p-10" /* Increased padding */
-                style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'rgba(255, 255, 255, 0.9)', boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)' }}>
+              style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'rgba(255, 255, 255, 0.9)', boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)' }}>
               What Our <span className="gradient-text">Clients Say</span>
             </h2>
             <p className="text-xl sm:text-2xl text-gray-700 max-w-3xl mx-auto mt-6">
@@ -693,7 +693,7 @@ const locations = [
             className="text-center mb-14"
           >
             <h2 className="text-4xl sm:text-5xl font-extrabold mb-6 leading-tight rounded-2xl p-10" /* Increased padding */
-                style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'rgba(255, 255, 255, 0.9)', boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)' }}>
+              style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'rgba(255, 255, 255, 0.9)', boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)' }}>
               Meet Our <span className="gradient-text">Team</span>
             </h2>
             <p className="text-lg sm:text-xl text-gray-700 max-w-3xl mx-auto mt-4">
@@ -799,9 +799,9 @@ const locations = [
             >
               {/* Condition Card - Animated Icon */}
               <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg text-center hover:shadow-2xl transition-all duration-300 col-span-1 md:col-span-1">
-                <motion.img 
-                  src={weather.icon} 
-                  alt={weather.condition} 
+                <motion.img
+                  src={weather.icon}
+                  alt={weather.condition}
                   className="mx-auto w-32 h-32 mb-6" // Increased size for clearer visibility
                 />
                 <h3 className="text-3xl font-bold text-teal-800 mb-2">{weather.condition}</h3>

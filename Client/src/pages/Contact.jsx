@@ -139,7 +139,7 @@ const Contact = () => {
       files.forEach((file) => payload.append('files', file));
       if (audioBlob) payload.append('voice', audioBlob, 'voice_message.webm');
 
-      const res = await fetch('http://localhost:5000/api/contact', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/contact`, {
         method: 'POST',
         body: payload,
       });
@@ -182,7 +182,7 @@ const Contact = () => {
       details: [
         { text: '+251985076701', link: 'tel:+251985076701' },
         { text: '+251927993894', link: 'tel:+251927993894' },
-        {text: '+251703036701' ,link: 'tel:+251703036701'},
+        { text: '+251703036701', link: 'tel:+251703036701' },
       ],
     },
     {
@@ -463,8 +463,8 @@ const Contact = () => {
                                 detail.isMap
                                   ? `View ${detail.text} on Google Maps`
                                   : info.title === 'Phone Numbers'
-                                  ? `Call ${detail.text}`
-                                  : `Email ${detail.text}`
+                                    ? `Call ${detail.text}`
+                                    : `Email ${detail.text}`
                               }
                               target={detail.isMap ? '_blank' : undefined}
                               rel={detail.isMap ? 'noopener noreferrer' : undefined}
@@ -582,7 +582,7 @@ const Contact = () => {
               Get Started Now
               <ArrowRight className="h-5 w-5" />
             </Link>
-            
+
           </motion.div>
         </div>
       </section>

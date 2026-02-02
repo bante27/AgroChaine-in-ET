@@ -11,7 +11,7 @@ import { useAuth } from '../context/AuthContext';
 const getFullURL = (path) => {
   if (!path) return '#';
   if (path.startsWith('http')) return path; // Cloudinary or absolute URL
-  return `http://localhost:5000${path}`; // Prepend backend base URL
+  return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${path}`; // Prepend backend base URL
 };
 
 const Messages = () => {
@@ -33,7 +33,7 @@ const Messages = () => {
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/messages', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/messages`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
@@ -64,7 +64,7 @@ const Messages = () => {
     e?.stopPropagation();
     try {
       await axios.patch(
-        `http://localhost:5000/api/admin/messages/${messageId}/read`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/messages/${messageId}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -77,7 +77,7 @@ const Messages = () => {
   const handleDelete = async (messageId) => {
     if (!window.confirm('Are you sure you want to delete this message?')) return;
     try {
-      await axios.delete(`http://localhost:5000/api/admin/messages/${messageId}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/messages/${messageId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (selectedMessage?.id === messageId) setShowMessageModal(false);
@@ -99,7 +99,7 @@ const Messages = () => {
     setReplyLoading(true);
     try {
       await axios.post(
-        `http://localhost:5000/api/admin/messages/${selectedMessage.id}/reply`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/messages/${selectedMessage.id}/reply`,
         { reply: replyForm.reply },
         {
           headers: {
@@ -197,11 +197,10 @@ const Messages = () => {
             filteredMessages.map((message) => (
               <div
                 key={message.id}
-                className={`bg-white dark:bg-gray-800 border rounded-2xl p-6 transition hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${
-                  message.status === 'unread'
+                className={`bg-white dark:bg-gray-800 border rounded-2xl p-6 transition hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${message.status === 'unread'
                     ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10'
                     : 'border-gray-200 dark:border-gray-700'
-                }`}
+                  }`}
                 onClick={() => {
                   setSelectedMessage(message);
                   setShowMessageModal(true);
@@ -266,7 +265,7 @@ const Messages = () => {
                     <Mail className="h-4 w-4" />
                     Reply
                   </Button>
-                 
+
                   <Button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -342,55 +341,55 @@ const Messages = () => {
             </div>
 
             {selectedMessage.attachments?.length > 0 && (
-  <div>
-    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-      Attachments
-    </h4>
-    <div className="space-y-3">
-                {selectedMessage.attachments.map((attachment) => {
-                  const isAudio = attachment.mimetype?.startsWith("audio/");
-                  const fileName = attachment.filename || attachment.originalname;
-                  const fileSize = attachment.size
-                    ? `(${(attachment.size / 1024).toFixed(2)} KB)`
-                    : "";
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                  Attachments
+                </h4>
+                <div className="space-y-3">
+                  {selectedMessage.attachments.map((attachment) => {
+                    const isAudio = attachment.mimetype?.startsWith("audio/");
+                    const fileName = attachment.filename || attachment.originalname;
+                    const fileSize = attachment.size
+                      ? `(${(attachment.size / 1024).toFixed(2)} KB)`
+                      : "";
 
-                  return (
-                    <div
-                      key={attachment._id}
-                      className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-between"
-                    >
-                      <div className="flex-1">
-                        {isAudio ? (
-                                  <>
-                                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 font-medium">
-                                      🎧 {fileName} {fileSize}
-                                    </p>
-                                    <audio
-                                      controls
-                                      className="w-full rounded-lg"
-                                      src={attachment.path}
-                                    >
-                                      Your browser does not support the audio element.
-                                    </audio>
-                                  </>
-                                ) : (
-                                  <a
-                                    href={attachment.path}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-emerald-600 dark:text-emerald-500 hover:underline text-sm font-medium"
-                                  >
-                                    📎 {fileName} {fileSize}
-                                  </a>
-                                )}
+                    return (
+                      <div
+                        key={attachment._id}
+                        className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-between"
+                      >
+                        <div className="flex-1">
+                          {isAudio ? (
+                            <>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 font-medium">
+                                🎧 {fileName} {fileSize}
+                              </p>
+                              <audio
+                                controls
+                                className="w-full rounded-lg"
+                                src={attachment.path}
+                              >
+                                Your browser does not support the audio element.
+                              </audio>
+                            </>
+                          ) : (
+                            <a
+                              href={attachment.path}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-emerald-600 dark:text-emerald-500 hover:underline text-sm font-medium"
+                            >
+                              📎 {fileName} {fileSize}
+                            </a>
+                          )}
 
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
 
             <div className="flex gap-4 mt-6">

@@ -94,7 +94,7 @@ const CheckoutModal = ({
       const payload = { orders, deliveryAddress: deliveryAddress.trim() };
 
       const { data } = await axios.post(
-        "http://localhost:5000/api/transactions/buy",
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/transactions/buy`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -228,11 +228,10 @@ const CheckoutModal = ({
         <div className="flex flex-col sm:flex-row gap-4 p-6 border-t border-gray-200 bg-gray-50">
           <Button
             onClick={handleOrder}
-            className={`w-full text-white font-semibold py-3 rounded-xl ${
-              loading
+            className={`w-full text-white font-semibold py-3 rounded-xl ${loading
                 ? "opacity-60 cursor-not-allowed bg-emerald-500"
                 : "bg-emerald-600 hover:bg-emerald-700"
-            }`}
+              }`}
             disabled={loading}
           >
             {loading ? "Processing..." : token ? "Place Order" : "Login to Continue"}

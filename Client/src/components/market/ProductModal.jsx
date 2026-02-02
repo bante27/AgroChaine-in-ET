@@ -44,7 +44,7 @@ const ProductModal = ({
     setIsSubmittingReview(true);
     try {
       const res = await fetch(
-        `http://localhost:5000/api/products/${product.productId}/review`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${product.productId}/review`,
         {
           method: "POST",
           headers: {
@@ -70,7 +70,7 @@ const ProductModal = ({
     setLikeLoading(true);
     try {
       const res = await fetch(
-        `http://localhost:5000/api/products/${product.productId}/${liked ? "unlike" : "like"}`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${product.productId}/${liked ? "unlike" : "like"}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -169,11 +169,10 @@ const ProductModal = ({
             <Button
               onClick={handleLike}
               disabled={likeLoading}
-              className={`flex items-center gap-1 px-2 py-1 text-xs rounded-lg transition text-white ${
-                liked
+              className={`flex items-center gap-1 px-2 py-1 text-xs rounded-lg transition text-white ${liked
                   ? "bg-red-500 hover:bg-red-600"
                   : "bg-blue-500 hover:bg-blue-600"
-              }`}
+                }`}
             >
               {liked ? <ThumbsDown className="w-3 h-3" /> : <ThumbsUp className="w-3 h-3" />}
               {liked ? "Unlike" : "Like"}
@@ -185,11 +184,10 @@ const ProductModal = ({
             <Button
               onClick={() => onAddToCart(product)}
               disabled={availableCount <= 0}
-              className={`w-full flex justify-center gap-2 text-sm text-white rounded-lg ${
-                availableCount > 0
+              className={`w-full flex justify-center gap-2 text-sm text-white rounded-lg ${availableCount > 0
                   ? "bg-green-500 hover:bg-green-600"
                   : "bg-gray-300 cursor-not-allowed text-gray-700"
-              }`}
+                }`}
             >
               <ShoppingCart className="w-4 h-4" />
               {availableCount > 0 ? "Add to Cart" : "Sold Out"}
@@ -198,11 +196,10 @@ const ProductModal = ({
             <Button
               onClick={() => onBuyNow(product)}
               disabled={availableCount <= 0}
-              className={`w-full flex justify-center gap-2 text-sm text-white rounded-lg ${
-                availableCount > 0
+              className={`w-full flex justify-center gap-2 text-sm text-white rounded-lg ${availableCount > 0
                   ? "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
                   : "bg-gray-300 cursor-not-allowed text-gray-700"
-              }`}
+                }`}
             >
               {availableCount > 0 ? "Buy Now" : "Sold Out"}
             </Button>

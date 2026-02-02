@@ -79,7 +79,7 @@ const Dashboard = () => {
       toast.error('No delivery address available');
       return;
     }
-    
+
     const encodedAddress = encodeURIComponent(address);
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
     window.open(googleMapsUrl, '_blank');
@@ -95,7 +95,7 @@ const Dashboard = () => {
       }
       const customerPromises = closeCustomerIds.map(async (customerId) => {
         try {
-          const response = await axios.get(`http://localhost:5000/api/users/${customerId.userId}`, {
+          const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/${customerId.userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const { user } = response.data;
@@ -129,7 +129,7 @@ const Dashboard = () => {
       return;
     }
     try {
-      const response = await axios.get('http://localhost:5000/api/users/profile', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(response.data.user);
@@ -155,25 +155,25 @@ const Dashboard = () => {
   const fetchPostedProducts = async () => {
     try {
       const token = localStorage.getItem('token');
-      
+
       let postedProducts = [];
-      
+
       // Try the API endpoint first
       try {
-        const response = await axios.get('http://localhost:5000/api/products/my-products', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/my-products`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         postedProducts = response.data.products || [];
         console.log('Posted products from API:', postedProducts.length);
       } catch (apiError) {
         console.log('API endpoint failed, trying fallback...');
-        
+
         // Fallback: get from user profile
         try {
-          const userResponse = await axios.get('http://localhost:5000/api/users/profile', {
+          const userResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          
+
           if (userResponse.data.user && userResponse.data.user.postedProducts) {
             postedProducts = userResponse.data.user.postedProducts;
             console.log('Posted products from user profile:', postedProducts.length);
@@ -182,7 +182,7 @@ const Dashboard = () => {
           console.error('Error fetching user profile for products:', userError);
         }
       }
-      
+
       return postedProducts;
     } catch (error) {
       console.error('Error fetching posted products:', error);
@@ -194,12 +194,12 @@ const Dashboard = () => {
   const updateStatsFromProfile = async (userData) => {
     try {
       let postedProductsCount = 0;
-      
+
       // Get posted products count with multiple fallbacks
       try {
         const postedProducts = await fetchPostedProducts();
         postedProductsCount = postedProducts.length || 0;
-        
+
         // Final fallback - check userData directly
         if (postedProductsCount === 0 && userData.postedProducts) {
           postedProductsCount = userData.postedProducts.length || 0;
@@ -209,14 +209,14 @@ const Dashboard = () => {
         // Use userData as last resort
         postedProductsCount = userData.postedProducts?.length || 0;
       }
-      
+
       const totalOrdersCount = userData.transactionHistory?.length || 0;
-      
+
       // Count sold products (transactions where user is seller and status is completed)
       const soldProductsCount = userData.transactionHistory?.filter(
         tx => tx.sellerUserId === userData.userId && tx.status === 'completed'
       ).length || 0;
-      
+
       const customerRating = userData.customerRating || 0;
 
       setStats([
@@ -270,7 +270,7 @@ const Dashboard = () => {
         setOrders([]);
         return;
       }
-      const response = await axios.get('http://localhost:5000/api/transactions/my', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/transactions/my`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const transactions = response.data.transactions || [];
@@ -292,7 +292,7 @@ const Dashboard = () => {
             let productName = 'Unknown Product';
             let productImage = '';
             try {
-              const productResponse = await axios.get(`http://localhost:5000/api/products/${tx.productId}`, {
+              const productResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${tx.productId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               productName = productResponse.data.product.title || 'Unknown Product';
@@ -304,7 +304,7 @@ const Dashboard = () => {
             let buyerName = 'Unknown Buyer';
             let buyerEmail = '';
             try {
-              const buyerResponse = await axios.get(`http://localhost:5000/api/users/${tx.buyerUserId}`, {
+              const buyerResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/${tx.buyerUserId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               buyerName = buyerResponse.data.user.fullName || 'Unknown Buyer';
@@ -316,7 +316,7 @@ const Dashboard = () => {
             let sellerName = 'Unknown Seller';
             let sellerEmail = '';
             try {
-              const sellerResponse = await axios.get(`http://localhost:5000/api/users/${tx.sellerUserId}`, {
+              const sellerResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/${tx.sellerUserId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               sellerName = sellerResponse.data.user.fullName || 'Unknown Seller';
@@ -355,113 +355,113 @@ const Dashboard = () => {
       setOrders([]);
     }
   };
-// -------------------- Handle Mark as Shipped --------------------
-const handleDeliver = async (transactionId) => {
-  try {
-    const token = localStorage.getItem("token");
+  // -------------------- Handle Mark as Shipped --------------------
+  const handleDeliver = async (transactionId) => {
+    try {
+      const token = localStorage.getItem("token");
 
-    // Mark order as shipped
-    const response = await axios.post(
-      `http://localhost:5000/api/transactions/mark-shipped/${transactionId}`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+      // Mark order as shipped
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/transactions/mark-shipped/${transactionId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    if (!response.data.success) throw new Error("Failed to mark product as shipped");
+      if (!response.data.success) throw new Error("Failed to mark product as shipped");
 
-    // Find order info
-    const transaction = orders.find((order) => order._id === transactionId);
-    if (!transaction) {
-      console.error("Transaction not found for ID:", transactionId);
-      toast.error("Transaction not found");
-      return;
-    }
-
-    console.log("Transaction found for shipping:", transaction);
-
-    // Send email to buyer
-    if (transaction.buyerEmail) {
-      try {
-        await axios.post(
-          "http://localhost:5000/api/products/email/shipped-notification",
-          {
-            to: transaction.buyerEmail,
-            buyerName: transaction.buyerName || "Customer",
-            productName: transaction.productName || "Product",
-            transactionId,
-            estimatedDelivery: "3-5 business days",
-          }
-        );
-        console.log(" Shipped email sent successfully to buyer:", transaction.buyerEmail);
-      } catch (emailError) {
-        console.error("❌ Failed to send shipped email:", emailError.response?.data || emailError);
+      // Find order info
+      const transaction = orders.find((order) => order._id === transactionId);
+      if (!transaction) {
+        console.error("Transaction not found for ID:", transactionId);
+        toast.error("Transaction not found");
+        return;
       }
-    } else {
-      console.warn("No buyer email found for transaction:", transactionId);
-    }
 
-    toast.success(" Product marked as shipped successfully!");
-    fetchUserProfileLocal();
+      console.log("Transaction found for shipping:", transaction);
 
-  } catch (error) {
-    console.error("❌ Error in handleDeliver:", error);
-    toast.error(error.response?.data?.error || error.message || "Failed to mark product as shipped");
-  }
-};
-
-// -------------------- Handle Confirm Delivery --------------------
-const handleDelivered = async (transactionId) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    // Confirm delivery
-    const response = await axios.post(
-      `http://localhost:5000/api/transactions/confirm-delivery/${transactionId}`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    if (!response.data.success) throw new Error("Failed to confirm delivery");
-
-    // Find order info
-    const transaction = orders.find((order) => order._id === transactionId);
-    if (!transaction) {
-      console.error("Transaction not found for ID:", transactionId);
-      toast.error("Transaction not found");
-      return;
-    }
-
-    console.log("Transaction found for delivery confirmation:", transaction);
-
-    // Send email to seller
-    if (transaction.sellerEmail) {
-      try {
-        await axios.post(
-          "http://localhost:5000/api/products/email/delivery-confirmation",
-          {
-            to: transaction.sellerEmail,
-            sellerName: transaction.sellerName || "Seller",
-            productName: transaction.productName || "Product",
-            transactionId,
-            buyerName: transaction.buyerName || "Buyer",
-          }
-        );
-        console.log(" Delivery confirmation email sent successfully to seller:", transaction.sellerEmail);
-      } catch (emailError) {
-        console.error("❌ Failed to send delivery confirmation email:", emailError.response?.data || emailError);
+      // Send email to buyer
+      if (transaction.buyerEmail) {
+        try {
+          await axios.post(
+            `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/email/shipped-notification`,
+            {
+              to: transaction.buyerEmail,
+              buyerName: transaction.buyerName || "Customer",
+              productName: transaction.productName || "Product",
+              transactionId,
+              estimatedDelivery: "3-5 business days",
+            }
+          );
+          console.log(" Shipped email sent successfully to buyer:", transaction.buyerEmail);
+        } catch (emailError) {
+          console.error("❌ Failed to send shipped email:", emailError.response?.data || emailError);
+        }
+      } else {
+        console.warn("No buyer email found for transaction:", transactionId);
       }
-    } else {
-      console.warn("No seller email found for transaction:", transactionId);
+
+      toast.success(" Product marked as shipped successfully!");
+      fetchUserProfileLocal();
+
+    } catch (error) {
+      console.error("❌ Error in handleDeliver:", error);
+      toast.error(error.response?.data?.error || error.message || "Failed to mark product as shipped");
     }
+  };
 
-    toast.success(" Delivery confirmed successfully!");
-    fetchUserProfileLocal();
+  // -------------------- Handle Confirm Delivery --------------------
+  const handleDelivered = async (transactionId) => {
+    try {
+      const token = localStorage.getItem("token");
 
-  } catch (error) {
-    console.error("❌ Error in handleDelivered:", error);
-    toast.error(error.response?.data?.error || error.message || "Failed to confirm delivery");
-  }
-};
+      // Confirm delivery
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/transactions/confirm-delivery/${transactionId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (!response.data.success) throw new Error("Failed to confirm delivery");
+
+      // Find order info
+      const transaction = orders.find((order) => order._id === transactionId);
+      if (!transaction) {
+        console.error("Transaction not found for ID:", transactionId);
+        toast.error("Transaction not found");
+        return;
+      }
+
+      console.log("Transaction found for delivery confirmation:", transaction);
+
+      // Send email to seller
+      if (transaction.sellerEmail) {
+        try {
+          await axios.post(
+            `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/email/delivery-confirmation`,
+            {
+              to: transaction.sellerEmail,
+              sellerName: transaction.sellerName || "Seller",
+              productName: transaction.productName || "Product",
+              transactionId,
+              buyerName: transaction.buyerName || "Buyer",
+            }
+          );
+          console.log(" Delivery confirmation email sent successfully to seller:", transaction.sellerEmail);
+        } catch (emailError) {
+          console.error("❌ Failed to send delivery confirmation email:", emailError.response?.data || emailError);
+        }
+      } else {
+        console.warn("No seller email found for transaction:", transactionId);
+      }
+
+      toast.success(" Delivery confirmed successfully!");
+      fetchUserProfileLocal();
+
+    } catch (error) {
+      console.error("❌ Error in handleDelivered:", error);
+      toast.error(error.response?.data?.error || error.message || "Failed to confirm delivery");
+    }
+  };
 
 
 
@@ -624,13 +624,13 @@ const handleDelivered = async (transactionId) => {
       formData.append('govIdFront', data.govIdFront);
       formData.append('govIdBack', data.govIdBack);
       formData.append('role', data.role);
-      await axios.post('http://localhost:5000/api/users/verify-id', formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/verify-id`, formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
       setVerificationStatus('pending');
       setShowVerificationModal(false);
       await axios.patch(
-        'http://localhost:5000/api/users/profile',
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile`,
         { fullName: data.name },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -644,7 +644,7 @@ const handleDelivered = async (transactionId) => {
   const handleProductSubmit = async (productData) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/products', productData, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products`, productData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
       setShowProductModal(false);
@@ -661,7 +661,7 @@ const handleDelivered = async (transactionId) => {
       const token = localStorage.getItem('token');
       const formData = new FormData();
       formData.append('profilePic', imageFile);
-      await axios.post('http://localhost:5000/api/users/profile-pic', formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile-pic`, formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
       fetchUserProfileLocal();
@@ -675,7 +675,7 @@ const handleDelivered = async (transactionId) => {
     try {
       const token = localStorage.getItem('token');
       await axios.patch(
-        'http://localhost:5000/api/users/profile',
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile`,
         profileData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -812,13 +812,12 @@ const handleDelivered = async (transactionId) => {
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 dark:text-white">{profileData.fullName}</h3>
                   <span
-                    className={`inline-block text-xs px-2 py-0.5 rounded-full mt-1 ${
-                      verificationStatus === 'verified'
-                        ? 'bg-green-100 text-green-600 border-green-200'
-                        : verificationStatus === 'pending'
+                    className={`inline-block text-xs px-2 py-0.5 rounded-full mt-1 ${verificationStatus === 'verified'
+                      ? 'bg-green-100 text-green-600 border-green-200'
+                      : verificationStatus === 'pending'
                         ? 'bg-yellow-100 text-yellow-600 border-yellow-200'
                         : 'bg-red-100 text-red-600 border-red-200'
-                    }`}
+                      }`}
                   >
                     {verificationStatus.charAt(0).toUpperCase() + verificationStatus.slice(1)}
                   </span>
@@ -838,8 +837,8 @@ const handleDelivered = async (transactionId) => {
                     <p>{user?.balance?.toFixed(2) || '0.00'} ETB</p>
                   </div>
                 </div>
-                
-              
+
+
                 {[
                   { label: 'Full Name', key: 'fullName', type: 'text' },
                   { label: 'Phone', key: 'phone', type: 'tel' },
@@ -1093,11 +1092,10 @@ const handleDelivered = async (transactionId) => {
                   <Button
                     key={period}
                     variant={selectedPeriod === period ? undefined : 'outline'}
-                    className={`py-1 px-3 text-xs rounded-lg transition-all duration-300 ${
-                      selectedPeriod === period
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm'
-                        : 'border-blue-300/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/10 dark:hover:bg-blue-900/10'
-                    }`}
+                    className={`py-1 px-3 text-xs rounded-lg transition-all duration-300 ${selectedPeriod === period
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm'
+                      : 'border-blue-300/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/10 dark:hover:bg-blue-900/10'
+                      }`}
                     onClick={() => setSelectedPeriod(period)}
                     aria-label={`Show sales for ${period}`}
                   >

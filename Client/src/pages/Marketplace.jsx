@@ -65,7 +65,7 @@ const Marketplace = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get("http://localhost:5000/api/products", {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products`, {
         headers: { Authorization: token ? `Bearer ${token}` : undefined },
       });
 
@@ -153,8 +153,8 @@ const Marketplace = () => {
     const exist = cartItems.find((i) => i._id === product._id);
     const updated = exist
       ? cartItems.map((i) =>
-          i._id === product._id ? { ...i, quantity: i.quantity + 1 } : i
-        )
+        i._id === product._id ? { ...i, quantity: i.quantity + 1 } : i
+      )
       : [...cartItems, { ...product, quantity: 1 }];
     setCartItems(updated);
     setIsCartOpen(true);

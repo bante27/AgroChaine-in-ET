@@ -36,7 +36,7 @@ const AdminProfile = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/users', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -101,22 +101,20 @@ const AdminProfile = () => {
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          admin.isAdmin
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${admin.isAdmin
                             ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200'
                             : 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                        }`}
+                          }`}
                       >
                         {admin.isAdmin ? 'Admin' : 'User'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          admin.isRestricted
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${admin.isRestricted
                             ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200'
                             : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200'
-                        }`}
+                          }`}
                       >
                         {admin.isRestricted ? 'Restricted' : 'Active'}
                       </span>

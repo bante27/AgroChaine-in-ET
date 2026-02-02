@@ -1,11 +1,11 @@
 // API utility functions for the admin dashboard
 
-const API_BASE_URL = '/api/admin';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin`;
 
 // Generic API call function
 const apiCall = async (endpoint, options = {}) => {
   const token = localStorage.getItem('adminToken');
-  
+
   const config = {
     headers: {
       'Content-Type': 'application/json',
@@ -17,11 +17,11 @@ const apiCall = async (endpoint, options = {}) => {
 
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-    
+
     if (!response.ok) {
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('API Call failed:', error);
@@ -126,7 +126,7 @@ export const settingsAPI = {
 
 // Authentication APIs
 export const authAPI = {
-  login: (credentials) => fetch('/api/admin/login', {
+  login: (credentials) => fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials),
