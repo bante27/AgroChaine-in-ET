@@ -31,7 +31,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Authentication required. Please log in.");
 
-      const response = await fetch("http://localhost:5000/api/users/add-balance", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/add-balance`, {
         method: "POST",
         headers: {
           accept: "application/json",
@@ -108,11 +108,10 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
                       key={method.value}
                       type="button"
                       onClick={() => setSelectedMethod(method.value)}
-                      className={`flex-1 min-w-[45%] sm:min-w-[30%] flex flex-col items-center p-3 rounded-lg border-2 text-xs sm:text-sm transition-all ${
-                        selectedMethod === method.value
+                      className={`flex-1 min-w-[45%] sm:min-w-[30%] flex flex-col items-center p-3 rounded-lg border-2 text-xs sm:text-sm transition-all ${selectedMethod === method.value
                           ? method.active
                           : "border-gray-200 dark:border-gray-600 hover:border-gray-400 text-gray-900 dark:text-gray-100"
-                      }`}
+                        }`}
                     >
                       <method.icon className="h-5 w-5 mb-1" />
                       {method.label}

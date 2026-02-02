@@ -37,22 +37,22 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const usersResponse = await axios.get('http://localhost:5000/api/admin/users', {
+        const usersResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const users = usersResponse.data.users || [];
 
-        const productsResponse = await axios.get('http://localhost:5000/api/admin/products', {
+        const productsResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/products`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const products = productsResponse.data.products || [];
 
-        const transactionsResponse = await axios.get('http://localhost:5000/api/admin/transactions', {
+        const transactionsResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/transactions`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const transactions = transactionsResponse.data.transactions || [];
 
-        const messagesResponse = await axios.get('http://localhost:5000/api/admin/messages', {
+        const messagesResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/messages`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const messages = messagesResponse.data.messages || [];

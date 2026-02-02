@@ -59,6 +59,11 @@ app.use(express.urlencoded({ extended: true }));
 // === NEW: Weather Route ===
 app.use("/api/weather", weatherRoutes);
 
+// Root route for health check
+app.get("/", (req, res) => {
+  res.status(200).json({ status: "success", message: "AgroChain API is running" });
+});
+
 // Routes
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/users", userRoutes);

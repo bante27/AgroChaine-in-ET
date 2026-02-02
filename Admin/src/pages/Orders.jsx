@@ -32,7 +32,7 @@ const Orders = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/transactions', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/transactions`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` },
       });
       const transactions = response.data.transactions || [];
@@ -61,7 +61,7 @@ const Orders = () => {
 
   const fetchUserData = async (userId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/admin/users/${userId}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${userId}`, {
         headers: {
           accept: 'application/json',
           Authorization: `Bearer ${localStorage.getItem('userToken')}`,
@@ -76,7 +76,7 @@ const Orders = () => {
 
   const fetchProductData = async (productId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/admin/${productId}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/${productId}`, {
         headers: {
           accept: 'application/json',
           Authorization: `Bearer ${localStorage.getItem('userToken')}`,
@@ -113,10 +113,10 @@ const Orders = () => {
       pending: { color: 'bg-yellow-100 text-yellow-600 border-yellow-200', icon: Clock },
       canceled: { color: 'bg-red-100 text-red-600 border-red-200', icon: XCircle }
     };
-   
+
     const config = statusConfig[status] || statusConfig.pending;
     const Icon = config.icon;
-   
+
     return (
       <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${config.color}`}>
         <Icon className="w-3 h-3 mr-1" />

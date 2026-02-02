@@ -19,7 +19,7 @@ export default function LiveChat() {
     setInput('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/chat', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text }),
@@ -69,8 +69,10 @@ export default function LiveChat() {
           <Resizable
             defaultSize={{ width: 320, height: 400 }}
             minWidth={250} minHeight={300} maxWidth={600} maxHeight={600}
-            enable={{ top: true, right: true, bottom: true, left: true,
-                      topRight: true, bottomRight: true, bottomLeft: true, topLeft: true }}
+            enable={{
+              top: true, right: true, bottom: true, left: true,
+              topRight: true, bottomRight: true, bottomLeft: true, topLeft: true
+            }}
           >
             <div className="w-full h-full bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden border border-gray-200">
               {/* Header */}
@@ -82,9 +84,8 @@ export default function LiveChat() {
               {/* Messages */}
               <div ref={listRef} className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50">
                 {messages.map((m, i) => (
-                  <div key={i} className={`max-w-[85%] px-4 py-3 rounded-xl text-sm leading-relaxed ${
-                    m.sender === 'user' ? 'ml-auto bg-teal-100 text-gray-800' : 'mr-auto bg-white border border-gray-200 text-gray-700'
-                  }`}>{m.text}</div>
+                  <div key={i} className={`max-w-[85%] px-4 py-3 rounded-xl text-sm leading-relaxed ${m.sender === 'user' ? 'ml-auto bg-teal-100 text-gray-800' : 'mr-auto bg-white border border-gray-200 text-gray-700'
+                    }`}>{m.text}</div>
                 ))}
                 {!messages.length && <div className="text-center text-gray-500 text-sm mt-8">
                   Ask anything about AgroChain Ethiopia. I’ll reply instantly.

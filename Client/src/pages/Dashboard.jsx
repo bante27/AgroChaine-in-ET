@@ -630,7 +630,7 @@ const Dashboard = () => {
       setVerificationStatus('pending');
       setShowVerificationModal(false);
       await axios.patch(
-        'http://localhost:5000/api/users/profile',
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile`,
         { fullName: data.name },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -675,7 +675,7 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.patch(
-        'http://localhost:5000/api/users/profile',
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile`,
         profileData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -813,10 +813,10 @@ const Dashboard = () => {
                   <h3 className="text-sm font-bold text-gray-900 dark:text-white">{profileData.fullName}</h3>
                   <span
                     className={`inline-block text-xs px-2 py-0.5 rounded-full mt-1 ${verificationStatus === 'verified'
-                        ? 'bg-green-100 text-green-600 border-green-200'
-                        : verificationStatus === 'pending'
-                          ? 'bg-yellow-100 text-yellow-600 border-yellow-200'
-                          : 'bg-red-100 text-red-600 border-red-200'
+                      ? 'bg-green-100 text-green-600 border-green-200'
+                      : verificationStatus === 'pending'
+                        ? 'bg-yellow-100 text-yellow-600 border-yellow-200'
+                        : 'bg-red-100 text-red-600 border-red-200'
                       }`}
                   >
                     {verificationStatus.charAt(0).toUpperCase() + verificationStatus.slice(1)}
@@ -1093,8 +1093,8 @@ const Dashboard = () => {
                     key={period}
                     variant={selectedPeriod === period ? undefined : 'outline'}
                     className={`py-1 px-3 text-xs rounded-lg transition-all duration-300 ${selectedPeriod === period
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm'
-                        : 'border-blue-300/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/10 dark:hover:bg-blue-900/10'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm'
+                      : 'border-blue-300/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100/10 dark:hover:bg-blue-900/10'
                       }`}
                     onClick={() => setSelectedPeriod(period)}
                     aria-label={`Show sales for ${period}`}
