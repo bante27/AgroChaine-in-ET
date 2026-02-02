@@ -16,8 +16,11 @@ import Button from "../components/common/Button";
 import Input from "../components/common/Input";
 import Modal from "../components/common/Modal";
 import axios from "axios";
+import { API_URL } from "../utils/apiConfig";
+import { useAuth } from "../context/AuthContext";
 
 const SuspiciousUsers = () => {
+  const { token } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,7 +34,9 @@ const SuspiciousUsers = () => {
 
   const fetchSuspiciousUsers = async () => {
     try {
-      const res = await axios.get("/api/users/suspicious");
+      const res = await axios.get(`${API_URL}/api/users/suspicious`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setUsers(res.data.suspiciousUsers || []);
     } catch (err) {
       setError("Failed to fetch suspicious users.");
@@ -42,7 +47,9 @@ const SuspiciousUsers = () => {
 
   const handleVerifyId = async (userId) => {
     try {
-      await axios.patch(`/api/verify/${userId}`, { action: "approve" });
+      await axios.patch(`${API_URL}/api/verify/${userId}`, { action: "approve" }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       fetchSuspiciousUsers();
     } catch (err) {
       console.error(err);
@@ -51,7 +58,9 @@ const SuspiciousUsers = () => {
 
   const handleRestrictUser = async (userId) => {
     try {
-      await axios.post(`/api/users/${userId}/restrict`);
+      await axios.post(`${API_URL}/api/users/${userId}/restrict`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       fetchSuspiciousUsers();
     } catch (err) {
       console.error(err);
@@ -137,9 +146,8 @@ const SuspiciousUsers = () => {
               filteredUsers.map((user) => (
                 <tr
                   key={user.userId}
-                  className={`${
-                    user.isRestricted || user.govIdStatus === "pending" ? "bg-red-100" : ""
-                  } hover:bg-gray-200`}
+                  className={`${user.isRestricted || user.govIdStatus === "pending" ? "bg-red-100" : ""
+                    } hover:bg-gray-200`}
                 >
                   <td className="border px-4 py-2 flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-full flex items-center justify-center text-white">
@@ -204,104 +212,104 @@ const SuspiciousUsers = () => {
 
       {/* User Details Modal */}
       {/* User Details Modal */}
-<Modal
-  isOpen={showUserModal}
-  onClose={() => setShowUserModal(false)}
-  title="User Details"
-  size="lg"
->
-  {selectedUser && (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <div className="w-16 h-16 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-full flex items-center justify-center text-white">
-          <User className="h-8 w-8" />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold">{selectedUser.fullName}</h3>
-          <p className="text-gray-500">{selectedUser.email}</p>
-          <div className="mt-2">{getStatusBadge(selectedUser)}</div>
-        </div>
-      </div>
+      <Modal
+        isOpen={showUserModal}
+        onClose={() => setShowUserModal(false)}
+        title="User Details"
+        size="lg"
+      >
+        {selectedUser && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-full flex items-center justify-center text-white">
+                <User className="h-8 w-8" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">{selectedUser.fullName}</h3>
+                <p className="text-gray-500">{selectedUser.email}</p>
+                <div className="mt-2">{getStatusBadge(selectedUser)}</div>
+              </div>
+            </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium">Phone</label>
-          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-            {selectedUser.phone}
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Location</label>
-          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-            {selectedUser.location || "-"}
-          </div>
-        </div>
-      </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium">Phone</label>
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                  {selectedUser.phone}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Location</label>
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                  {selectedUser.location || "-"}
+                </div>
+              </div>
+            </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <div>
-          <label className="block text-sm font-medium">Gov ID Status</label>
-          <div className="mt-1">
-            {selectedUser.govIdStatus === "pending" && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-yellow-100 text-yellow-600">
-                <Clock className="w-3 h-3 mr-1" /> Pending
-              </span>
-            )}
-            {selectedUser.govIdStatus === "rejected" && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-red-100 text-red-600">
-                <XCircle className="w-3 h-3 mr-1" /> Rejected
-              </span>
-            )}
-            {selectedUser.govIdStatus === "approved" && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-green-100 text-green-600">
-                <CheckCircle className="w-3 h-3 mr-1" /> Approved
-              </span>
-            )}
-          </div>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium">Gov ID Status</label>
+                <div className="mt-1">
+                  {selectedUser.govIdStatus === "pending" && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-yellow-100 text-yellow-600">
+                      <Clock className="w-3 h-3 mr-1" /> Pending
+                    </span>
+                  )}
+                  {selectedUser.govIdStatus === "rejected" && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-red-100 text-red-600">
+                      <XCircle className="w-3 h-3 mr-1" /> Rejected
+                    </span>
+                  )}
+                  {selectedUser.govIdStatus === "approved" && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-green-100 text-green-600">
+                      <CheckCircle className="w-3 h-3 mr-1" /> Approved
+                    </span>
+                  )}
+                </div>
+              </div>
 
-        <div>
-          <label className="block text-sm font-medium">Verified</label>
-          <div className="mt-1">
-            {selectedUser.verified ? (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-green-100 text-green-600">
-                <CheckCircle className="w-3 h-3 mr-1" /> Yes
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-gray-100 text-gray-600">
-                ❌ No
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
+              <div>
+                <label className="block text-sm font-medium">Verified</label>
+                <div className="mt-1">
+                  {selectedUser.verified ? (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-green-100 text-green-600">
+                      <CheckCircle className="w-3 h-3 mr-1" /> Yes
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-gray-100 text-gray-600">
+                      ❌ No
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <div>
-          <label className="block text-sm font-medium">Restricted</label>
-          <div className="mt-1">
-            {selectedUser.isRestricted ? (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-red-100 text-red-600">
-                🚫 Yes
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-green-100 text-green-600">
-                ✅ No
-              </span>
-            )}
-          </div>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium">Restricted</label>
+                <div className="mt-1">
+                  {selectedUser.isRestricted ? (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-red-100 text-red-600">
+                      🚫 Yes
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-green-100 text-green-600">
+                      ✅ No
+                    </span>
+                  )}
+                </div>
+              </div>
 
-        <div>
-          <label className="block text-sm font-medium">Registration Date</label>
-          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-            {new Date(selectedUser.registrationDate).toLocaleDateString()}
+              <div>
+                <label className="block text-sm font-medium">Registration Date</label>
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                  {new Date(selectedUser.registrationDate).toLocaleDateString()}
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
-  )}
-</Modal>
+        )}
+      </Modal>
 
     </div>
   );

@@ -33,7 +33,7 @@ const Orders = () => {
   const fetchOrders = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/transactions`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` },
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       const transactions = response.data.transactions || [];
       const updatedOrders = await Promise.all(transactions.map(async (order) => {
@@ -64,7 +64,7 @@ const Orders = () => {
       const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${userId}`, {
         headers: {
           accept: 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('userToken')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
       return response.data.user;
@@ -79,7 +79,7 @@ const Orders = () => {
       const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/${productId}`, {
         headers: {
           accept: 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('userToken')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
       return response.data.product;

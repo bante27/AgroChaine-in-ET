@@ -21,7 +21,7 @@ const Verifications = () => {
 
   const fetchVerifications = async () => {
     try {
-      const token = localStorage.getItem('userToken');
+      const token = localStorage.getItem('token');
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/verifications/pending`, {
         headers: {
           Accept: 'application/json',
@@ -44,7 +44,7 @@ const Verifications = () => {
 
   const handleVerificationAction = async (userId, action) => {
     try {
-      const token = localStorage.getItem('userToken');
+      const token = localStorage.getItem('token');
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/verify/${userId}`, {
         method: 'PATCH',
         headers: {

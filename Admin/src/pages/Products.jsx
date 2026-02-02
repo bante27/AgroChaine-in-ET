@@ -27,7 +27,7 @@ const Products = () => {
   const fetchProducts = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/products`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` },
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setProducts(response.data.products || []);
       setError(null);
@@ -43,7 +43,7 @@ const Products = () => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
         const response = await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/products/${productId}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
         if (response.data.success) {
           fetchProducts();
@@ -130,8 +130,8 @@ const Products = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`pl-10 pr-4 py-2 w-64 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-200 ${isDark
-                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
+                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
                 }`}
             />
           </div>
@@ -151,8 +151,8 @@ const Products = () => {
               <div
                 key={product.productId}
                 className={`rounded-xl border shadow flex flex-col transform transition-all duration-300 ease-in-out overflow-hidden ${isDark
-                    ? 'bg-gray-800 border-gray-700 hover:shadow-cyan-500/20 hover:border-cyan-400/40'
-                    : 'bg-white border-gray-200 hover:shadow-lg hover:border-cyan-400/40'
+                  ? 'bg-gray-800 border-gray-700 hover:shadow-cyan-500/20 hover:border-cyan-400/40'
+                  : 'bg-white border-gray-200 hover:shadow-lg hover:border-cyan-400/40'
                   } hover:scale-[1.02]`}
               >
                 {/* Image Background */}
@@ -211,8 +211,8 @@ const Products = () => {
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
             <div
               className={`max-w-2xl w-full p-6 rounded-xl shadow-lg overflow-y-auto max-h-[90vh] border ${isDark
-                  ? 'bg-gray-800 border-gray-700 text-white'
-                  : 'bg-white border-gray-200 text-gray-900'
+                ? 'bg-gray-800 border-gray-700 text-white'
+                : 'bg-white border-gray-200 text-gray-900'
                 }`}
             >
               <div className="flex justify-between items-center mb-4">
@@ -220,8 +220,8 @@ const Products = () => {
                 <button
                   onClick={() => setSelectedProduct(null)}
                   className={`p-2 rounded-lg ${isDark
-                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                 >
                   <XCircle className="w-5 h-5" />
