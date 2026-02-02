@@ -44,6 +44,10 @@ services:
           property: host
       - key: NODE_VERSION
         value: 22
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
 
   # 3. Admin Static Site
   - type: web
