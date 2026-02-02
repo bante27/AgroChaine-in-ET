@@ -47,7 +47,7 @@ export const handleContactForm = async (req, res) => {
           });
           attachmentLinks.push({
             filename: file.originalname || 'voice_message',
-            url,
+            path: url,
           });
         }
       });
@@ -76,7 +76,7 @@ export const handleContactForm = async (req, res) => {
     if (attachmentLinks.length > 0) {
       adminHtml += "<p><strong>Attachments:</strong></p><ul>";
       attachmentLinks.forEach((a) => {
-        adminHtml += `<li>${a.filename}: <a href="${a.url}" target="_blank">${a.url}</a></li>`;
+        adminHtml += `<li>${a.filename}: <a href="${a.path}" target="_blank">${a.path}</a></li>`;
       });
       adminHtml += "</ul>";
     }
