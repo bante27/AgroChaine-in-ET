@@ -78,27 +78,27 @@ export const handleContactForm = async (req, res) => {
       });
       adminHtml += "</ul>";
     }
-
-    const emailOptions = {
-      from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
+    // Send email to admin
+    const adminEmailOptions = {
+      from: `AgroChain Ethiopia <onboarding@resend.dev>`,
+      to: 'tilahunsitotaw87@gmail.com', // Admin email
       subject: `📩 Contact Form: ${subject}`,
       html: adminHtml,
     };
 
-    // Only add attachments if they exist
+    // Only add attachments if array has items
     if (attachments.length > 0) {
-      emailOptions.attachments = attachments;
+      adminEmailOptions.attachments = attachments;
     }
 
-    await transporter.sendMail(emailOptions);
+    await transporter.sendMail(adminEmailOptions);
     console.log("Admin email sent");
 
-    // ===== Auto-reply to user =====
+    // Send auto-reply to user (no attachments)
     await transporter.sendMail({
-      from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+      from: `AgroChain Ethiopia <onboarding@resend.dev>`,
       to: email,
-      subject: "✅ We Received Your Message - Agrochain Ethiopia",
+      subject: `Re: ${subject}`,
       html: `<p>Hi ${name},</p>
        <p>Thank you for contacting us. We have received your message and will respond soon.</p>
        <p>Best regards,<br/>Agrochain Ethiopia Team</p>`

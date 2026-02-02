@@ -31,7 +31,8 @@ transporter.verify((err, success) => {
 
 // Middleware to check email credentials
 const checkEmailCredentials = (req, res, next) => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  // No need to check EMAIL_USER/EMAIL_PASS - using Resend now
+  if (!process.env.RESEND_API_KEY) {
     return res
       .status(500)
       .json({ success: false, error: 'Email credentials missing' });
@@ -108,7 +109,7 @@ router.post(
       });
 
       await transporter.sendMail({
-        from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+        from: `AgroChain Ethiopia <onboarding@resend.dev>`,
         to: email,
         subject: 'Your OTP Code',
         html: `
@@ -236,13 +237,13 @@ router.post(
       await user.save();
 
       await transporter.sendMail({
-        from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+        from: `AgroChain Ethiopia <onboarding@resend.dev>`,
         to: email,
         subject: 'Password Reset OTP',
         html: `
           <p>Dear ${user.fullName},</p>
           <p>Your OTP for password reset is <strong>${otp}</strong>. It expires in 5 minutes.</p>
-          <p>If you did not request a password reset, please ignore this email.</p>
+          <p>If you did not request this, please ignore this email.</p>
           <p>Best regards,<br/>Agrochain Ethiopia Team</p>
         `,
       });

@@ -49,7 +49,7 @@ router.post(
 
       // Send email reply to the user
       const mailOptions = {
-        from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+        from: `AgroChain Ethiopia <onboarding@resend.dev>`,
         to: message.email,
         subject: `Re: ${message.subject}`,
         html: `
@@ -118,7 +118,7 @@ router.delete(
       // Optional: Notify user that their message was deleted
       try {
         await transporter.sendMail({
-          from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+          from: `AgroChain Ethiopia <onboarding@resend.dev>`,
           to: message.email,
           subject: 'Your Message Has Been Removed',
           html: `
@@ -181,7 +181,7 @@ router.patch('/verify/:userId', auth, admin, async (req, res) => {
 
     // Notify user via email
     await transporter.sendMail({
-      from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+      from: `AgroChain Ethiopia <onboarding@resend.dev>`,
       to: user.email,
       subject: `ID Verification ${status.charAt(0).toUpperCase() + status.slice(1)}`,
       html: `
@@ -306,7 +306,7 @@ router.delete(
 
         // Notify user about product deletion
         await transporter.sendMail({
-          from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+          from: `AgroChain Ethiopia <onboarding@resend.dev>`,
           to: user.email,
           subject: 'Your Product Has Been Removed',
           html: `
