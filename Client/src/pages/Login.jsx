@@ -239,11 +239,8 @@ const Login = () => {
 
           if (loginResult.success) {
             toast.success('Login successful!');
-            // Longer delay to ensure state updates complete
-            setTimeout(() => {
-              console.log('Navigating to dashboard...');
-              navigate(from, { replace: true });
-            }, 300);
+            // Navigate immediately - AuthContext loading handled by {!loading && children}
+            navigate(from, { replace: true });
           } else {
             toast.error(loginResult.error || 'Login failed.');
           }
