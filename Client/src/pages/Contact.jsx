@@ -16,6 +16,7 @@ import {
 import LiveChat from '../components/LiveChat';
 import toast from 'react-hot-toast';
 import contactBg from '../assets/images/bg-login.jfif';
+import { API_URL } from '../utils/apiConfig';
 
 const styles = `
   .polygon-bg {
@@ -139,15 +140,15 @@ const Contact = () => {
       files.forEach((file) => payload.append('files', file));
       if (audioBlob) payload.append('voice', audioBlob, 'voice_message.webm');
 
-      const res = await fetch(`/api/contact`, {
+      const res = await fetch(`${API_URL}/api/contact`, {
         method: 'POST',
         body: payload,
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-        toast.success(data.message);
+      if (res.ok && data.success) {
+        toast.success(data.message || 'Message sent successfully!');
         setFormData({ name: '', email: '', subject: '', message: '' });
         setFiles([]);
         setAudioBlob(null);

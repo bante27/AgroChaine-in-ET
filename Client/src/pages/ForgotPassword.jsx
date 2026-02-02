@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../utils/apiConfig";
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(1);
@@ -28,7 +29,7 @@ const ForgotPassword = () => {
 
     setIsLoading(true);
     try {
-      await axios.post(`/api/users/forgot-password`, { email });
+      await axios.post(`${API_URL}/api/users/forgot-password`, { email });
       toast.success("OTP sent to your email");
       setStep(2);
       setTimer(300);
@@ -68,7 +69,7 @@ const ForgotPassword = () => {
 
     setIsLoading(true);
     try {
-      const res = await axios.post(`/api/users/reset-password`, {
+      const res = await axios.post(`${API_URL}/api/users/reset-password`, {
         email,
         otp,
         password: newPassword,
