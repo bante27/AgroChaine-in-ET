@@ -236,7 +236,10 @@ const Login = () => {
         if (response.data.success && response.data.token) {
           await login(response.data.token, response.data.user);
           toast.success('Login successful!');
-          navigate(from, { replace: true });
+          // Small delay to ensure state updates complete
+          setTimeout(() => {
+            navigate(from, { replace: true });
+          }, 100);
         } else {
           toast.error(response.data.error || 'Login failed.');
         }

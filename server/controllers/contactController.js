@@ -11,39 +11,43 @@ export const handleContactForm = async (req, res) => {
 
     // Validate required fields
     if (!name || !email || !subject || !message) {
-      return res.status(400).json({ error: "All fields are required" });
+      return res.status(400).json({ success: false, error: "All fields are required" });
     }
 
     const attachments = [];
     const attachmentLinks = [];
 
     // ===== Process general files =====
-    if (req.files?.files) {
+    if (req.files?.files && Array.isArray(req.files.files)) {
       req.files.files.forEach((file) => {
         const url = file.path || file.location; // Cloudinary URL
-        attachments.push({
-          filename: file.originalname,
-          path: url,
-        });
-        attachmentLinks.push({
-          filename: file.originalname,
-          url,
-        });
+        if (url) {
+          attachments.push({
+            filename: file.originalname || 'attachment',
+            path: url,
+          });
+          attachmentLinks.push({
+            filename: file.originalname || 'attachment',
+            url,
+          });
+        }
       });
     }
 
     // ===== Process voice/audio =====
-    if (req.files?.voice) {
+    if (req.files?.voice && Array.isArray(req.files.voice)) {
       req.files.voice.forEach((file) => {
         const url = file.path || file.location; // Cloudinary URL
-        attachments.push({
-          filename: file.originalname,
-          path: url,
-        });
-        attachmentLinks.push({
-          filename: file.originalname,
-          url,
-        });
+        if (url) {
+          attachments.push({
+            filename: file.originalname || 'voice_message',
+            path: url,
+          });
+          attachmentLinks.push({
+            filename: file.originalname || 'voice_message',
+            url,
+          });
+        }
       });
     }
 
@@ -75,13 +79,19 @@ export const handleContactForm = async (req, res) => {
       adminHtml += "</ul>";
     }
 
-    await transporter.sendMail({
+    const emailOptions = {
       from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER,
       subject: `📩 Contact Form: ${subject}`,
       html: adminHtml,
-      attachments
-    });
+    };
+
+    // Only add attachments if they exist
+    if (attachments.length > 0) {
+      emailOptions.attachments = attachments;
+    }
+
+    await transporter.sendMail(emailOptions);
     console.log("Admin email sent");
 
     // ===== Auto-reply to user =====
@@ -102,6 +112,6 @@ export const handleContactForm = async (req, res) => {
     console.error("Contact form error:", error);
     return res
       .status(500)
-      .json({ error: "Server error. Please try again later." });
+      .json({ success: false, error: error.message || "Server error. Please try again later." });
   }
 };

@@ -56,11 +56,20 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (token, userData) => {
     try {
-      console.log('AuthContext: Login attempt with token:', token);
+      console.log('AuthContext: Login attempt with token:', token, 'userData:', userData);
+
+      // Validate inputs
+      if (!token || !userData) {
+        throw new Error('Token or user data is missing');
+      }
+
+      // Store token and update state synchronously
       localStorage.setItem('token', token);
       setUser(userData);
       setIsAuthenticated(true);
       setLoading(false);
+
+      console.log('AuthContext: Login successful, user:', userData);
       return { success: true, user: userData };
     } catch (error) {
       console.error('AuthContext: Login error:', error);
@@ -70,7 +79,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
       return {
         success: false,
-        error: error.response?.data?.error || 'Login failed',
+        error: error.message || error.response?.data?.error || 'Login failed',
       };
     }
   };
