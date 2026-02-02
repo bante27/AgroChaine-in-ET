@@ -26,9 +26,8 @@ services:
         sync: false
 
   # 2. Client Static Site
-  - type: web
+  - type: static_site
     name: agrochain-client
-    runtime: static
     buildCommand: npm install && npm run build
     publishDir: dist
     rootDir: Client
@@ -40,9 +39,8 @@ services:
           property: host
 
   # 3. Admin Static Site
-  - type: web
+  - type: static_site
     name: agrochain-admin
-    runtime: static
     buildCommand: npm install && npm run build
     publishDir: dist
     rootDir: Admin
