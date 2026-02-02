@@ -198,14 +198,14 @@ const Messages = () => {
             filteredMessages.map((message) => (
               <div
                 key={message.id}
-                className={`bg-white dark:bg-gray-800 border rounded-2xl p-6 transition hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${message.status === 'unread'
+                className={`bg-white dark:bg-gray-800 border rounded-2xl p-6 transition hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${message.status === 'pending'
                   ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10'
                   : 'border-gray-200 dark:border-gray-700'
                   }`}
                 onClick={() => {
                   setSelectedMessage(message);
                   setShowMessageModal(true);
-                  if (message.status === 'unread') handleMarkAsRead(message.id);
+                  if (message.status === 'pending') handleMarkAsRead(message.id);
                 }}
                 role="button"
                 tabIndex={0}
@@ -213,7 +213,7 @@ const Messages = () => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     setSelectedMessage(message);
                     setShowMessageModal(true);
-                    if (message.status === 'unread') handleMarkAsRead(message.id);
+                    if (message.status === 'pending') handleMarkAsRead(message.id);
                   }
                 }}
                 aria-label={`View message from ${message.name} with subject ${message.subject}`}
@@ -226,7 +226,7 @@ const Messages = () => {
                     <div>
                       <h3 className="text-gray-900 dark:text-white font-semibold flex items-center gap-2">
                         {message.name}
-                        {message.status === 'unread' && (
+                        {message.status === 'pending' && (
                           <span
                             className="w-2 h-2 bg-emerald-500 rounded-full"
                             aria-label="Unread message indicator"
@@ -368,14 +368,14 @@ const Messages = () => {
                               <audio
                                 controls
                                 className="w-full rounded-lg"
-                                src={attachment.path}
+                                src={getFullURL(attachment.path)}
                               >
                                 Your browser does not support the audio element.
                               </audio>
                             </>
                           ) : (
                             <a
-                              href={attachment.path}
+                              href={getFullURL(attachment.path)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-emerald-600 dark:text-emerald-500 hover:underline text-sm font-medium"

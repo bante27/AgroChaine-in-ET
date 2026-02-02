@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../utils/apiConfig";
+import { useAuth } from "../contexts/AuthContext";
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(1);
@@ -14,6 +15,7 @@ const ForgotPassword = () => {
   const [timer, setTimer] = useState(0);
 
   const navigate = useNavigate();
+  const { setUser, setToken, setIsAuthenticated } = useAuth();
 
   useEffect(() => {
     let interval;
@@ -45,7 +47,7 @@ const ForgotPassword = () => {
 
     setIsLoading(true);
     try {
-      await axios.post(`/api/users/forgot-password`, { email });
+      await axios.post(`${API_URL}/api/users/forgot-password`, { email });
       toast.success("OTP resent to your email");
       setTimer(300);
     } catch (err) {
@@ -77,6 +79,11 @@ const ForgotPassword = () => {
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      // Update context state
+      if (setToken) setToken(res.data.token);
+      if (setUser) setUser(res.data.user);
+      if (setIsAuthenticated) setIsAuthenticated(true);
 
       toast.success("Password reset successful! Redirecting...");
       navigate("/dashboard");

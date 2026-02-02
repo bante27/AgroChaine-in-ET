@@ -66,7 +66,7 @@ const Dashboard = () => {
         setStats({
           users: {
             total: users.length,
-            verified: users.filter((u) => u.isVerified).length,
+            verified: users.filter((u) => u.verified).length,
           },
           products: {
             total: products.length,
@@ -79,7 +79,7 @@ const Dashboard = () => {
           },
           messages: {
             total: messages.length,
-            unread: messages.filter((msg) => msg.status === 'unread').length,
+            unread: messages.filter((msg) => msg.status === 'pending').length,
           },
           platformRevenue: platformRevenue.toFixed(2),
         });
@@ -95,6 +95,7 @@ const Dashboard = () => {
             hour: '2-digit',
             minute: '2-digit',
           }),
+          rawDate: new Date(msg.createdAt),
         }));
 
         const transactionActivities = transactions.slice(0, 5).map((t) => ({
@@ -108,11 +109,12 @@ const Dashboard = () => {
             hour: '2-digit',
             minute: '2-digit',
           }),
+          rawDate: new Date(t.date),
         }));
 
         setRecentActivity(
           [...messageActivities, ...transactionActivities]
-            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+            .sort((a, b) => b.rawDate - a.rawDate)
             .slice(0, 5)
         );
       } catch (error) {

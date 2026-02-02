@@ -182,7 +182,7 @@ router.post(
       pendingUsers.delete(email);
 
       const token = jwt.sign(
-        { userId: newUser.userId, fullName: newUser.fullName },
+        { userId: newUser.userId, fullName: newUser.fullName, isAdmin: newUser.isAdmin },
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
       );
@@ -307,7 +307,7 @@ router.post(
       await user.save();
 
       const token = jwt.sign(
-        { userId: user.userId, fullName: user.fullName },
+        { userId: user.userId, fullName: user.fullName, isAdmin: user.isAdmin },
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
       );
@@ -359,7 +359,7 @@ router.post(
         return res.status(401).json({ success: false, error: 'Invalid credentials' });
 
       const token = jwt.sign(
-        { userId: user.userId, fullName: user.fullName },
+        { userId: user.userId, fullName: user.fullName, isAdmin: user.isAdmin },
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
       );
