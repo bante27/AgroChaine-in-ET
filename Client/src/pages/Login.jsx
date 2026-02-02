@@ -232,20 +232,14 @@ const Login = () => {
       }
 
       try {
-        const response = await axios.post(`${API_URL}/api/users/login`, { email: formData.email, password: formData.password });
-        if (response.data.success && response.data.token) {
-          const loginResult = await login(response.data.token, response.data.user);
-          console.log('Login result:', loginResult);
+        // Call login exactly like Admin does - pass credentials object
+        const result = await login({ email: formData.email, password: formData.password });
 
-          if (loginResult.success) {
-            toast.success('Login successful!');
-            // Navigate immediately - AuthContext loading handled by {!loading && children}
-            navigate(from, { replace: true });
-          } else {
-            toast.error(loginResult.error || 'Login failed.');
-          }
+        if (result.success) {
+          toast.success('Login successful!');
+          navigate(from, { replace: true });
         } else {
-          toast.error(response.data.error || 'Login failed.');
+          toast.error(result.error || 'Login failed.');
         }
       } catch (error) {
         console.error('Login error:', error);
