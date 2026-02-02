@@ -48,6 +48,8 @@ export const handleContactForm = async (req, res) => {
           attachmentLinks.push({
             filename: file.originalname || 'voice_message',
             path: url,
+            mimetype: file.mimetype || 'audio/webm',
+            size: file.size
           });
         }
       });
