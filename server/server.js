@@ -34,12 +34,20 @@ app.use(
   cors({
     origin: (origin, callback) => {
       const allowedOrigins = [
+        "http://localhost:5173",
         "http://localhost:5174",
         "http://localhost:5175",
         "http://localhost:5001",
-        "http://localhost:3000"
+        "http://localhost:3000",
+        "http://localhost:5000"
       ];
-      if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".onrender.com") || origin.endsWith(".netlify.app")) {
+
+      const isAllowed = !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.includes(".onrender.com") ||
+        origin.includes(".netlify.app");
+
+      if (isAllowed) {
         callback(null, true);
       } else {
         console.log("Blocked by CORS:", origin);

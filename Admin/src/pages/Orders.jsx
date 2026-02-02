@@ -14,6 +14,7 @@ import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import axios from 'axios';
+import { API_URL } from '../utils/apiConfig';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -32,7 +33,7 @@ const Orders = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/transactions`, {
+      const response = await axios.get(`${API_URL}/api/admin/transactions`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       const transactions = response.data.transactions || [];
@@ -61,7 +62,7 @@ const Orders = () => {
 
   const fetchUserData = async (userId) => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${userId}`, {
+      const response = await axios.get(`${API_URL}/api/admin/users/${userId}`, {
         headers: {
           accept: 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -76,7 +77,7 @@ const Orders = () => {
 
   const fetchProductData = async (productId) => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/${productId}`, {
+      const response = await axios.get(`${API_URL}/api/admin/${productId}`, {
         headers: {
           accept: 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`,

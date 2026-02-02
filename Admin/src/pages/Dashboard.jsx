@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Users, Package, ShoppingCart, MessageSquare, TrendingUp, Calendar } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { API_URL } from '../utils/apiConfig';
 
 // Custom ETB Icon Component
 const ETBIcon = ({ className }) => (

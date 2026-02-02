@@ -5,6 +5,7 @@ import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import Table from '../components/common/Table';
+import { API_URL } from '../utils/apiConfig';
 
 const Verifications = () => {
   const [verifications, setVerifications] = useState([]);
@@ -22,7 +23,7 @@ const Verifications = () => {
   const fetchVerifications = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/verifications/pending`, {
+      const response = await fetch(`${API_URL}/api/admin/verifications/pending`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -45,7 +46,7 @@ const Verifications = () => {
   const handleVerificationAction = async (userId, action) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/verify/${userId}`, {
+      const response = await fetch(`${API_URL}/api/admin/verify/${userId}`, {
         method: 'PATCH',
         headers: {
           Accept: 'application/json',

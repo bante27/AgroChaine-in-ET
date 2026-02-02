@@ -9,6 +9,7 @@ import {
   Clock,
 } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../utils/apiConfig';
 import { useTheme } from '../context/ThemeContext';
 
 const Products = () => {
@@ -26,7 +27,7 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/products`, {
+      const response = await axios.get(`${API_URL}/api/admin/products`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setProducts(response.data.products || []);
@@ -42,7 +43,7 @@ const Products = () => {
   const handleDeleteProduct = async (productId) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        const response = await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/products/${productId}`, {
+        const response = await axios.delete(`${API_URL}/api/admin/products/${productId}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
         if (response.data.success) {
