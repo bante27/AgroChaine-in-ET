@@ -33,7 +33,7 @@ services:
   - type: web
     name: agrochain-client
     runtime: static
-    buildCommand: npm install && npm run build
+    buildCommand: npm install && npm run build && cp public/_redirects dist/_redirects
     staticPublishPath: dist
     rootDir: Client
     envVars:
@@ -49,7 +49,7 @@ services:
   - type: web
     name: agrochain-admin
     runtime: static
-    buildCommand: npm install && npm run build
+    buildCommand: npm install && npm run build && cp public/_redirects dist/_redirects
     staticPublishPath: dist
     rootDir: Admin
     envVars:
