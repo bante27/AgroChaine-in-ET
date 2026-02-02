@@ -5,10 +5,10 @@ import { Outlet } from 'react-router-dom'
 import { useTheme } from '../../contexts/ThemeContext'
 
 const Layout = () => {
-  const { theme } = useTheme()
+  const { isDark } = useTheme()
 
   return (
-    <div className={`${theme === 'dark' ? 'dark' : ''}`}>
+    <div className={`${isDark ? 'dark' : ''}`}>
       <div className="min-h-screen flex flex-col bg-white text-black dark:bg-gray-900 dark:text-white transition-colors duration-300">
         <Header />
         <main className="flex-grow">

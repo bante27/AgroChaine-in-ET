@@ -22,11 +22,14 @@ const generateOtp = () =>
 
 // Nodemailer transporter
 const transporter = nodemailer.createTransport({
-  service: 'Gmail',
+  service: process.env.EMAIL_SERVICE || 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  tls: {
+    rejectUnauthorized: false
+  }
 });
 
 const pendingUsers = new Map();
@@ -576,9 +579,9 @@ router.post(
       return res
         .status(400)
         .json({ success: false, error: errors.array()[0].msg });
-    }  
+    }
 
-    
+
     try {
       const { amount } = req.body;
       const user = await User.findOne({ userId: req.user.userId });
