@@ -189,7 +189,11 @@ const Login = () => {
     try {
       const res = await axios.post(`${API_URL}/api/users/verify-otp`, { email: otpEmail, otp });
       if (res.data.success) {
-        await login({ token: res.data.token, user: res.data.user });
+        // Manually set auth data instead of calling context login (which calls the API again)
+        localStorage.setItem('token', res.data.token);
+        setToken(res.data.token);
+        setUser(res.data.user);
+        setIsAuthenticated(true);
         toast.success('OTP verified! Redirecting...');
         navigate(from, { replace: true });
       } else {

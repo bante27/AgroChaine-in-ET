@@ -45,6 +45,7 @@ const Login = () => {
         toast.success('Login successful!', {
           style: { background: '#dbeafe', color: '#1d4ed8', border: '1px solid #93c5fd' },
         });
+        navigate('/', { replace: true });
       } else {
         toast.error(result.error || 'Invalid credentials', {
           style: { background: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5' },
@@ -126,9 +127,8 @@ const Login = () => {
               <Button
                 type="submit"
                 loading={isLoading}
-                className={`w-full py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-500 text-white hover:from-cyan-600 hover:to-indigo-600 transition-colors duration-200 flex items-center justify-center gap-2 text-lg ${
-                  isLoading ? 'opacity-75 cursor-not-allowed' : ''
-                }`}
+                className={`w-full py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-500 text-white hover:from-cyan-600 hover:to-indigo-600 transition-colors duration-200 flex items-center justify-center gap-2 text-lg ${isLoading ? 'opacity-75 cursor-not-allowed' : ''
+                  }`}
               >
                 {isLoading ? (
                   <div className="animate-spin h-5 w-5 border-t-2 border-white rounded-full"></div>

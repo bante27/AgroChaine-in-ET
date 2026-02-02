@@ -61,7 +61,12 @@ router.post(
       };
 
       // Send email
-      await transporter.sendMail(mailOptions);
+      try {
+        await transporter.sendMail(mailOptions);
+      } catch (emailErr) {
+        console.error('Error sending reply email (likely Resend domain restriction):', emailErr.message);
+        // Don't throw error, continue with the response
+      }
 
       // Update message status
       message.status = 'replied';
@@ -180,20 +185,24 @@ router.patch('/verify/:userId', auth, admin, async (req, res) => {
     await user.save();
 
     // Notify user via email
-    await transporter.sendMail({
-      from: `AgroChain Ethiopia <onboarding@resend.dev>`,
-      to: user.email,
-      subject: `ID Verification ${status.charAt(0).toUpperCase() + status.slice(1)}`,
-      html: `
-        <p>Dear ${user.fullName},</p>
-        <p>Your government ID verification has been ${status}.</p>
-        <p>${status === 'approved'
-          ? 'Your account is now fully verified.'
-          : 'Please upload valid ID documents and try again.'
-        }</p>
-        <p>Best regards,<br/>Agrochain Ethiopia Team</p>
-      `,
-    });
+    try {
+      await transporter.sendMail({
+        from: `AgroChain Ethiopia <onboarding@resend.dev>`,
+        to: user.email,
+        subject: `ID Verification ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+        html: `
+          <p>Dear ${user.fullName},</p>
+          <p>Your government ID verification has been ${status}.</p>
+          <p>${status === 'approved'
+            ? 'Your account is now fully verified.'
+            : 'Please upload valid ID documents and try again.'
+          }</p>
+          <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+        `,
+      });
+    } catch (emailErr) {
+      console.error('Error sending verification email:', emailErr.message);
+    }
 
     res.json({
       success: true,
@@ -305,17 +314,21 @@ router.delete(
         await user.save();
 
         // Notify user about product deletion
-        await transporter.sendMail({
-          from: `AgroChain Ethiopia <onboarding@resend.dev>`,
-          to: user.email,
-          subject: 'Your Product Has Been Removed',
-          html: `
-            <p>Dear ${user.fullName},</p>
-            <p>Your product "${product.title}" has been removed by the admin.</p>
-            <p>If you have any questions, please contact our support team.</p>
-            <p>Best regards,<br/>Agrochain Ethiopia Team</p>
-          `,
-        });
+        try {
+          await transporter.sendMail({
+            from: `AgroChain Ethiopia <onboarding@resend.dev>`,
+            to: user.email,
+            subject: 'Your Product Has Been Removed',
+            html: `
+              <p>Dear ${user.fullName},</p>
+              <p>Your product "${product.title}" has been removed by the admin.</p>
+              <p>If you have any questions, please contact our support team.</p>
+              <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+            `,
+          });
+        } catch (emailErr) {
+          console.error('Error sending product deletion email:', emailErr.message);
+        }
       }
 
       // Delete the product
@@ -381,7 +394,7 @@ router.post('/make-admin/:userId', auth, async (req, res) => {
 });
 
 
-router.get("/platform-fees", auth, async (req, res) => {
+router.get("/platform-fees", auth, admin, async (req, res) => {
   try {
     const fees = await PlatformFee.aggregate([
       {

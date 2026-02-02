@@ -1,4 +1,6 @@
 import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -17,9 +19,8 @@ import errorHandler from "./middleware/errorHandler.js";
 import adminRoutes from "./routes/admin.js";
 
 // === NEW: Import Weather Route ===
-import weatherRoutes from "./routes/weather.js"; // Ensure this file exists
+import weatherRoutes from "./routes/weather.js";
 
-dotenv.config();
 const app = express();
 
 // Connect to MongoDB

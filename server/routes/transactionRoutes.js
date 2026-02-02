@@ -3,7 +3,7 @@ import auth from "../middleware/auth.js";
 import Transaction from "../models/Transaction.js";
 import Product from "../models/Product.js";
 import User from "../models/User.js";
-import nodemailer from "nodemailer";
+import transporter from "../utils/mailer.js";
 
 const router = express.Router();
 const SERVICE_FEE_PERCENT = 5; // 5% from buyer and seller
@@ -14,13 +14,8 @@ const WEBSITE_URL = "https://agrochain-ethiopia-2025.netlify.app";
 // Reusable modern email sender
 // -----------------------------
 const sendEmail = async (to, subject, htmlBody) => {
-  if (!to || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+  if (!to) return;
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-    });
-
     const html = `
       <div style="font-family: Arial, sans-serif; background:#f4f7f9; padding:20px;">
         <div style="max-width:650px;margin:auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);">
@@ -38,13 +33,13 @@ const sendEmail = async (to, subject, htmlBody) => {
       </div>`;
 
     await transporter.sendMail({
-      from: `"Agrochain Ethiopia" <${process.env.EMAIL_USER}>`,
+      from: `AgroChain Ethiopia <onboarding@resend.dev>`,
       to,
       subject,
       html,
     });
   } catch (err) {
-    console.error("Email send error:", err);
+    console.error("Email send error (likely Resend limit):", err.message);
   }
 };
 
@@ -236,7 +231,7 @@ router.post("/buy", auth, restrictUnverifiedUsers, async (req, res) => {
           <tr><td style="padding:6px 8px;"><strong>Unit Price</strong></td><td style="padding:6px 8px;">${product.price.toFixed(2)} ETB</td></tr>
           <tr><td style="padding:6px 8px;"><strong>Subtotal</strong></td><td style="padding:6px 8px;">${totalPrice.toFixed(2)} ETB</td></tr>
           <tr><td style="padding:6px 8px;"><strong>Service Fee (5%)</strong></td><td style="padding:6px 8px;">${buyerFee.toFixed(2)} ETB</td></tr>
-          <tr><td style="padding:6px 8px;"><strong>Total Charged</strong></td><td style="padding:6px 8px;">${(totalPrice+buyerFee).toFixed(2)} ETB</td></tr>
+          <tr><td style="padding:6px 8px;"><strong>Total Charged</strong></td><td style="padding:6px 8px;">${(totalPrice + buyerFee).toFixed(2)} ETB</td></tr>
           <tr><td style="padding:6px 8px;"><strong>Seller</strong></td><td style="padding:6px 8px;">${seller.fullName}</td></tr>
           <tr><td style="padding:6px 8px;"><strong>Order ID</strong></td><td style="padding:6px 8px;">${transaction._id}</td></tr>
         </table>

@@ -108,17 +108,21 @@ router.post(
         otpExpires,
       });
 
-      await transporter.sendMail({
-        from: `AgroChain Ethiopia <onboarding@resend.dev>`,
-        to: email,
-        subject: 'Your OTP Code',
-        html: `
-          <p>Dear  ${fullName},</p>
-          <p>Well Come to Agrochain Ethiopia</p>
-          <p>Your OTP is <strong>${otp}</strong>. It expires in 5 minutes.</p>
-          <p>Best regards,<br/>Agrochain Ethiopia Team</p>
-        `,
-      });
+      try {
+        await transporter.sendMail({
+          from: `AgroChain Ethiopia <onboarding@resend.dev>`,
+          to: email,
+          subject: 'Your OTP Code',
+          html: `
+            <p>Dear  ${fullName},</p>
+            <p>Well Come to Agrochain Ethiopia</p>
+            <p>Your OTP is <strong>${otp}</strong>. It expires in 5 minutes.</p>
+            <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+          `,
+        });
+      } catch (emailErr) {
+        console.error('Registration OTP email failed:', emailErr.message);
+      }
 
       res.status(200).json({
         success: true,
@@ -236,17 +240,21 @@ router.post(
       user.otpExpires = otpExpires;
       await user.save();
 
-      await transporter.sendMail({
-        from: `AgroChain Ethiopia <onboarding@resend.dev>`,
-        to: email,
-        subject: 'Password Reset OTP',
-        html: `
-          <p>Dear ${user.fullName},</p>
-          <p>Your OTP for password reset is <strong>${otp}</strong>. It expires in 5 minutes.</p>
-          <p>If you did not request this, please ignore this email.</p>
-          <p>Best regards,<br/>Agrochain Ethiopia Team</p>
-        `,
-      });
+      try {
+        await transporter.sendMail({
+          from: `AgroChain Ethiopia <onboarding@resend.dev>`,
+          to: email,
+          subject: 'Password Reset OTP',
+          html: `
+            <p>Dear ${user.fullName},</p>
+            <p>Your OTP for password reset is <strong>${otp}</strong>. It expires in 5 minutes.</p>
+            <p>If you did not request this, please ignore this email.</p>
+            <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+          `,
+        });
+      } catch (emailErr) {
+        console.error('Password reset OTP email failed:', emailErr.message);
+      }
 
       res.status(200).json({
         success: true,

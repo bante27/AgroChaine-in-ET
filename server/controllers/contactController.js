@@ -28,7 +28,9 @@ export const handleContactForm = async (req, res) => {
           });
           attachmentLinks.push({
             filename: file.originalname || 'attachment',
-            url,
+            path: url,
+            mimetype: file.mimetype,
+            size: file.size
           });
         }
       });
@@ -91,19 +93,28 @@ export const handleContactForm = async (req, res) => {
       adminEmailOptions.attachments = attachments;
     }
 
-    await transporter.sendMail(adminEmailOptions);
-    console.log("Admin email sent");
+    // Send email to admin
+    try {
+      await transporter.sendMail(adminEmailOptions);
+      console.log("Admin email sent");
+    } catch (emailErr) {
+      console.error("Admin notification email failed:", emailErr.message);
+    }
 
     // Send auto-reply to user (no attachments)
-    await transporter.sendMail({
-      from: `AgroChain Ethiopia <onboarding@resend.dev>`,
-      to: email,
-      subject: `Re: ${subject}`,
-      html: `<p>Hi ${name},</p>
-       <p>Thank you for contacting us. We have received your message and will respond soon.</p>
-       <p>Best regards,<br/>Agrochain Ethiopia Team</p>`
-    });
-    console.log("User auto-reply sent");
+    try {
+      await transporter.sendMail({
+        from: `AgroChain Ethiopia <onboarding@resend.dev>`,
+        to: email,
+        subject: `Re: ${subject}`,
+        html: `<p>Hi ${name},</p>
+         <p>Thank you for contacting us. We have received your message and will respond soon.</p>
+         <p>Best regards,<br/>Agrochain Ethiopia Team</p>`
+      });
+      console.log("User auto-reply sent");
+    } catch (emailErr) {
+      console.error("User auto-reply email failed (likely Resend limitation):", emailErr.message);
+    }
 
     return res
       .status(200)
