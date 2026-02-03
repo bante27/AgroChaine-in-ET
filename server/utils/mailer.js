@@ -30,7 +30,7 @@ const mailer = {
       }
 
       const { data, error } = await resend.emails.send({
-        from: from || `AgroChain Ethiopia <onboarding@resend.dev>`,
+        from: from || process.env.MAIL_FROM || `AgroChain Ethiopia <onboarding@resend.dev>`,
         to: Array.isArray(to) ? to : [to],
         subject,
         html,
