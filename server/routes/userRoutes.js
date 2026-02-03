@@ -118,6 +118,10 @@ router.post(
         });
       } catch (emailErr) {
         console.error('Registration OTP email failed:', emailErr.message);
+        return res.status(emailErr.statusCode || 500).json({
+          success: false,
+          error: `Email failed: ${emailErr.message}. Please use your registered Resend email or verify your domain.`
+        });
       }
 
       res.status(200).json({
@@ -180,7 +184,10 @@ router.post(
         });
       } catch (emailErr) {
         console.error('Resend OTP email failed:', emailErr.message);
-        return res.status(500).json({ success: false, error: 'Failed to send OTP email' });
+        return res.status(emailErr.statusCode || 500).json({
+          success: false,
+          error: `Email failed: ${emailErr.message}. Please use your registered Resend email or verify your domain.`
+        });
       }
 
       res.status(200).json({
@@ -525,9 +532,17 @@ router.post(
       });
     } catch (err) {
       console.error('Error uploading profile picture:', err);
+      // Log more details to help debug the 500 error
+      if (err.storageError) {
+        console.error('Storage Error Details:', err.storageError);
+      }
       res
         .status(500)
-        .json({ success: false, error: err.message || 'Error uploading profile picture' });
+        .json({
+          success: false,
+          error: err.message || 'Error uploading profile picture. Check Cloudinary configuration.',
+          details: err.stack
+        });
     }
   }
 );

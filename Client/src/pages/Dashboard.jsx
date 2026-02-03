@@ -291,7 +291,7 @@ const Dashboard = () => {
               };
             }
 
-            let productName = 'Unknown Product';
+            let productName = 'Removed Product';
             let productImage = '';
             try {
               const productResponse = await axios.get(`${API_URL}/api/products/${tx.productId}`, {
@@ -300,31 +300,31 @@ const Dashboard = () => {
               productName = productResponse.data.product.title || 'Unknown Product';
               productImage = productResponse.data.product.images?.[0] || '';
             } catch (productError) {
-              console.error(`Error fetching product ${tx.productId}:`, productError);
+              console.warn(`Product ${tx.productId} not found or deleted.`);
             }
 
-            let buyerName = 'Unknown Buyer';
+            let buyerName = 'Unknown User';
             let buyerEmail = '';
             try {
               const buyerResponse = await axios.get(`${API_URL}/api/users/${tx.buyerUserId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
-              buyerName = buyerResponse.data.user.fullName || 'Unknown Buyer';
+              buyerName = buyerResponse.data.user.fullName || 'Unknown';
               buyerEmail = buyerResponse.data.user.email || '';
             } catch (buyerError) {
-              console.error(`Error fetching buyer ${tx.buyerUserId}:`, buyerError);
+              console.warn(`Buyer ${tx.buyerUserId} not found.`);
             }
 
-            let sellerName = 'Unknown Seller';
+            let sellerName = 'Unknown User';
             let sellerEmail = '';
             try {
               const sellerResponse = await axios.get(`${API_URL}/api/users/${tx.sellerUserId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
-              sellerName = sellerResponse.data.user.fullName || 'Unknown Seller';
+              sellerName = sellerResponse.data.user.fullName || 'Unknown';
               sellerEmail = sellerResponse.data.user.email || '';
             } catch (sellerError) {
-              console.error(`Error fetching seller ${tx.sellerUserId}:`, sellerError);
+              console.warn(`Seller ${tx.sellerUserId} not found.`);
             }
 
             return {

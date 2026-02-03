@@ -63,8 +63,10 @@ router.post(
       try {
         await transporter.sendMail(mailOptions);
       } catch (emailErr) {
-        console.error('Error sending reply email:', emailErr.message);
-        // Don't throw error, continue with the response
+        console.error('❌ Error sending reply email:', emailErr.message);
+        if (emailErr.statusCode === 403) {
+          console.error("💡 TIP: Verify your domain at Resend.com to send to this address.");
+        }
       }
 
       // Update message status
@@ -196,7 +198,10 @@ router.patch('/verify/:userId', auth, admin, async (req, res) => {
         `,
       });
     } catch (emailErr) {
-      console.error('Error sending verification email:', emailErr.message);
+      console.error('❌ Error sending verification email:', emailErr.message);
+      if (emailErr.statusCode === 403) {
+        console.error("💡 TIP: Verify your domain at Resend.com to send to this address.");
+      }
     }
 
     res.json({

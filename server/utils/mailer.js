@@ -39,6 +39,12 @@ const mailer = {
 
       if (error) {
         console.error('❌ Resend send error:', error);
+        // Special handling for testing limit
+        if (error.statusCode === 403 && error.name === 'validation_error') {
+          const enhancedError = new Error('Email sending restricted: You can only send to your own email until you verify your domain at Resend.com.');
+          enhancedError.statusCode = 403;
+          throw enhancedError;
+        }
         throw error;
       }
 

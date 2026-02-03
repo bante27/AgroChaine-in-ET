@@ -39,7 +39,10 @@ const sendEmail = async (to, subject, htmlBody) => {
       html,
     });
   } catch (err) {
-    console.error("Email send error (likely Resend limit):", err.message);
+    console.error(`❌ Email failed to ${to}:`, err.message);
+    if (err.statusCode === 403) {
+      console.error("💡 TIP: Verify your domain at Resend.com to send to this address.");
+    }
   }
 };
 
