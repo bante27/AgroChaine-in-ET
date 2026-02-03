@@ -11,7 +11,7 @@ if (!process.env.RESEND_API_KEY) {
   console.warn('⚠️  RESEND_API_KEY not set - email sending will fail!');
 }
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const mailer = {
   sendMail: async (options) => {
@@ -23,6 +23,11 @@ const mailer = {
         filename: a.filename,
         content: a.content || a.path, // Resend accepts URL or base64
       })) || [];
+
+      if (!resend) {
+        console.error('❌ Resend not initialized - check RESEND_API_KEY');
+        return;
+      }
 
       const { data, error } = await resend.emails.send({
         from: from || `AgroChain Ethiopia <onboarding@resend.dev>`,
