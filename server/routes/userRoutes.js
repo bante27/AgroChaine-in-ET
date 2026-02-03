@@ -133,6 +133,67 @@ router.post(
   }
 );
 
+// -------------------- Resend OTP (Registration) --------------------
+router.post(
+  '/resend-otp',
+  [
+    checkEmailCredentials,
+    body('email').isEmail().withMessage('Invalid email'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res
+        .status(400)
+        .json({ success: false, error: errors.array()[0].msg });
+
+    try {
+      const { email } = req.body;
+      const pending = pendingUsers.get(email);
+
+      if (!pending) {
+        return res.status(400).json({
+          success: false,
+          error: 'No pending registration found for this email. Please register again.'
+        });
+      }
+
+      const otp = generateOtp();
+      const otpHash = await bcrypt.hash(otp, 10);
+      const otpExpires = Date.now() + 5 * 60 * 1000;
+
+      // Update pending user with new OTP
+      pending.otp = otpHash;
+      pending.otpExpires = otpExpires;
+      pendingUsers.set(email, pending);
+
+      try {
+        await transporter.sendMail({
+          to: email,
+          subject: 'Your New OTP Code',
+          html: `
+            <p>Dear ${pending.fullName},</p>
+            <p>Well Come to Agrochain Ethiopia</p>
+            <p>Your new OTP is <strong>${otp}</strong>. It expires in 5 minutes.</p>
+            <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+          `,
+        });
+      } catch (emailErr) {
+        console.error('Resend OTP email failed:', emailErr.message);
+        return res.status(500).json({ success: false, error: 'Failed to send OTP email' });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'A new OTP has been sent to your email.',
+      });
+    } catch (err) {
+      console.error('Error resending OTP:', err);
+      res.status(500).json({ success: false, error: 'Server error resending OTP' });
+    }
+  }
+);
+
 // -------------------- Verify OTP (Registration) --------------------
 router.post(
   '/verify-otp',
@@ -407,7 +468,7 @@ router.get('/profile', auth, async (req, res) => {
 // -------------------- Update Profile --------------------
 router.patch('/profile', auth, async (req, res) => {
   try {
-    const allowedFields = ['username', 'location'];
+    const allowedFields = ['fullName', 'phone', 'address', 'username', 'location'];
     const updates = {};
     for (let key of allowedFields) if (req.body[key]) updates[key] = req.body[key];
 
@@ -466,7 +527,7 @@ router.post(
       console.error('Error uploading profile picture:', err);
       res
         .status(500)
-        .json({ success: false, error: 'Error uploading profile picture' });
+        .json({ success: false, error: err.message || 'Error uploading profile picture' });
     }
   }
 );

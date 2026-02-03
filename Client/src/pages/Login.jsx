@@ -206,9 +206,8 @@ const Login = () => {
 
   const handleResendOTP = async () => {
     try {
-      const res = await axios.post(`${API_URL}/api/users/register`, { email: otpEmail });
+      const res = await axios.post(`${API_URL}/api/users/resend-otp`, { email: otpEmail });
       if (res.data.success) {
-        setInitialOtp(res.data.otp);
         toast.success('OTP resent.');
       } else {
         toast.error(res.data.error);

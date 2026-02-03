@@ -250,6 +250,24 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
         <p style="margin-top:10px;">Thank you for choosing Agrochain Ethiopia. We will notify you when the seller ships your order.</p>
       `
       ).catch(console.error);
+
+      // Notify Admin
+      await sendEmail(
+        "tilahunsitotaw87@gmail.com",
+        "New Order Placed on Agrochain",
+        `
+        <p>A new order has been placed on the platform.</p>
+        <table style="width:100%;border-collapse:collapse;margin:12px 0;">
+          <tr><td style="padding:6px 8px;"><strong>Order ID</strong></td><td style="padding:6px 8px;">${transaction._id}</td></tr>
+          <tr><td style="padding:6px 8px;"><strong>Product</strong></td><td style="padding:6px 8px;">${product.title}</td></tr>
+          <tr><td style="padding:6px 8px;"><strong>Quantity</strong></td><td style="padding:6px 8px;">${quantity}</td></tr>
+          <tr><td style="padding:6px 8px;"><strong>Total Price</strong></td><td style="padding:6px 8px;">${totalPrice.toFixed(2)} ETB</td></tr>
+          <tr><td style="padding:6px 8px;"><strong>Buyer</strong></td><td style="padding:6px 8px;">${buyer.fullName} (${buyer.email})</td></tr>
+          <tr><td style="padding:6px 8px;"><strong>Seller</strong></td><td style="padding:6px 8px;">${seller.fullName} (${seller.email})</td></tr>
+        </table>
+        <p>Please monitor the order for shipping and completion.</p>
+        `
+      ).catch(console.error);
     }
 
     res.json({

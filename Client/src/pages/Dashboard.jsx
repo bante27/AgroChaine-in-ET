@@ -381,27 +381,6 @@ const Dashboard = () => {
 
       console.log("Transaction found for shipping:", transaction);
 
-      // Send email to buyer
-      if (transaction.buyerEmail) {
-        try {
-          await axios.post(
-            `${API_URL}/api/products/email/shipped-notification`,
-            {
-              to: transaction.buyerEmail,
-              buyerName: transaction.buyerName || "Customer",
-              productName: transaction.productName || "Product",
-              transactionId,
-              estimatedDelivery: "3-5 business days",
-            }
-          );
-          console.log(" Shipped email sent successfully to buyer:", transaction.buyerEmail);
-        } catch (emailError) {
-          console.error("❌ Failed to send shipped email:", emailError.response?.data || emailError);
-        }
-      } else {
-        console.warn("No buyer email found for transaction:", transactionId);
-      }
-
       toast.success(" Product marked as shipped successfully!");
       fetchUserProfileLocal();
 
@@ -434,27 +413,6 @@ const Dashboard = () => {
       }
 
       console.log("Transaction found for delivery confirmation:", transaction);
-
-      // Send email to seller
-      if (transaction.sellerEmail) {
-        try {
-          await axios.post(
-            `${API_URL}/api/products/email/delivery-confirmation`,
-            {
-              to: transaction.sellerEmail,
-              sellerName: transaction.sellerName || "Seller",
-              productName: transaction.productName || "Product",
-              transactionId,
-              buyerName: transaction.buyerName || "Buyer",
-            }
-          );
-          console.log(" Delivery confirmation email sent successfully to seller:", transaction.sellerEmail);
-        } catch (emailError) {
-          console.error("❌ Failed to send delivery confirmation email:", emailError.response?.data || emailError);
-        }
-      } else {
-        console.warn("No seller email found for transaction:", transactionId);
-      }
 
       toast.success(" Delivery confirmed successfully!");
       fetchUserProfileLocal();
@@ -669,7 +627,8 @@ const Dashboard = () => {
       fetchUserProfileLocal();
       toast.success('Profile image updated');
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to update profile image');
+      console.error('Profile image upload error:', error);
+      toast.error(error.response?.data?.error || error.message || 'Failed to update profile image');
     }
   };
 
@@ -677,14 +636,15 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.patch(
-        `/api/users/profile`,
+        `${API_URL}/api/users/profile`,
         profileData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchUserProfileLocal();
       toast.success('Profile updated successfully');
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to update profile');
+      console.error('Profile update error:', error);
+      toast.error(error.response?.data?.error || error.message || 'Failed to update profile');
     }
   };
 
