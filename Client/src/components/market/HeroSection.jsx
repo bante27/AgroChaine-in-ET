@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Shield, Globe, Tractor } from "lucide-react";
+import { useLanguage } from "../../contexts/LanguageContext";
 import ananas from "../../assets/images/Ananas stock.jfif";
 import apple from "../../assets/images/Apple.jfif";
 import onion from "../../assets/images/Onion.jfif";
@@ -21,13 +22,14 @@ const productImages = [
 ];
 
 const HeroSection = () => {
+  const { t } = useLanguage();
   // ⚡ Ultra-smooth infinite scroll (adjust speed here)
   const scrollSpeed = 40; // seconds per full loop – tweak for feel
 
   const badges = [
-    { icon: Shield, text: "Cloud Security" },
-    { icon: Globe, text: "Carbon Neutral" },
-    { icon: Tractor, text: "Farmer-First" },
+    { icon: Shield, text: t('marketplace.hero.badges.security') },
+    { icon: Globe, text: t('marketplace.hero.badges.carbon') },
+    { icon: Tractor, text: t('marketplace.hero.badges.farmer') },
   ];
 
   return (
@@ -64,10 +66,10 @@ const HeroSection = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, type: "spring", stiffness: 80 }}
           >
-            AgroChain
+            {t('nav.brand')}
             <br />
             <span className="block mt-2 text-4xl sm:text-5xl lg:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-amber-500 to-green-700">
-              Ethiopia’s Future Harvest
+              {t('marketplace.hero.title')}
             </span>
           </motion.h1>
 
@@ -78,9 +80,9 @@ const HeroSection = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 1 }}
           >
-            Next-Gen Agricultural Transparency. Direct farmer-to-buyer connections. Real-time weather insights. 
+            {t('marketplace.hero.subtitle')}
             <span className="block mt-3 font-semibold text-emerald-700">
-              Fresh, organic, Ethiopian — delivered with trust.
+              {t('marketplace.hero.tagline')}
             </span>
           </motion.p>
 
@@ -161,7 +163,7 @@ const HeroSection = () => {
       </div>
 
       {/* 🌈 Custom CSS for animated gradient text */}
-      <style jsx>{`
+      <style>{`
         @keyframes gradient-xy {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
@@ -172,7 +174,7 @@ const HeroSection = () => {
         }
         @keyframes pulse-slow {
           0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.5; }
+          50% { opacity: 0.5%; }
         }
         .animate-pulse-slow { animation: pulse-slow 8s ease-in-out infinite; }
       `}</style>

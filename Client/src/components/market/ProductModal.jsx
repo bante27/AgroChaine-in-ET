@@ -8,6 +8,7 @@ import {
   ThumbsDown,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../../contexts/LanguageContext";
 import Button from "../common/Button";
 import { API_URL } from '../../utils/apiConfig';
 
@@ -22,6 +23,7 @@ const ProductModal = ({
   onBuyNow,
   refreshProduct,
 }) => {
+  const { t, language, transliterateName } = useLanguage();
   const [comment, setComment] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
@@ -117,7 +119,7 @@ const ProductModal = ({
 
           {/* Title */}
           <h2 className="text-2xl font-bold mb-4 text-center text-gray-900 font-inter">
-            {product.title}
+            {language === 'am' ? transliterateName(product.title) : product.title}
           </h2>
 
           {/* Main Image */}
@@ -141,22 +143,21 @@ const ProductModal = ({
             ))}
           </div>
 
-          {/* Details */}
           <div className="space-y-2 text-sm text-gray-900">
-            <p><strong>Price:</strong> {product.price} ETB</p>
-            <p><strong>Available:</strong> {availableCount}KG</p>
-            <p><strong>Type:</strong> {product.type || "N/A"}</p>
-            <p><strong>Origin:</strong> {product.originAddress || "Unknown"}</p>
-            <p><strong>Description:</strong> {product.description || "No description"}</p>
+            <p><strong>{t('marketplace.product.price')}:</strong> {product.price} ETB</p>
+            <p><strong>{t('marketplace.product.available')}:</strong> {availableCount}KG</p>
+            <p><strong>{t('marketplace.product.type')}:</strong> {language === 'am' ? transliterateName(product.type) : (t(`marketplace.filters.categories.${product.type}`) || product.type)}</p>
+            <p><strong>{t('marketplace.product.origin')}:</strong> {product.originAddress || t('marketplace.product.unknown')}</p>
+            <p><strong>{t('marketplace.product.description')}:</strong> {product.description || t('marketplace.product.noDescription')}</p>
           </div>
 
           {/* Seller */}
-          <div className="mt-4 text-center">
+          <div className="mt-4 text-center p-3 bg-emerald-50 rounded-lg border border-emerald-100">
             <Link
               to={`/seller/${product.ownerUserId}`}
-              className="text-blue-600 font-semibold text-sm underline hover:text-blue-800"
+              className="text-emerald-700 font-bold text-sm hover:text-emerald-800 transition-colors"
             >
-              {product.ownerName || "Unknown Seller"}
+              {t('marketplace.product.from')} {transliterateName(product.ownerName) || t('marketplace.product.seller')}
             </Link>
           </div>
 
@@ -164,20 +165,19 @@ const ProductModal = ({
           <div className="flex justify-between items-center mt-4">
             <div className="flex items-center gap-1 text-yellow-500 text-sm">
               <Star className="w-4 h-4 fill-yellow-500" />
-              {product.reviews?.length || 0} review
-              {product.reviews?.length !== 1 ? "s" : ""}
+              {product.reviews?.length || 0} {t('marketplace.product.reviews')}
             </div>
 
             <Button
               onClick={handleLike}
               disabled={likeLoading}
               className={`flex items-center gap-1 px-2 py-1 text-xs rounded-lg transition text-white ${liked
-                  ? "bg-red-500 hover:bg-red-600"
-                  : "bg-blue-500 hover:bg-blue-600"
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-blue-500 hover:bg-blue-600"
                 }`}
             >
               {liked ? <ThumbsDown className="w-3 h-3" /> : <ThumbsUp className="w-3 h-3" />}
-              {liked ? "Unlike" : "Like"}
+              {liked ? t('marketplace.product.unlike') : t('marketplace.product.like')}
             </Button>
           </div>
 
@@ -187,29 +187,29 @@ const ProductModal = ({
               onClick={() => onAddToCart(product)}
               disabled={availableCount <= 0}
               className={`w-full flex justify-center gap-2 text-sm text-white rounded-lg ${availableCount > 0
-                  ? "bg-green-500 hover:bg-green-600"
-                  : "bg-gray-300 cursor-not-allowed text-gray-700"
+                ? "bg-green-500 hover:bg-green-600"
+                : "bg-gray-300 cursor-not-allowed text-gray-700"
                 }`}
             >
               <ShoppingCart className="w-4 h-4" />
-              {availableCount > 0 ? "Add to Cart" : "Sold Out"}
+              {availableCount > 0 ? t('marketplace.product.cart') : t('marketplace.product.soldOut')}
             </Button>
 
             <Button
               onClick={() => onBuyNow(product)}
               disabled={availableCount <= 0}
               className={`w-full flex justify-center gap-2 text-sm text-white rounded-lg ${availableCount > 0
-                  ? "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
-                  : "bg-gray-300 cursor-not-allowed text-gray-700"
+                ? "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                : "bg-gray-300 cursor-not-allowed text-gray-700"
                 }`}
             >
-              {availableCount > 0 ? "Buy Now" : "Sold Out"}
+              {availableCount > 0 ? t('marketplace.product.buyNow') : t('marketplace.product.soldOut')}
             </Button>
           </div>
 
           {/* Reviews Section */}
           <div className="mt-5">
-            <h3 className="text-gray-900 text-lg font-semibold mb-2">Reviews</h3>
+            <h3 className="text-gray-900 text-lg font-semibold mb-2">{t('marketplace.product.reviews')}</h3>
 
             <div className="space-y-2 text-sm text-gray-700">
               {product.reviews?.length ? (
@@ -218,7 +218,7 @@ const ProductModal = ({
                     key={review._id}
                     className="bg-white border border-gray-200 rounded-lg p-2"
                   >
-                    <p className="font-semibold">{review.userName || "Anonymous"}</p>
+                    <p className="font-semibold">{review.userName || t('marketplace.product.anonymous')}</p>
                     <p>{review.comment}</p>
                     <p className="text-[10px] text-gray-500">
                       {new Date(review.createdAt).toLocaleString()}
@@ -226,14 +226,14 @@ const ProductModal = ({
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500">No reviews yet.</p>
+                <p className="text-gray-500">{t('marketplace.product.noReviews')}</p>
               )}
 
               {/* Add Review */}
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Write a review..."
+                placeholder={t('marketplace.product.writeReview')}
                 className="w-full rounded-lg border border-gray-300 bg-white text-gray-900 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 rows={2}
               />
@@ -242,7 +242,7 @@ const ProductModal = ({
                 disabled={isSubmittingReview || !comment.trim()}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm mt-1"
               >
-                {isSubmittingReview ? "Posting..." : "Post Review"}
+                {isSubmittingReview ? t('marketplace.product.posting') : t('marketplace.product.postReview')}
               </Button>
             </div>
           </div>

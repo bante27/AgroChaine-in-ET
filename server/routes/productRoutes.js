@@ -99,6 +99,19 @@ router.get("/", async (req, res) => {
   }
 });
 
+// --------------- Get user's products ----------------
+router.get("/my-products", auth, async (req, res) => {
+  try {
+    const user = await User.findOne({ userId: req.user.userId }).populate('postedProducts');
+    if (!user) return res.status(404).json({ success: false, error: "User not found" });
+
+    res.json({ success: true, products: user.postedProducts || [] });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: "Server error fetching user products" });
+  }
+});
+
 // --------------- Get single product ----------------
 router.get("/:id", async (req, res) => {
   try {
@@ -117,19 +130,6 @@ router.get("/:id", async (req, res) => {
   } catch (error) {
     console.error("Error fetching product:", error);
     res.status(500).json({ success: false, error: "Server error fetching product" });
-  }
-});
-
-// --------------- Get user's products ----------------
-router.get("/my-products", auth, async (req, res) => {
-  try {
-    const user = await User.findOne({ userId: req.user.userId }).populate('postedProducts');
-    if (!user) return res.status(404).json({ success: false, error: "User not found" });
-
-    res.json({ success: true, products: user.postedProducts || [] });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, error: "Server error fetching user products" });
   }
 });
 

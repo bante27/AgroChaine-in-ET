@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search, Grid, List } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const FiltersSection = ({
   inputValue,
@@ -14,6 +15,7 @@ const FiltersSection = ({
   onViewModeChange,
   searchInputRef,
 }) => {
+  const { t } = useLanguage();
   return (
     <section className="py-8 bg-white backdrop-blur-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4">
@@ -24,7 +26,7 @@ const FiltersSection = ({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search products or locations..."
+                placeholder={t('marketplace.filters.search')}
                 value={inputValue}
                 onChange={onSearchChange}
                 onKeyDown={(e) => e.key === 'Enter' && onSearchSubmit()}
@@ -35,7 +37,7 @@ const FiltersSection = ({
                 onClick={onSearchSubmit}
                 className="absolute right-1 top-1/2 -translate-y-1/2 px-3 py-1 bg-sky-400 text-white rounded-lg hover:bg-amber-400"
               >
-                Search
+                {t('marketplace.filters.searchBtn')}
               </button>
             </div>
           </div>
@@ -59,10 +61,10 @@ const FiltersSection = ({
               onChange={onSortChange}
               className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-300 focus:border-rose-100"
             >
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="newest">Newest First</option>
-              <option value="rating">Highest Rated</option>
+              <option value="price-low">{t('marketplace.filters.sort.priceLow')}</option>
+              <option value="price-high">{t('marketplace.filters.sort.priceHigh')}</option>
+              <option value="newest">{t('marketplace.filters.sort.newest')}</option>
+              <option value="rating">{t('marketplace.filters.sort.rating')}</option>
             </select>
 
             <div className="flex border border-gray-300 rounded-lg">

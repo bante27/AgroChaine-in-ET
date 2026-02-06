@@ -12,6 +12,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { API_URL } from '../utils/apiConfig';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 
 const modalBackdrop = {
@@ -22,6 +23,7 @@ const modalBackdrop = {
 };
 
 const Marketplace = () => {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [searchTerm, setSearchTerm] = useState("");
@@ -51,12 +53,12 @@ const Marketplace = () => {
   const pageSize = 20;
 
   const categories = [
-    { value: "", label: "All Categories" },
-    { value: "vegetable", label: "Vegetable" },
-    { value: "fruit", label: "Fruit" },
-    { value: "grain", label: "Grain" },
-    { value: "dairy", label: "Dairy" },
-    { value: "other", label: "Other" },
+    { value: "", label: t('marketplace.filters.categories.all') },
+    { value: "vegetable", label: t('marketplace.filters.categories.vegetable') },
+    { value: "fruit", label: t('marketplace.filters.categories.fruit') },
+    { value: "grain", label: t('marketplace.filters.categories.grain') },
+    { value: "dairy", label: t('marketplace.filters.categories.dairy') },
+    { value: "other", label: t('marketplace.filters.categories.other') },
   ];
 
   // Save cart to localStorage
@@ -81,7 +83,7 @@ const Marketplace = () => {
       setTotalPages(Math.ceil(products.length / pageSize));
     } catch (err) {
       console.error(err);
-      setError("Failed to load products");
+      setError(t('marketplace.loadError'));
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   Users,
   Target,
@@ -45,53 +46,54 @@ import { API_URL } from '../utils/apiConfig';
 
 
 const About = () => {
+  const { t } = useLanguage();
   const values = [
     {
       icon: Target,
-      title: 'Our Mission',
-      description: 'To revolutionize Ethiopian agriculture with a transparent, efficient, and profitable supply chain ecosystem powered by technology.',
+      title: t('about.mission.title'),
+      description: t('about.mission.desc'),
     },
     {
       icon: Users,
-      title: 'Our Vision',
-      description: 'To lead as Africa’s top agricultural technology platform, empowering farmers and connecting communities through innovation.',
+      title: t('about.vision.title'),
+      description: t('about.vision.desc'),
     },
     {
       icon: Award,
-      title: 'Our Values',
-      description: 'Transparency, innovation, sustainability, and empowerment guide our support for Ethiopian agricultural communities.',
+      title: t('about.values.title'),
+      description: t('about.values.desc'),
     },
     {
       icon: Globe,
-      title: 'Our Impact',
-      description: 'Driving positive change in rural communities with access to global markets and fair pricing.',
+      title: t('about.impact.title'),
+      description: t('about.impact.desc'),
     },
   ];
 
   const team = [
     {
       name: 'M.S Tilahun Sitotaw',
-      role: 'CEO & Founder',
+      role: t('about.team.tilahun.role'),
       image: '../../src/assets/images/freee.jpg',
-      bio: 'Agricultural Ethiopian farming systems.',
+      bio: t('about.team.tilahun.bio'),
       twitter: 'https://x.com/sitotaw_ti83761',
       instagram: 'https://www.instagram.com/tile1673/',
       telegram: 'https://t.me/Tile123455',
     },
     {
       name: 'M.S Bantalem Mitiku',
-      role: 'CTO',
+      role: t('about.team.bantalem.role'),
       image: 'https://images.pexels.com/photos/9946445/pexels-photo-9946445.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop',
-      bio: ' supply chain solutions.',
+      bio: t('about.team.bantalem.bio'),
       twitter: 'https://twitter.com/example2',
       instagram: 'https://instagram.com/example2',
       telegram: 'https://t.me/Wubbante',
     },
     {
       name: 'M.S Tegene',
-      role: 'Head of Operations',
+      role: t('about.team.tegene.role'),
       image: 'https://images.pexels.com/photos/11099197/pexels-photo-11099197.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop',
-      bio: 'Former agricultural extension officer with deep farming expertise.',
+      bio: t('about.team.tegene.bio'),
       twitter: 'https://twitter.com/example3',
       instagram: 'https://instagram.com/example3',
       telegram: 'https://t.me/example3',
@@ -101,48 +103,48 @@ const About = () => {
   const services = [
     {
       icon: Shield,
-      title: 'Enhanced Traceability',
-      description: 'Track products from farm to consumer with secure, verifiable records for unmatched transparency.',
+      title: t('about.services.traceability.title'),
+      description: t('about.services.traceability.desc'),
       features: [
-        'Verifiable transaction records',
-        'Real-time supply chain visibility',
-        'Fraud prevention and authenticity verification',
-        'Automated compliance reporting',
+        t('about.services.traceability.f1'),
+        t('about.services.traceability.f2'),
+        t('about.services.traceability.f3'),
+        t('about.services.traceability.f4'),
       ],
       image: AgricultureHero,
     },
     {
       icon: Truck,
-      title: 'Logistics & Transport',
-      description: 'Reliable transportation solutions connecting farms to markets, ensuring timely delivery.',
+      title: t('about.services.logistics.title'),
+      description: t('about.services.logistics.desc'),
       features: [
-        'Optimized route planning',
-        'Cold chain management',
-        'Fleet tracking and real-time updates',
-        'Last-mile delivery coordination',
+        t('about.services.logistics.f1'),
+        t('about.services.logistics.f2'),
+        t('about.services.logistics.f3'),
+        t('about.services.logistics.f4'),
       ],
       image: IvecoGenlyonTruckImage,
     },
     {
       icon: Users,
-      title: 'KYC Verification',
-      description: 'Secure identity verification using Ethiopian National ID for trusted marketplace participation.',
+      title: t('about.services.kyc.title'),
+      description: t('about.services.kyc.desc'),
       features: [
-        'Ethiopian National ID integration',
-        'Multi-level verification process',
-        'Compliance with local regulations',
+        t('about.services.kyc.f1'),
+        t('about.services.kyc.f2'),
+        t('about.services.kyc.f3'),
       ],
       image: MakingEffort,
     },
     {
       icon: Globe,
-      title: 'Digital Marketplace',
-      description: 'Connect farmers directly with buyers, eliminating middlemen and boosting profits.',
+      title: t('about.services.marketplace.title'),
+      description: t('about.services.marketplace.desc'),
       features: [
-        'Direct farmer-to-buyer connections',
-        'Real-time price discovery',
-        'Secure payment processing',
-        'Multi-language support',
+        t('about.services.marketplace.f1'),
+        t('about.services.marketplace.f2'),
+        t('about.services.marketplace.f3'),
+        t('about.services.marketplace.f4'),
       ],
       image: AgriculturalReforms,
     },
@@ -151,36 +153,36 @@ const About = () => {
   const additionalServices = [
     {
       icon: Smartphone,
-      title: 'Mobile App ',
-      description: '(Coming Soon) Access platform features on-the-go with our mobile application.',
+      title: t('about.services.additional.mobile.title'),
+      description: t('about.services.additional.mobile.desc'),
     },
     {
       icon: Database,
-      title: 'Data Management',
-      description: 'Secure cloud storage and management of agricultural data.',
+      title: t('about.services.additional.data.title'),
+      description: t('about.services.additional.data.desc'),
     },
     {
       icon: Lock,
-      title: 'Security',
-      description: 'Enterprise-grade security protecting all user data and transactions.',
+      title: t('about.services.additional.security.title'),
+      description: t('about.services.additional.security.desc'),
     },
   ];
 
   const testimonials = [
     {
-      quote: 'AgroChain has transformed how we sell our crops, connecting us directly to buyers and ensuring fair prices.',
-      author: 'Abebe Kebede',
-      role: 'Farmer, Amhara Region',
+      quote: t('about.testimonials.t1.quote'),
+      author: t('about.testimonials.t1.author'),
+      role: t('about.testimonials.t1.role'),
     },
     {
-      quote: 'The traceability feature gives our customers confidence in the authenticity of our products.',
-      author: 'Selamawit Tadesse',
-      role: 'Agricultural Cooperative Manager',
+      quote: t('about.testimonials.t2.quote'),
+      author: t('about.testimonials.t2.author'),
+      role: t('about.testimonials.t2.role'),
     },
     {
-      quote: 'The logistics solutions have streamlined our supply chain, saving time and reducing costs.',
-      author: 'Yonas Alemayehu',
-      role: 'Market Distributor',
+      quote: t('about.testimonials.t3.quote'),
+      author: t('about.testimonials.t3.author'),
+      role: t('about.testimonials.t3.role'),
     },
   ];
 
@@ -355,7 +357,7 @@ const About = () => {
               backgroundColor: 'rgba(255, 255, 255, 0.9)', /* Added solid background */
             }}
           >
-            AgroChain <span className="text-yellow-300">Ethiopia</span>
+            {t('about.titlePart1')} <span className="text-yellow-300">{t('about.titlePart2')}</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 50 }}
@@ -371,7 +373,7 @@ const About = () => {
               color: '#1a202c', /* Darker text color for visibility */
             }}
           >
-            Empowering Ethiopian agriculture with cutting-edge technology, transparency, and sustainable growth for farmers and communities.
+            {t('about.subtitle')}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -384,7 +386,7 @@ const About = () => {
               className="bg-yellow-400 text-teal-900 px-10 py-5 rounded-2xl font-bold text-xl hover:bg-yellow-500 hover:shadow-lg transition-all duration-300 hover:scale-105"
               aria-label="Get started with AgroChain"
             >
-              Join Us Now
+              {t('hero.empoweringSection.joinNow')}
             </Link>
           </motion.div>
         </div>
@@ -406,17 +408,17 @@ const About = () => {
               style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', minHeight: '450px' }} /* Increased minHeight */
             >
               <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-10 gradient-text">
-                Our <span className="text-amber-500">Story</span>
+                {t('about.story.titlePart1') || t('about.story.title').split(' ')[0]} <span className="text-amber-500">{t('about.story.titlePart2') || t('about.story.title').split(' ').slice(1).join(' ')}</span>
               </h2>
               <div className="space-y-6 text-lg sm:text-xl text-gray-950">
                 <p>
-                  AgroChain Ethiopia was born from a vision to uplift Ethiopian farmers by tackling the inefficiencies of traditional agricultural supply chains. Founded in 2025, we leverage advanced technology to bridge the gap between rural producers and global markets.
+                  {t('about.story.p1')}
                 </p>
                 <p>
-                  Our platform offers real-time traceability, secure logistics, and a digital marketplace, empowering  farmers with fair pricing and direct buyer connections. We are committed to sustainable practices, supporting local economies, and fostering innovation in agriculture.
+                  {t('about.story.p2')}
                 </p>
                 <p>
-                  With a team of agricultural experts and tech innovators, AgroChain Ethiopia aims to set a new standard for agricultural transformation across Africa, ensuring prosperity for generations to come.
+                  {t('about.story.p3')}
                 </p>
               </div>
             </motion.div>
@@ -432,7 +434,7 @@ const About = () => {
                 <motion.img
                   key={currentImageIndex}
                   src={currentStoryImage}
-                  alt={`Ethiopian agriculture ${currentImageIndex + 1}`}
+                  alt={t('about.story.title')}
                   className="w-full h-full object-cover rounded-2xl"
                   initial={{ opacity: 0, scale: 1.1 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -484,10 +486,10 @@ const About = () => {
           >
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 rounded-2xl p-12" /* Increased padding */
               style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'linear-gradient(135deg, #ffffff, #10b981)', boxShadow: '0 12px 25px rgba(0, 0, 0, 0.15)' }}>
-              Our <span className="gradient-text">Core Values</span>
+              {t('about.values.titlePart1') || t('about.values.title').split(' ')[0]} <span className="gradient-text">{t('about.values.titlePart2') || t('about.values.title').split(' ').slice(1).join(' ')}</span>
             </h2>
             <p className="text-xl sm:text-2xl text-gray-700 max-w-3xl mx-auto mt-6">
-              The guiding principles shaping our mission for Ethiopian agriculture.
+              {t('about.values.desc')}
             </p>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
@@ -527,10 +529,10 @@ const About = () => {
           >
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 rounded-2xl p-12" /* Increased padding */
               style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'linear-gradient(135deg, #10b981, #3b82f6)', boxShadow: '0 15px 30px rgba(0, 0, 0, 0.2)' }}>
-              Our <span className="gradient-text">Core Services</span>
+              {t('about.services.titlePart1') || t('about.services.title').split(' ').slice(0, -1).join(' ')} <span className="gradient-text">{t('about.services.titlePart2') || t('about.services.title').split(' ').slice(-1)}</span>
             </h2>
             <p className="text-xl sm:text-2xl text-gray-700 max-w-3xl mx-auto mt-6">
-              Innovative solutions transforming Ethiopian agriculture.
+              {t('about.services.subtitle')}
             </p>
           </motion.div>
           <div className="space-y-20">
@@ -593,10 +595,10 @@ const About = () => {
           >
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 rounded-2xl p-10" /* Increased padding */
               style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'rgba(255, 255, 255, 0.9)', boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)' }}>
-              Additional <span className="gradient-text">Features</span>
+              {t('about.services.additional.titlePart1') || t('about.services.additional.title').split(' ').slice(0, -1).join(' ')} <span className="gradient-text">{t('about.services.additional.titlePart2') || t('about.services.additional.title').split(' ').slice(-1)}</span>
             </h2>
             <p className="text-xl sm:text-2xl text-gray-700 max-w-3xl mx-auto mt-6">
-              Enhancing your experience with our platform.
+              {t('about.services.additional.subtitle')}
             </p>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -636,10 +638,10 @@ const About = () => {
           >
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 rounded-2xl p-10" /* Increased padding */
               style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'rgba(255, 255, 255, 0.9)', boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)' }}>
-              What Our <span className="gradient-text">Clients Say</span>
+              {t('about.testimonials.title').split(' ').slice(0, -2).join(' ')} <span className="gradient-text">{t('about.testimonials.title').split(' ').slice(-2).join(' ')}</span>
             </h2>
             <p className="text-xl sm:text-2xl text-gray-700 max-w-3xl mx-auto mt-6">
-              Hear from farmers and businesses who trust AgroChain Ethiopia.
+              {t('about.testimonials.subtitle')}
             </p>
           </motion.div>
           <div className="relative max-w-4xl mx-auto">
@@ -696,10 +698,10 @@ const About = () => {
           >
             <h2 className="text-4xl sm:text-5xl font-extrabold mb-6 leading-tight rounded-2xl p-10" /* Increased padding */
               style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'rgba(255, 255, 255, 0.9)', boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)' }}>
-              Meet Our <span className="gradient-text">Team</span>
+              {t('about.team.title').split(' ')[0]} <span className="gradient-text">{t('about.team.title').split(' ').slice(1).join(' ')}</span>
             </h2>
             <p className="text-lg sm:text-xl text-gray-700 max-w-3xl mx-auto mt-4">
-              Combining agricultural expertise with cutting-edge technology.
+              {t('about.team.subtitle')}
             </p>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -753,9 +755,9 @@ const About = () => {
             className="text-center mb-12"
           >
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 drop-shadow-md">
-              Real-Time Weather in <span className="text-teal-600">{selectedLocation || userCity}</span>
+              {t('about.weather.title')} <span className="text-teal-600">{selectedLocation || userCity}</span>
             </h2>
-            <p className="text-xl text-gray-700 mb-6 drop-shadow-sm">Auto-detected from your location or select from Ethiopian places for accurate planning.</p>
+            <p className="text-xl text-gray-700 mb-6 drop-shadow-sm">{t('about.weather.subtitle')}</p>
             <div className="flex justify-center items-center gap-4">
               <MapPin className="h-6 w-6 text-teal-600 animate-pulse" />
               <select
@@ -779,7 +781,7 @@ const About = () => {
                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 className="inline-block h-12 w-12 border-4 border-teal-600 border-t-transparent rounded-full mb-4"
               ></motion.div>
-              <p className="text-gray-600 font-medium drop-shadow">Fetching real-time weather...</p>
+              <p className="text-gray-600 font-medium drop-shadow">{t('about.weather.detecting')}</p>
             </div>
           ) : weatherError ? (
             <div className="text-center p-8 bg-red-50/80 backdrop-blur-md rounded-2xl border border-red-200 shadow-inner">
@@ -789,7 +791,7 @@ const About = () => {
                 onClick={() => fetchWeather(selectedLocation || userCity)}
                 className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300 hover:scale-105"
               >
-                Retry
+                {t('about.weather.retry')}
               </button>
             </div>
           ) : weather ? (
@@ -814,10 +816,10 @@ const About = () => {
               <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg text-center hover:shadow-2xl transition-all duration-300">
                 <Thermometer className="h-12 w-12 mx-auto mb-4 text-orange-600" />
                 <h3 className="text-3xl font-bold text-orange-800">{weather.temperature}°C</h3>
-                <p className="text-gray-700">Feels like {weather.feelsLike}°C</p>
+                <p className="text-gray-700">{t('about.weather.feelsLike')} {weather.feelsLike}°C</p>
                 <div className="flex justify-between mt-2 text-sm">
-                  <span className="text-red-600 flex items-center"><Sun className="h-4 w-4 mr-1" /> High: {weather.high}°C (Today's maximum temperature)</span>
-                  <span className="text-blue-600 flex items-center"><Cloud className="h-4 w-4 mr-1" /> Low: {weather.low}°C (Today's minimum temperature)</span>
+                  <span className="text-red-600 flex items-center"><Sun className="h-4 w-4 mr-1" /> {t('about.weather.high')}: {weather.high}°C</span>
+                  <span className="text-blue-600 flex items-center"><Cloud className="h-4 w-4 mr-1" /> {t('about.weather.low')}: {weather.low}°C</span>
                 </div>
               </div>
 
@@ -825,28 +827,28 @@ const About = () => {
               <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg text-center hover:shadow-2xl transition-all duration-300">
                 <Droplet className="h-12 w-12 mx-auto mb-4 text-blue-600" />
                 <h3 className="text-3xl font-bold text-blue-800">{weather.humidity}%</h3>
-                <p className="text-gray-700">Humidity</p>
+                <p className="text-gray-700">{t('about.weather.humidity')}</p>
               </div>
 
               {/* Wind Card */}
               <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg text-center hover:shadow-2xl transition-all duration-300">
                 <Wind className="h-12 w-12 mx-auto mb-4 text-gray-600" />
                 <h3 className="text-3xl font-bold text-gray-800">{weather.windSpeed} m/s</h3>
-                <p className="text-gray-700">Wind Speed</p>
+                <p className="text-gray-700">{t('about.weather.windSpeed')}</p>
               </div>
 
               {/* Precipitation & Tip Card */}
               <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg text-center hover:shadow-2xl transition-all duration-300 col-span-1 md:col-span-2 lg:col-span-1">
                 <CloudRain className="h-12 w-12 mx-auto mb-4 text-green-600" />
                 <h3 className="text-3xl font-bold text-green-800">{weather.precipitation || 0} mm</h3>
-                <p className="text-gray-700">Precipitation</p>
-                <p className="mt-4 text-sm text-gray-600 font-medium">Tip: Monitor for rain; prepare irrigation if dry.</p>
+                <p className="text-gray-700">{t('about.weather.precipitation')}</p>
+                <p className="mt-4 text-sm text-gray-600 font-medium">{t('about.weather.tip')}</p>
               </div>
             </motion.div>
           ) : (
             <p className="text-center text-gray-600 text-xl">No weather data available.</p>
           )}
-          <p className="text-center text-sm text-gray-500 mt-8">Weather data fetched in real-time from backend. Updated every load.</p>
+          <p className="text-center text-sm text-gray-500 mt-8">{t('about.weather.updateInfo')}</p>
         </div>
       </section>
 
@@ -860,7 +862,7 @@ const About = () => {
             className="text-4xl sm:text-5xl font-extrabold mb-8 rounded-2xl p-10" /* Increased padding */
             style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'rgba(255, 255, 255, 0.9)', boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)' }}
           >
-            Transform <span className="gradient-text">Ethiopian Agriculture</span> Today
+            {t('about.cta.title').split(' ').slice(0, -2).join(' ')} <span className="gradient-text">{t('about.cta.title').split(' ').slice(-2).join(' ')}</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 50 }}
@@ -868,7 +870,7 @@ const About = () => {
             transition={{ duration: 1.5, delay: 0.3, type: 'spring', stiffness: 100 }}
             className="text-lg sm:text-xl md:text-2xl mb-12 max-w-3xl mx-auto"
           >
-            Join thousands of farmers and businesses revolutionizing agriculture with transparency and innovation.
+            {t('about.cta.subtitle')}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -879,9 +881,9 @@ const About = () => {
             <Link
               to="/contact"
               className="border-2 border-teal-600 text-teal-600 px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-teal-50 hover:shadow-2xl transition-all duration-300 hover:scale-105 inline-flex items-center gap-4"
-              aria-label="Contact our sales team"
+              aria-label={t('about.cta.contactSales')}
             >
-              Contact Sales
+              {t('about.cta.contactSales')}
             </Link>
           </motion.div>
         </div>

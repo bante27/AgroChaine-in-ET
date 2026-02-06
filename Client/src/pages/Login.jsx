@@ -12,9 +12,11 @@ import { parsePhoneNumber } from 'libphonenumber-js';
 import axios from 'axios';
 import LiveChat from '../components/LiveChat';
 import { API_URL } from '../utils/apiConfig';
+import { useLanguage } from '../contexts/LanguageContext';
 
 // OTP Input component
 const OTPInput = ({ email, otp, onVerify, onResend }) => {
+  const { t } = useLanguage();
   const [inputOtp, setInputOtp] = useState('');
   const [timer, setTimer] = useState(300);
 
@@ -46,8 +48,8 @@ const OTPInput = ({ email, otp, onVerify, onResend }) => {
       >
         <Card className="bg-white/90 backdrop-blur-lg border border-gray-100 shadow-2xl rounded-2xl p-6">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900">Verify Your Email</h2>
-            <p className="text-gray-500 text-sm mt-2">Enter the OTP sent to <span className="font-medium">{email}</span></p>
+            <h2 className="text-2xl font-bold text-gray-900">{t('auth.verifyEmail')}</h2>
+            <p className="text-gray-500 text-sm mt-2">{t('auth.enterOtp')} <span className="font-medium">{email}</span></p>
           </div>
           <form
             className="space-y-4 mt-6"
@@ -57,29 +59,29 @@ const OTPInput = ({ email, otp, onVerify, onResend }) => {
             }}
           >
             <Input
-              label="OTP Code"
+              label={t('auth.otpLabel')}
               value={inputOtp}
               onChange={e => setInputOtp(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Enter 6-digit OTP"
+              placeholder={t('auth.otpPlaceholder')}
               className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
             />
             <div className="flex justify-between items-center text-gray-500 text-sm">
-              <span>{timer > 0 ? `${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}` : 'Expired'}</span>
+              <span>{timer > 0 ? `${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}` : t('auth.expired')}</span>
               <button
                 type="button"
                 disabled={timer > 0}
                 onClick={onResend}
                 className="text-indigo-600 hover:text-indigo-700 disabled:text-gray-400 font-medium transition-colors"
               >
-                Resend OTP
+                {t('auth.resendOtp')}
               </button>
             </div>
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
             >
-              Verify OTP
+              {t('auth.verifyButton')}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </form>
@@ -90,6 +92,7 @@ const OTPInput = ({ email, otp, onVerify, onResend }) => {
 };
 
 const Login = () => {
+  const { t } = useLanguage();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -314,11 +317,11 @@ const Login = () => {
   const renderBasicInfo = () => (
     <div className="space-y-4">
       <div className="text-center">
-        <h3 className="text-xl font-bold text-gray-900">Basic Information</h3>
+        <h3 className="text-xl font-bold text-gray-900">{t('auth.basicInfo')}</h3>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input
-          label="Full Name"
+          label={t('auth.fullName')}
           name="fullName"
           type="text"
           value={formData.fullName}
@@ -329,7 +332,7 @@ const Login = () => {
           className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
         />
         <PhoneNumberInput
-          label="Phone"
+          label={t('auth.phone')}
           name="phone"
           value={formData.phone}
           onChange={handlePhoneChange}
@@ -339,7 +342,7 @@ const Login = () => {
         />
       </div>
       <Input
-        label="Email"
+        label={t('auth.email')}
         name="email"
         type="email"
         value={formData.email}
@@ -350,7 +353,7 @@ const Login = () => {
         className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
       />
       <Input
-        label="Address"
+        label={t('auth.address')}
         name="address"
         type="text"
         value={formData.address}
@@ -363,13 +366,13 @@ const Login = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="relative">
           <Input
-            label="Password"
+            label={t('auth.password')}
             name="password"
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            placeholder="Create a password"
+            placeholder={t('auth.createPasswordPlaceholder')}
             className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
           />
           <button
@@ -381,13 +384,13 @@ const Login = () => {
           </button>
         </div>
         <Input
-          label="Confirm Password"
+          label={t('auth.confirmPassword')}
           name="confirmPassword"
           type={showPassword ? 'text' : 'password'}
           value={formData.confirmPassword}
           onChange={handleInputChange}
           onKeyPress={handleKeyPress}
-          placeholder="Confirm your password"
+          placeholder={t('auth.confirmPasswordPlaceholder')}
           className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
         />
       </div>
@@ -400,14 +403,15 @@ const Login = () => {
           onChange={handleInputChange}
           className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
         />
+
         <label htmlFor="agreeToTerms" className="ml-2 text-sm text-gray-600">
-          I agree to the{' '}
+          {t('auth.agreeTo')}{' '}
           <Link to="/terms" className="text-indigo-600 hover:text-indigo-700 font-medium">
-            Terms
+            {t('auth.terms')}
           </Link>{' '}
-          and{' '}
+          {t('auth.and')}{' '}
           <Link to="/privacy" className="text-indigo-600 hover:text-indigo-700 font-medium">
-            Privacy Policy
+            {t('auth.privacyPolicy')}
           </Link>
         </label>
       </div>
@@ -425,9 +429,9 @@ const Login = () => {
         className="w-full max-w-md"
       >
         <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-gray-900">{isLogin ? 'Welcome Back' : 'Join AgroChain'}</h2>
+          <h2 className="text-3xl font-bold text-gray-900">{isLogin ? t('auth.welcomeBack') : t('auth.joinTitle')}</h2>
           <p className="text-gray-500 text-sm mt-2">
-            {isLogin ? 'Sign in to access your account' : 'Create an account to get started'}
+            {isLogin ? t('auth.signInDesc') : t('auth.createAccountDesc')}
           </p>
         </div>
         <Card className="bg-white/90 backdrop-blur-lg border border-gray-100 shadow-2xl rounded-2xl p-6">
@@ -435,7 +439,7 @@ const Login = () => {
             {isLogin ? (
               <>
                 <Input
-                  label="Email"
+                  label={t('auth.email')}
                   name="email"
                   type="email"
                   value={formData.email}
@@ -447,13 +451,13 @@ const Login = () => {
                 />
                 <div className="relative">
                   <Input
-                    label="Password"
+                    label={t('auth.password')}
                     name="password"
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={handleInputChange}
                     onKeyPress={handleKeyPress}
-                    placeholder="Enter your password"
+                    placeholder={t('auth.password')}
                     className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
                   />
                   <button
@@ -474,10 +478,10 @@ const Login = () => {
                       checked={formData.rememberMe || false}
                       onChange={e => setFormData(prev => ({ ...prev, rememberMe: e.target.checked }))}
                     />
-                    <label htmlFor="remember-me" className="ml-2 text-gray-600">Remember me</label>
+                    <label htmlFor="remember-me" className="ml-2 text-gray-600">{t('auth.rememberMe')}</label>
                   </div>
                   <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-700 font-medium">
-                    Forgot Password?
+                    {t('auth.forgotPassword')}
                   </Link>
                 </div>
                 <Button
@@ -485,7 +489,7 @@ const Login = () => {
                   loading={isLoading}
                   className="w-md bg-gradient-to-r from-lime-900 to-green-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
                 >
-                  Sign In
+                  {t('auth.signIn')}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </>
@@ -497,7 +501,7 @@ const Login = () => {
                   loading={isLoading}
                   className="w-md mt-4 border-gray-200 text-gray-800 hover:bg-indigo-600 hover:text-white py-2 rounded-xl text-sm font-semibold transition-all duration-300"
                 >
-                  Create Account
+                  {t('auth.createAccount')}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </>
@@ -510,7 +514,7 @@ const Login = () => {
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-3 bg-white text-gray-500">{isLogin ? 'New to AgroChain?' : 'Already have an account?'}</span>
+                <span className="px-3 bg-white text-gray-500">{isLogin ? t('auth.newTo') : t('auth.alreadyHaveAccount')}</span>
               </div>
             </div>
             <Button
@@ -518,7 +522,7 @@ const Login = () => {
               onClick={handleToggleForm}
               className="w-full mt-4 border-gray-200 text-gray-800 hover:bg-indigo-600 hover:text-white py-2 rounded-xl text-sm font-semibold transition-all duration-300"
             >
-              {isLogin ? 'Create Account' : 'Sign In'}
+              {isLogin ? t('auth.createAccount') : t('auth.signIn')}
             </Button>
           </div>
         </Card>
@@ -527,5 +531,6 @@ const Login = () => {
     </div>
   );
 };
+
 
 export default Login;

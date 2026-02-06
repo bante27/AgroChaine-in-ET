@@ -3,6 +3,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Trash2, Plus, Minus, ShoppingCart } from "lucide-react";
 import Button from "../common/Button";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 const getItemId = (item) => item._id || item.id;
 
@@ -15,6 +16,7 @@ const CartSidebar = ({
   shippingFee = 0,
   onCheckout,
 }) => {
+  const { t, language, transliterateName } = useLanguage();
   const subtotal = cartItems.reduce(
     (acc, item) => acc + (Number(item.price) || 0) * (Number(item.quantity) || 0),
     0
@@ -60,7 +62,7 @@ const CartSidebar = ({
             <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white/80 backdrop-blur-md z-10">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="text-blue-600" size={22} />
-                <h2 className="text-lg font-bold text-gray-900">Your Cart</h2>
+                <h2 className="text-lg font-bold text-gray-900">{t('marketplace.cart.title')}</h2>
                 {cartItems.length > 0 && (
                   <span className="ml-2 text-xs font-bold bg-blue-600 text-white px-2 py-0.5 rounded-full">
                     {cartItems.length}
@@ -79,7 +81,7 @@ const CartSidebar = ({
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {cartItems.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-gray-500 text-sm">
-                  Your cart is empty.
+                  {t('marketplace.cart.empty')}
                 </div>
               ) : (
                 cartItems.map((item) => (
@@ -102,7 +104,7 @@ const CartSidebar = ({
 
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-900 text-sm truncate">
-                        {item.title}
+                        {language === 'am' ? transliterateName(item.title) : item.title}
                       </h3>
                       <p className="text-gray-600 text-xs">
                         {item.quantity} × {Number(item.price).toLocaleString()} ETB
@@ -145,28 +147,28 @@ const CartSidebar = ({
             {cartItems.length > 0 && (
               <div className="p-4 border-t bg-white/80 backdrop-blur-md space-y-2 text-sm sticky bottom-0">
                 <div className="flex justify-between text-gray-600">
-                  <span>Delivery</span>
+                  <span>{t('marketplace.cart.delivery')}</span>
                   <span className="font-medium text-gray-900">
                     {generateDelivery()}
                   </span>
                 </div>
                 <div className="flex justify-between text-gray-700">
-                  <span>Subtotal</span>
+                  <span>{t('marketplace.cart.subtotal')}</span>
                   <span>{subtotal.toLocaleString()} ETB</span>
                 </div>
                 <div className="flex justify-between text-gray-700">
-                  <span>Shipping</span>
+                  <span>{t('marketplace.cart.shipping')}</span>
                   <span>{Number(shippingFee).toLocaleString()} ETB</span>
                 </div>
                 <div className="flex justify-between font-semibold text-gray-900 text-base">
-                  <span>Total</span>
+                  <span>{t('marketplace.cart.total')}</span>
                   <span>{total.toLocaleString()} ETB</span>
                 </div>
                 <Button
                   onClick={onCheckout}
                   className="w-full bg-gradient-to-r from-sky-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white py-2 rounded-xl shadow-md"
                 >
-                  Checkout ({cartItems.length})
+                  {t('marketplace.cart.checkout')} ({cartItems.length})
                 </Button>
               </div>
             )}

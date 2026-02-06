@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   Mail,
   Phone,
@@ -70,6 +71,7 @@ const styles = `
 const MAX_FILE_SIZE = 15 * 1024 * 1024 * 1024; // 15GB
 
 const Contact = () => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,11 +90,11 @@ const Contact = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email';
-    if (!formData.subject.trim()) newErrors.subject = 'Subject is required';
-    if (!formData.message.trim()) newErrors.message = 'Message is required';
+    if (!formData.name.trim()) newErrors.name = t('login.invalidInput');
+    if (!formData.email.trim()) newErrors.email = t('login.invalidInput');
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = t('contact.invalidEmail');
+    if (!formData.subject.trim()) newErrors.subject = t('login.invalidInput');
+    if (!formData.message.trim()) newErrors.message = t('login.invalidInput');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -118,7 +120,7 @@ const Contact = () => {
       mediaRecorderRef.current.start();
       setRecording(true);
     } catch {
-      toast.error('Microphone access denied.');
+      toast.error(t('contact.micDenied'));
     }
   };
 
@@ -148,16 +150,16 @@ const Contact = () => {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        toast.success(data.message || 'Message sent successfully!');
+        toast.success(data.message || t('contact.success'));
         setFormData({ name: '', email: '', subject: '', message: '' });
         setFiles([]);
         setAudioBlob(null);
       } else {
-        toast.error(data.error || 'Failed to send message');
+        toast.error(data.error || t('contact.error'));
       }
     } catch (err) {
       console.error('Submit error:', err);
-      toast.error('Network error. Please try again.');
+      toast.error(t('contact.networkError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -170,16 +172,16 @@ const Contact = () => {
   const contactInfo = [
     {
       icon: MapPin,
-      title: 'Our Office',
+      title: t('contact.office'),
       details: [
-        { text: 'Bole Sub City, Addis Ababa', link: 'https://www.google.com/maps/place/Addis+Ababa,+Ethiopia/@9.005401,38.763611,13z', isMap: true },
-        { text: 'Ethiopia, East Africa', link: null },
-        { text: 'P.O. Box 12345', link: null },
+        { text: t('contact.officeDetails.bole'), link: 'https://www.google.com/maps/place/Addis+Ababa,+Ethiopia/@9.005401,38.763611,13z', isMap: true },
+        { text: t('contact.officeDetails.region'), link: null },
+        { text: t('contact.officeDetails.poBox'), link: null },
       ],
     },
     {
       icon: Phone,
-      title: 'Phone Numbers',
+      title: t('contact.phoneNumbers'),
       details: [
         { text: '+251985076701', link: 'tel:+251985076701' },
         { text: '+251927993894', link: 'tel:+251927993894' },
@@ -188,7 +190,7 @@ const Contact = () => {
     },
     {
       icon: Mail,
-      title: 'Email Addresses',
+      title: t('contact.emailAddresses'),
       details: [
         { text: 'tilahunsitotaw87@gmail.com', link: 'tilahunsitotaw87@gmail.com' },
         { text: 'mitikubanitalem@gmail.com', link: 'mitikubanitalem@gmail.com' },
@@ -197,43 +199,31 @@ const Contact = () => {
     },
     {
       icon: Clock,
-      title: 'Business Hours',
+      title: t('contact.hours'),
       details: [
-        { text: 'Monday - Friday: 8:00 AM - 6:00 PM', link: null },
-        { text: 'Saturday: 9:00 AM - 4:00 PM', link: null },
-        { text: 'Sunday: Closed', link: null },
+        { text: `${t('contact.hoursMonFri') || 'Monday - Friday'}: 8:00 AM - 6:00 PM`, link: null },
+        { text: `${t('contact.hoursSat') || 'Saturday'}: 9:00 AM - 4:00 PM`, link: null },
+        { text: `${t('contact.hoursSun') || 'Sunday'}: ${t('contact.hoursClosed') || 'Closed'}`, link: null },
       ],
     },
   ];
 
   const faqItems = [
     {
-      question: 'How do I register as a farmer on the platform?',
-      answer: "Click 'Register' and select 'Farmer'. You’ll need your Ethiopian National ID for verification.",
+      question: t('contact.faq.0.question'),
+      answer: t('contact.faq.0.answer'),
     },
     {
-      question: 'What products can I sell on the marketplace?',
-      answer: 'You can sell grains, vegetables, fruits, livestock products, and more. All must meet our quality standards.',
+      question: t('contact.faq.1.question'),
+      answer: t('contact.faq.1.answer'),
     },
     {
-      question: 'How do I track a product using the platform?',
-      answer: 'Scan the QR code on the product or enter the product ID in the traceability section to view the full supply chain journey from farm to consumer.',
+      question: t('contact.faq.2.question'),
+      answer: t('contact.faq.2.answer'),
     },
     {
-      question: 'What payment methods are supported in the marketplace?',
-      answer: 'We support bank transfers, mobile money (e.g., Telebirr), CBE, and cryptocurrency options for secure and convenient transactions.',
-    },
-    {
-      question: 'How can I get technical support for the platform?',
-      answer: 'Contact our support team via email at mitikubanitalem@gmail.com or call +251985076701. We also offer live chat for immediate assistance.',
-    },
-    {
-      question: 'Can I use the platform in multiple languages?',
-      answer: 'Yes, AgroChain Ethiopia supports Amharic, English, with plans to add more languages in the future.',
-    },
-    {
-      question: 'What is the cost to join the platform?',
-      answer: 'Registration is free for farmers. Premium features for distributors and retailers are available through subscription plans in the future.',
+      question: t('contact.faq.3.question') || t('contact.faq.0.question'),
+      answer: t('contact.faq.3.answer') || t('contact.faq.0.answer'),
     },
   ];
 
@@ -254,7 +244,7 @@ const Contact = () => {
             className="text-5xl sm:text-6xl md:text-7xl font-extrabold mb-6 leading-tight tracking-wide gradient-text glow-effect"
             style={{ textShadow: '0 6px 15px rgba(0, 0, 0, 0.7)' }}
           >
-            Contact <span className="text-yellow-300">AgroChain Ethiopia</span>
+            {t('contact.titlePart1')} <span className="text-yellow-300">{t('contact.titlePart2')}</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 50 }}
@@ -262,7 +252,7 @@ const Contact = () => {
             transition={{ duration: 1.2, delay: 0.2, type: 'spring', stiffness: 100 }}
             className="text-lg sm:text-xl max-w-3xl mx-auto mb-8 text-gray-500 bg-white/70 rounded-xl p-4 shadow-md"
           >
-            Let’s grow together! Reach out to transform your agricultural journey.
+            {t('contact.subtitle')}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -274,7 +264,7 @@ const Contact = () => {
               href="#contact-form"
               className="bg-teal-500 text-white px-6 py-3 rounded-full font-semibold text-lg hover:bg-teal-600 hover:shadow-2xl transition-all duration-300 deep-shadow hover-lift pulse-animation inline-flex items-center gap-3"
             >
-              Get in Touch
+              {t('contact.getInTouch')}
               <ArrowRight className="h-5 w-5" />
             </a>
           </motion.div>
@@ -294,12 +284,12 @@ const Contact = () => {
               className="bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl p-8 shadow-md hover:shadow-xl transition-all duration-300 deep-shadow"
               style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)' }}
             >
-              <h2 className="text-3xl font-bold text-gray-800 mb-6 gradient-text">Send Us a Message</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-6 gradient-text">{t('contact.sendMessage')}</h2>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                      Full Name
+                      {t('contact.fullName')}
                     </label>
                     <input
                       id="name"
@@ -318,7 +308,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                      Email
+                      {t('contact.email')}
                     </label>
                     <input
                       id="email"
@@ -339,7 +329,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
-                    Subject
+                    {t('contact.subject')}
                   </label>
                   <input
                     id="subject"
@@ -358,7 +348,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-                    Message
+                    {t('contact.message')}
                   </label>
                   <textarea
                     id="message"
@@ -368,7 +358,7 @@ const Contact = () => {
                     required
                     rows={5}
                     className={`w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.message ? 'border-red-500' : ''} hover:border-teal-500 transition-all duration-300`}
-                    placeholder="Your message..."
+                    placeholder={t('contact.messagePlaceholder')}
                     aria-describedby={errors.message ? 'message-error' : undefined}
                   />
                   {errors.message && (
@@ -385,7 +375,7 @@ const Contact = () => {
                     aria-label={recording ? 'Stop recording voice message' : 'Start recording voice message'}
                   >
                     <Mic className={`${recording ? 'text-red-500 animate-pulse' : 'text-emerald-600'} h-5 w-5`} />
-                    {recording ? 'Stop' : 'Record Voice'}
+                    {recording ? t('contact.recording.stop') : t('contact.recording.start')}
                   </button>
                   {audioBlob && (
                     <div className="flex items-center gap-2">
@@ -393,21 +383,21 @@ const Contact = () => {
                       <Trash2
                         className="cursor-pointer text-red-500 h-5 w-5 hover:text-red-700 transition-colors duration-300"
                         onClick={deleteRecording}
-                        aria-label="Delete voice recording"
+                        aria-label={t('contact.recording.delete')}
                       />
                     </div>
                   )}
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="flex items-center gap-2 text-gray-700">
-                    <FileText className="h-5 w-5 text-emerald-600" /> Attach Files (max 15GB)
+                    <FileText className="h-5 w-5 text-emerald-600" /> {t('contact.files')}
                   </label>
                   <input
                     type="file"
                     multiple
                     onChange={handleFileChange}
                     className="w-full text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-100 file:text-emerald-600 hover:file:bg-emerald-200 transition-all duration-300"
-                    aria-label="Upload files"
+                    aria-label={t('contact.uploadLabel')}
                   />
                   {files.length > 0 && (
                     <ul className="text-gray-600 text-sm mt-2 bg-white/80 rounded-lg p-2 shadow-md">
@@ -423,9 +413,9 @@ const Contact = () => {
                   type="submit"
                   disabled={isSubmitting}
                   className={`w-full flex justify-center items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-full font-semibold hover:from-emerald-700 hover:to-teal-600 transition-all duration-300 deep-shadow hover-lift ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-xl pulse-animation'}`}
-                  aria-label="Send message"
+                  aria-label={t('contact.sendMessage')}
                 >
-                  <Send className="h-5 w-5" /> Send Message
+                  <Send className="h-5 w-5" /> {t('contact.submit')}
                 </button>
               </form>
             </motion.div>
@@ -462,10 +452,10 @@ const Contact = () => {
                               className="text-emerald-600 hover:text-emerald-700 hover:underline transition-all duration-300 hover-lift"
                               aria-label={
                                 detail.isMap
-                                  ? `View ${detail.text} on Google Maps`
-                                  : info.title === 'Phone Numbers'
-                                    ? `Call ${detail.text}`
-                                    : `Email ${detail.text}`
+                                  ? `${t('contact.office')} - Google Maps`
+                                  : info.title === t('contact.phoneNumbers')
+                                    ? `${t('contact.phoneNumbers')}: ${detail.text}`
+                                    : `${t('contact.emailAddresses')}: ${detail.text}`
                               }
                               target={detail.isMap ? '_blank' : undefined}
                               rel={detail.isMap ? 'noopener noreferrer' : undefined}
@@ -498,14 +488,14 @@ const Contact = () => {
             className="text-center mb-12"
           >
             <h2 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight gradient-text glow-effect">
-              <span className="text-yellow-400">F</span>requently
+              {t('contact.faqPart1') || <><span className="text-yellow-400">F</span>requently</>}
               <br />
-              <span className="text-yellow-400">A</span>sked
+              {t('contact.faqPart2') || <><span className="text-yellow-400">A</span>sked</>}
               <br />
-              <span className="text-pink-100">Q</span>uestions
+              {t('contact.faqPart3') || <><span className="text-pink-100">Q</span>uestions</>}
             </h2>
             <p className="text-lg text-gray-300 max-w-2xl mx-auto mt-2 bg-white/20 rounded-lg p-3 shadow-md">
-              Discover answers to your questions about AgroChain Ethiopia.
+              {t('contact.faqDesc')}
             </p>
           </motion.div>
           <div className="max-w-3xl mx-auto space-y-4">
@@ -559,7 +549,7 @@ const Contact = () => {
             transition={{ duration: 1.2, type: 'spring', stiffness: 100 }}
             className="text-4xl sm:text-5xl font-extrabold mb-6 gradient-text glow-effect"
           >
-            Ready to Transform <span className="text-teal-200">Your Business?</span>
+            {t('contact.ctaBottomTitlePart1') || t('contact.ctaBottomTitle').split(' ').slice(0, -2).join(' ')} <span className="text-teal-200">{t('contact.ctaBottomTitlePart2') || t('contact.ctaBottomTitle').split(' ').slice(-2).join(' ')}</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 50 }}
@@ -567,7 +557,7 @@ const Contact = () => {
             transition={{ duration: 1.2, delay: 0.2, type: 'spring', stiffness: 100 }}
             className="text-lg mb-10 max-w-2xl mx-auto bg-white/20 rounded-lg p-3 shadow-md"
           >
-            Join AgroChain Ethiopia and unlock a transparent, efficient agricultural ecosystem.
+            {t('contact.ctaBottomSubtitle')}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -580,7 +570,7 @@ const Contact = () => {
               className="bg-teal-500 text-white px-6 py-3 rounded-full font-semibold text-lg hover:bg-teal-600 hover:shadow-2xl transition-all duration-300 deep-shadow hover-lift pulse-animation inline-flex items-center gap-3"
               aria-label="Get started with AgroChain"
             >
-              Get Started Now
+              {t('hero.empoweringSection.getStarted')}
               <ArrowRight className="h-5 w-5" />
             </Link>
 

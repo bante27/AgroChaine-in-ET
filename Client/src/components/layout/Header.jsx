@@ -104,8 +104,8 @@ const Header = () => {
                 />
               </div>
               <div className="flex flex-col -space-y-1">
-                <span className="text-2xl font-bold text-white hover:text-teal-300 transition-colors duration-300">AgroChain</span>
-                <span className="text-sm font-semibold text-amber-400 hover:text-teal-300 transition-colors duration-300">Ethiopia</span>
+                <span className="text-2xl font-bold text-white hover:text-teal-300 transition-colors duration-300">{t('nav.brand')}</span>
+                <span className="text-sm font-semibold text-amber-400 hover:text-teal-300 transition-colors duration-300">{t('nav.country')}</span>
               </div>
             </Link>
           </motion.div>
@@ -120,8 +120,8 @@ const Header = () => {
                 onChange={(e) => changeLanguage(e.target.value)}
                 className="text-sm border-none bg-transparent focus:ring-0 text-white hover:text-teal-300 transition-colors duration-300"
               >
-                <option value="en" className="text-gray-800">EN</option>
-                <option value="am" className="text-gray-800">አማ</option>
+                <option value="en" className="text-gray-800">{language === 'en' ? 'EN' : 'እንግ'}</option>
+                <option value="am" className="text-gray-800">{language === 'en' ? 'AM' : 'አማ'}</option>
               </select>
             </div>
             {isAuthenticated ? (
@@ -134,23 +134,22 @@ const Header = () => {
                   to="/dashboard"
                   className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 hover-lift transition-all duration-300 glow-effect"
                 >
-                  Dashboard
+                  {t('nav.dashboard')}
                 </Link>
                 <button
                   onClick={logout}
                   className="text-sm font-medium text-white hover:text-teal-300 transition-colors duration-300 hover-lift"
                 >
-                  Logout
+                  {t('nav.logout')}
                 </button>
               </div>
             ) : (
               <Link
                 to="/login"
-                className={`text-sm font-medium transition-colors duration-300 ${
-                  location.pathname === '/login'
+                className={`text-sm font-medium transition-colors duration-300 ${location.pathname === '/login'
                     ? 'text-teal-300'
                     : 'text-white hover:text-teal-300'
-                }`}
+                  }`}
               >
                 {t('nav.login')}
               </Link>
@@ -188,8 +187,8 @@ const Header = () => {
                   onChange={(e) => changeLanguage(e.target.value)}
                   className="text-base border-none bg-transparent focus:ring-0 text-white hover:text-teal-300 transition-colors duration-300"
                 >
-                  <option value="en">English</option>
-                  <option value="am">አማርኛ</option>
+                  <option value="en">{language === 'en' ? 'English' : 'እንግሊዝኛ'}</option>
+                  <option value="am">{language === 'en' ? 'Amharic' : 'አማርኛ'}</option>
                 </select>
               </div>
             </div>
@@ -201,7 +200,7 @@ const Header = () => {
                     className="block px-4 py-2 text-white hover:text-teal-300 bg-teal-500 rounded-lg transition-colors duration-300 hover-lift"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Dashboard
+                    {t('nav.dashboard')}
                   </Link>
                   <button
                     onClick={() => {
@@ -210,18 +209,17 @@ const Header = () => {
                     }}
                     className="block w-full text-left px-4 py-2 text-white hover:text-teal-300 rounded-lg transition-colors duration-300 hover-lift"
                   >
-                    Logout
+                    {t('nav.logout')}
                   </button>
                 </div>
               ) : (
                 <div className="space-y-2">
                   <Link
                     to="/login"
-                    className={`block px-4 py-2 rounded-lg transition-colors duration-300 ${
-                      location.pathname === '/login'
+                    className={`block px-4 py-2 rounded-lg transition-colors duration-300 ${location.pathname === '/login'
                         ? 'bg-teal-500 text-white'
                         : 'text-white hover:text-teal-300 hover:bg-teal-600'
-                    }`}
+                      }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {t('nav.login')}

@@ -12,6 +12,7 @@ export default function LiveChat() {
   const [input, setInput] = useState('');
   const chatRef = useRef(null);
   const listRef = useRef(null);
+  const nodeRef = useRef(null);
 
   // Send message
   const sendMessage = async () => {
@@ -56,8 +57,8 @@ export default function LiveChat() {
   }, [isOpen]);
 
   return (
-    <Draggable bounds="parent">
-      <div ref={chatRef} className="fixed bottom-5 right-5 z-50 cursor-move">
+    <Draggable nodeRef={nodeRef} bounds="parent">
+      <div ref={nodeRef} className="fixed bottom-5 right-5 z-50 cursor-move">
         {!isOpen && (
           <button
             onClick={() => setIsOpen(true)}

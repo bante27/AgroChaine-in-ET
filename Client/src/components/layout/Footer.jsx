@@ -11,9 +11,11 @@ import {
   Send, // for Telegram icon
 } from 'lucide-react';
 import logoIconDarkTransparent from '../../assets/images/newlogo.png';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const { t } = useLanguage();
 
   return (
     <footer className="bg-gradient-to-b from-gray-800 via-gray-900 to-black text-white border-t border-gray-700">
@@ -34,18 +36,16 @@ const Footer = () => {
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-white tracking-wide">
-                  AgroChain
+                  {t('nav.brand')}
                 </span>
                 <span className="text-sm font-semibold text-amber-400">
-                  Ethiopia
+                  {t('nav.country')}
                 </span>
               </div>
             </Link>
 
             <p className="text-gray-300 text-sm leading-relaxed">
-              Revolutionizing Ethiopian agriculture through technology,
-              connecting farmers directly with consumers for a transparent and
-              profitable supply chain.
+              {t('footer.about')}
             </p>
 
             {/* Social Icons */}
@@ -55,6 +55,7 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-blue-500 transition-colors"
+                title={t('footer.social.facebook')}
               >
                 <Facebook className="h-5 w-5" />
               </a>
@@ -63,6 +64,7 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-sky-400 transition-colors"
+                title={t('footer.social.twitter')}
               >
                 <Twitter className="h-5 w-5" />
               </a>
@@ -71,6 +73,7 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-pink-500 transition-colors"
+                title={t('footer.social.instagram')}
               >
                 <Instagram className="h-5 w-5" />
               </a>
@@ -79,6 +82,7 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-blue-600 transition-colors"
+                title={t('footer.social.linkedin')}
               >
                 <Linkedin className="h-5 w-5" />
               </a>
@@ -87,7 +91,7 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-[#0088cc] transition-colors"
-                title="Join us on Telegram"
+                title={t('footer.social.telegram')}
               >
                 <Send className="h-5 w-5" />
               </a>
@@ -97,7 +101,7 @@ const Footer = () => {
           {/* Quick Links */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white bg-gray-700/60 px-4 py-2 rounded-xl shadow-inner">
-              Quick Links
+              {t('footer.quickLinks')}
             </h3>
             <ul className="space-y-2 text-sm">
               <li>
@@ -105,7 +109,7 @@ const Footer = () => {
                   to="/about"
                   className="text-gray-300 hover:text-amber-400 transition-colors"
                 >
-                  About Us
+                  {t('nav.about')}
                 </Link>
               </li>
               <li>
@@ -113,7 +117,7 @@ const Footer = () => {
                   to="/marketplace"
                   className="text-gray-300 hover:text-amber-400 transition-colors"
                 >
-                  Marketplace
+                  {t('nav.marketplace')}
                 </Link>
               </li>
               <li>
@@ -121,7 +125,7 @@ const Footer = () => {
                   to="/contact"
                   className="text-gray-300 hover:text-amber-400 transition-colors"
                 >
-                  Contact
+                  {t('nav.contact')}
                 </Link>
               </li>
               <li>
@@ -129,7 +133,7 @@ const Footer = () => {
                   to="/login"
                   className="text-gray-300 hover:text-amber-400 transition-colors"
                 >
-                  Login
+                  {t('nav.login')}
                 </Link>
               </li>
             </ul>
@@ -138,7 +142,7 @@ const Footer = () => {
           {/* Services */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white bg-gray-700/60 px-4 py-2 rounded-xl shadow-inner">
-              Services
+              {t('footer.services')}
             </h3>
             <ul className="space-y-2 text-sm">
               <li>
@@ -146,7 +150,7 @@ const Footer = () => {
                   to="/kyc"
                   className="text-gray-300 hover:text-amber-400 transition-colors"
                 >
-                  KYC Verification
+                  {t('footer.kyc')}
                 </Link>
               </li>
               <li>
@@ -154,7 +158,7 @@ const Footer = () => {
                   to="/digital-marketplace"
                   className="text-gray-300 hover:text-amber-400 transition-colors"
                 >
-                  Digital Marketplace
+                  {t('footer.digitalMarket')}
                 </Link>
               </li>
               <li>
@@ -162,7 +166,7 @@ const Footer = () => {
                   to="/supplychain"
                   className="text-gray-300 hover:text-amber-400 transition-colors"
                 >
-                  Supply Chain Management
+                  {t('footer.supplyChain')}
                 </Link>
               </li>
               <li>
@@ -170,7 +174,7 @@ const Footer = () => {
                   to="/financing"
                   className="text-gray-300 hover:text-amber-400 transition-colors"
                 >
-                  Agro Financing
+                  {t('footer.agroFinancing')}
                 </Link>
               </li>
               <li>
@@ -178,7 +182,7 @@ const Footer = () => {
                   to="/faq"
                   className="text-gray-300 hover:text-amber-400 transition-colors"
                 >
-                  FAQ
+                  {t('footer.faq')}
                 </Link>
               </li>
             </ul>
@@ -187,12 +191,12 @@ const Footer = () => {
           {/* Contact Info */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white bg-gray-700/60 px-4 py-2 rounded-xl shadow-inner">
-              Contact Info
+              {t('footer.contactInfo')}
             </h3>
             <div className="space-y-3 text-sm">
               <div className="flex items-center space-x-3">
                 <MapPin className="h-5 w-5 text-amber-400" />
-                <span className="text-gray-300">Addis Ababa, Ethiopia</span>
+                <span className="text-gray-300">{t('footer.address')}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-5 w-5 text-amber-400" />
@@ -210,26 +214,26 @@ const Footer = () => {
         <div className="border-t border-gray-700 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center text-sm">
             <p className="text-gray-400">
-              © {currentYear} <span className="text-amber-400 font-semibold">AgroChain Ethiopia</span>. All rights reserved.
+              © {currentYear} <span className="text-amber-400 font-semibold">{t('nav.brand')} {t('nav.country')}</span>. {t('footer.allRights')}
             </p>
             <div className="flex flex-wrap justify-center md:justify-end space-x-6 mt-4 md:mt-0">
               <Link
                 to="/privacy"
                 className="text-gray-400 hover:text-amber-400 transition-colors"
               >
-                Privacy Policy
+                {t('footer.privacy')}
               </Link>
               <Link
                 to="/terms"
                 className="text-gray-400 hover:text-amber-400 transition-colors"
               >
-                Terms of Service
+                {t('footer.terms')}
               </Link>
               <Link
                 to="/cookie"
                 className="text-gray-400 hover:text-amber-400 transition-colors"
               >
-                Cookie Policy
+                {t('footer.cookie')}
               </Link>
             </div>
           </div>
