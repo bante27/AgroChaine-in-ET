@@ -67,9 +67,21 @@ const translations = {
       validPhone: 'Valid phone (e.g., +251912345678).',
       agreeTermsError: 'Agree to Terms and Privacy.',
       registrationFailed: 'Registration failed.',
-      otpVerified: 'OTP verified! Redirecting...',
+      otpVerified: 'Verified! Redirecting...',
       otpResent: 'OTP resent.',
-      invalidInput: 'Invalid input'
+      invalidInput: 'Invalid Input',
+      // New Error/Status Messages
+      enterValidOtp: 'Enter a valid 6-digit OTP',
+      enterCredentials: 'Enter email and password.',
+      validGmailHelper: 'Valid Gmail required (e.g., user@gmail.com).',
+      passwordMismatch: 'Passwords do not match.',
+      validNameHelper: 'Valid full name (2+ words, letters only).',
+      validAddressHelper: 'Valid address (2-100 chars).',
+      validPhoneHelper: 'Valid phone (e.g., +251912345678).',
+      agreeTerms: 'Agree to Terms and Privacy.',
+      loginError: 'Login error.',
+      otpResendFailed: 'Failed to resend OTP',
+      otpVerificationFailed: 'OTP verification failed'
     },
     hero: {
       title: 'AgroChain',
@@ -217,6 +229,15 @@ const translations = {
         posting: 'Posting...',
         writeReview: 'Write a review...',
         anonymous: 'Anonymous'
+      },
+      productsFound: 'Products Found',
+      noProductsFound: 'No Products Found',
+      allSoldOut: 'All Products Are Sold Out',
+      pagination: {
+        previous: 'Previous',
+        next: 'Next',
+        page: 'Page',
+        of: 'of'
       }
     },
     features: {
@@ -620,6 +641,8 @@ const translations = {
         },
         additional: {
           title: 'Additional Features',
+          titlePart1: 'Additional',
+          titlePart2: 'Features',
           subtitle: 'Enhancing your experience on our platform.',
           mobile: { title: 'Mobile App', desc: '(Coming Soon) Access platform features on the go with our mobile application.' },
           data: { title: 'Data Management', desc: 'Secure cloud storage and agricultural data management.' },
@@ -632,6 +655,20 @@ const translations = {
         detecting: 'Fetching real-time weather...',
         retry: 'Retry',
         useLocation: 'Use Current Location'
+      },
+      dashboard: {
+        time: { local: 'Local Time', ethiopian: 'Ethiopian Time' },
+        stats: { posted: 'Posted Products', totalOrders: 'Total Orders', sold: 'Sold Products', rating: 'Rating', loading: 'Loading...' },
+        status: { completed: 'Completed', shipped: 'Shipped', pending: 'Pending', cancelled: 'Cancelled' },
+        chart: { sales: 'Sales', date: 'Date', salesAmount: 'Sales Amount' },
+        quickActions: {
+          addProduct: 'Add Product', addProductDesc: 'List a new item for sale',
+          addBalance: 'Add Balance', addBalanceDesc: 'Top up your wallet',
+          viewCustomers: 'View Customers', viewCustomersDesc: 'Manage your customer base',
+          about: 'About Platform', aboutDesc: 'Learn more about AgroChain',
+          verifyAccount: 'Verify Account', verifyAccountDesc: 'Upload ID for verification'
+        },
+        profile: { accountRestricted: 'Account Restricted', restrictedMessage: 'Your account has been restricted. Please contact support.' }
       }
     },
   },
@@ -732,8 +769,16 @@ const translations = {
         unlike: 'አትውደድ',
         postReview: 'አስተያየት ላክ',
         posting: 'በመላክ ላይ...',
-        writeReview: 'አስተያየት ይጻፉ...',
-        anonymous: 'ስም የለሽ'
+        writeReview: 'አስተያየት ይጻፉ...'
+      },
+      productsFound: 'ምርቶች ተገኝተዋል',
+      noProductsFound: 'ምንም ምርቶች አልተገኙም',
+      allSoldOut: 'ሁሉም ምርቶች አልቀዋል',
+      pagination: {
+        previous: 'ቀዳሚ',
+        next: 'ቀጣይ',
+        page: 'ገጽ',
+        of: 'ከ'
       }
     },
     auth: {
@@ -778,7 +823,19 @@ const translations = {
       registrationFailed: 'ምዝገባ አልተሳካም።',
       otpVerified: 'ተረጋግጧል! በመሄድ ላይ...',
       otpResent: 'ኮዱ እንደገና ተልኳል።',
-      invalidInput: 'የተሳሳተ መረጃ'
+      invalidInput: 'የተሳሳተ መረጃ',
+      // New Error/Status Messages
+      enterValidOtp: 'ትክክለኛ 6-አሃዝ ኮድ ያስገቡ',
+      enterCredentials: 'ኢሜይል እና የይለፍ ቃል ያስገቡ።',
+      validGmailHelper: 'ትክክለኛ Gmail ያስፈልጋል (ለምሳሌ፡ user@gmail.com)።',
+      passwordMismatch: 'የይለፍ ቃሎች አይመሳሰሉም።',
+      validNameHelper: 'ትክክለኛ ሙሉ ስም (2+ ቃላት፣ ፊደላት ብቻ)።',
+      validAddressHelper: 'ትክክለኛ አድራሻ (2-100 ቁምፊዎች)።',
+      validPhoneHelper: 'ትክክለኛ ስልክ (ለምሳሌ፡ +251912345678)።',
+      agreeTerms: 'በደንቦች እና ግላዊነት ፖሊሲ ይስማሙ።',
+      loginError: 'የመግባት ስህተት።',
+      otpResendFailed: 'ኮዱን እንደገና መላክ አልተቻለም።',
+      otpVerificationFailed: 'ኮድ ማረጋገጥ አልተቻለም።'
     },
     hero: {
       title: 'አግሮቼይን',
@@ -1250,10 +1307,21 @@ const translations = {
           f1: 'ቀጥተኛ የገበሬ-ለ-ገዢ ግንኙነቶች',
           f2: 'የእውነተኛ ጊዜ የዋጋ ግኝት',
           f3: 'ደህንነቱ የተጠበቀ የክፍያ ሂደት',
-          f4: 'ባለብዙ ቋንቋ ድጋፍ'
+          f4: 'ባለብዙ ቋንቋ ድጋፍ',
+          productsFound: 'ምርቶች ተገኝተዋል',
+          noProductsFound: 'ምንም ምርቶች አልተገኙም',
+          allSoldOut: 'ሁሉም ምርቶች አልቀዋል',
+          pagination: {
+            previous: 'ቀዳሚ',
+            next: 'ቀጣይ',
+            page: 'ገጽ',
+            of: 'ከ'
+          }
         },
         additional: {
           title: 'ተጨማሪ ባህሪያት',
+          titlePart1: 'ተጨማሪ',
+          titlePart2: 'ባህሪያት',
           subtitle: 'ለመድረካችን ያለዎትን ልምድ ማሻሻል።',
           mobile: { title: 'የሞባይል መተግበሪያ', desc: '(በቅርቡ የሚመጣ) በእኛ የሞባይል መተግበሪያ በጉዞ ላይ እያሉ የመድረክ ባህሪያትን ያግኙ።' },
           data: { title: 'የውሂብ አስተዳደር', desc: 'ደህንነቱ የተጠበቀ የደመና ማከማቻ እና የግብርና መረጃ አያያዝ።' },
@@ -1306,6 +1374,20 @@ const translations = {
         title: 'የኢትዮጵያን ግብርና ዛሬ ይለውጡ',
         subtitle: 'ግልጽነትን እና ፈጠራን በመጠቀም ግብርናን አብዮት ከሚያደርጉ በሺዎች የሚቆጠሩ ገበሬዎች እና ንግዶች ጋር ይቀላቀሉ።',
         contactSales: 'ሽያጭ ያግኙ'
+      },
+      dashboard: {
+        time: { local: 'የአካባቢ ሰዓት', ethiopian: 'የኢትዮጵያ ሰዓት' },
+        stats: { posted: 'የተለጠፉ ምርቶች', totalOrders: 'ጠቅላላ ትዕዛዞች', sold: 'የተሸጡ ምርቶች', rating: 'ደረጃ', loading: 'በመጫን ላይ...' },
+        status: { completed: 'ተጠናቀቀ', shipped: 'ተልኳል', pending: 'በመጠባበቅ ላይ', cancelled: 'ተሰርዟል' },
+        chart: { sales: 'ሽያጭ', date: 'ቀን', salesAmount: 'የሽያጭ መጠን' },
+        quickActions: {
+          addProduct: 'ምርት ጨምር', addProductDesc: 'አዲስ ምርት ለሽያጭ ይለጥፉ',
+          addBalance: 'ሂሳብ ጨምር', addBalanceDesc: 'ቦርሳዎን ይሙሉ',
+          viewCustomers: 'ደንበኞችን ይመልከቱ', viewCustomersDesc: 'የደንበኛ መሰረትዎን ያስተዳድሩ',
+          about: 'ስለ መድረኩ', aboutDesc: 'ስለ አግሮቼይን የበለጠ ይወቁ',
+          verifyAccount: 'መለያ አረጋግጥ', verifyAccountDesc: 'ለማረጋገጫ መታወቂያ ይስቀሉ'
+        },
+        profile: { accountRestricted: 'መለያ ተገድቧል', restrictedMessage: 'መለያዎ ተገድቧል። እባክዎን ድጋፍ ሰጪን ያነጋግሩ።' }
       }
     }
   },
@@ -1409,4 +1491,5 @@ export const LanguageProvider = ({ children }) => {
   )
 }
 
-export default LanguageProvider
+export default LanguageProvider;
+// Translation keys updated: Resend + Login + Dashboard

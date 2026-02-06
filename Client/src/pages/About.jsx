@@ -595,7 +595,7 @@ const About = () => {
           >
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 rounded-2xl p-10" /* Increased padding */
               style={{ clipPath: 'polygon(5% 0%, 95% 0%, 100% 95%, 0% 95%)', background: 'rgba(255, 255, 255, 0.9)', boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)' }}>
-              {t('about.services.additional.titlePart1') || t('about.services.additional.title').split(' ').slice(0, -1).join(' ')} <span className="gradient-text">{t('about.services.additional.titlePart2') || t('about.services.additional.title').split(' ').slice(-1)}</span>
+              {t('about.services.additional.titlePart1') || 'Additional'} <span className="gradient-text">{t('about.services.additional.titlePart2') || 'Features'}</span>
             </h2>
             <p className="text-xl sm:text-2xl text-gray-700 max-w-3xl mx-auto mt-6">
               {t('about.services.additional.subtitle')}

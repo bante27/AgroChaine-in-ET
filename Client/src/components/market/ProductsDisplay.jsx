@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import Button from '../common/Button';
 import ProductCard from './ProductCard';
 import { Search } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const ProductsDisplay = ({
   products,
@@ -14,6 +15,8 @@ const ProductsDisplay = ({
   onAddToCart,
   onBuyNow,
 }) => {
+  const { t } = useLanguage();
+
   // Check if all products are sold out
   const allSoldOut = products.length > 0 && products.every(p => p.quantity === 0);
 
@@ -23,7 +26,7 @@ const ProductsDisplay = ({
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
           <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600 shadow-text">
-            {products.length > 0 ? `${products.length} Products Found` : "No Products Found"}
+            {products.length > 0 ? `${products.length} ${t('marketplace.productsFound')}` : t('marketplace.noProductsFound')}
           </h2>
           <div className="flex items-center gap-3">
             <Button
@@ -33,10 +36,10 @@ const ProductsDisplay = ({
               onClick={() => onPageChange(prev => Math.max(prev - 1, 1))}
               className="rounded-xl bg-white/10 backdrop-blur-md hover:bg-white/20 transition-colors text-blue-600 border-teal-300"
             >
-              Previous
+              {t('marketplace.pagination.previous')}
             </Button>
             <span className="text-sm md:text-base text-blue-600">
-              Page {page} of {totalPages}
+              {t('marketplace.pagination.page')} {page} {t('marketplace.pagination.of')} {totalPages}
             </span>
             <Button
               variant="outline"
@@ -45,7 +48,7 @@ const ProductsDisplay = ({
               onClick={() => onPageChange(prev => Math.min(prev + 1, totalPages))}
               className="rounded-xl bg-white/10 backdrop-blur-md hover:bg-white/20 transition-colors text-blue-600 border-teal-300"
             >
-              Next
+              {t('marketplace.pagination.next')}
             </Button>
           </div>
         </div>
@@ -53,7 +56,7 @@ const ProductsDisplay = ({
         {/* All Sold Out message */}
         {allSoldOut && (
           <div className="text-center text-red-600 font-bold text-xl mb-6">
-            All Products Are Sold Out
+            {t('marketplace.allSoldOut')}
           </div>
         )}
 
@@ -61,17 +64,16 @@ const ProductsDisplay = ({
         {products.length === 0 ? (
           <div className="text-center py-16 bg-white/5 rounded-2xl shadow-xl backdrop-blur-md">
             <Search className="h-16 w-16 text-teal-300 mx-auto mb-4 animate-pulse" />
-            <h3 className="text-lg md:text-xl font-medium text-blue-600 mb-2">No products found</h3>
+            <h3 className="text-lg md:text-xl font-medium text-blue-600 mb-2">{t('marketplace.noProductsFound')}</h3>
             <p className="text-gray-400">Try adjusting your search or filter criteria.</p>
           </div>
         ) : (
           <motion.div
             layout
-            className={`grid gap-6 ${
-              viewMode === 'grid'
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                : 'grid-cols-1'
-            }`}
+            className={`grid gap-6 ${viewMode === 'grid'
+              ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+              : 'grid-cols-1'
+              }`}
           >
             {products.map((product, index) => (
               <motion.div
@@ -125,3 +127,4 @@ const ProductsDisplay = ({
 };
 
 export default ProductsDisplay;
+// Marketplace translations updated

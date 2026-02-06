@@ -27,7 +27,7 @@ const OTPInput = ({ email, otp, onVerify, onResend }) => {
   }, [otp]);
 
   const handleVerify = () => {
-    if (!inputOtp || inputOtp.length !== 6) return toast.error('Enter a valid 6-digit OTP');
+    if (!inputOtp || inputOtp.length !== 6) return toast.error(t('auth.enterValidOtp'));
     onVerify(inputOtp);
   };
 
@@ -197,7 +197,7 @@ const Login = () => {
         setToken(res.data.token);
         setUser(res.data.user);
         setIsAuthenticated(true);
-        toast.success('OTP verified! Redirecting...');
+        toast.success(t('auth.otpVerified'));
         navigate(from, { replace: true });
       } else {
         toast.error(res.data.error);
@@ -211,12 +211,12 @@ const Login = () => {
     try {
       const res = await axios.post(`${API_URL}/api/users/resend-otp`, { email: otpEmail });
       if (res.data.success) {
-        toast.success('OTP resent.');
+        toast.success(t('auth.otpResent'));
       } else {
         toast.error(res.data.error);
       }
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to resend OTP');
+      toast.error(err.response?.data?.error || t('auth.otpResendFailed'));
     }
   };
 
@@ -227,12 +227,12 @@ const Login = () => {
 
     if (isLogin) {
       if (!formData.email || !formData.password) {
-        toast.error('Enter email and password.');
+        toast.error(t('auth.enterCredentials'));
         setIsLoading(false);
         return;
       }
       if (!isValidEmail(formData.email)) {
-        toast.error('Valid Gmail required (e.g., user@gmail.com).');
+        toast.error(t('auth.validGmailHelper'));
         setIsLoading(false);
         return;
       }
@@ -242,50 +242,50 @@ const Login = () => {
         const result = await login({ email: formData.email, password: formData.password });
 
         if (result.success) {
-          toast.success('Login successful!');
+          toast.success(t('auth.loginSuccess'));
           navigate(from, { replace: true });
         } else {
-          toast.error(result.error || 'Login failed.');
+          toast.error(result.error || t('auth.loginFailed'));
         }
       } catch (error) {
         console.error('Login error:', error);
-        toast.error(error.response?.data?.error || 'Login error.');
+        toast.error(error.response?.data?.error || t('auth.loginError'));
       }
     } else {
       const { fullName, email, password, phone, address, agreeToTerms, confirmPassword } = formData;
 
       if (!fullName || !email || !password || !phone || !address || !confirmPassword) {
-        toast.error('All fields required.');
+        toast.error(t('auth.allFieldsRequired'));
         setIsLoading(false);
         return;
       }
       if (!isValidEmail(email)) {
-        toast.error('Valid Gmail required.');
+        toast.error(t('auth.validGmail'));
         setIsLoading(false);
         return;
       }
       if (password !== confirmPassword) {
-        toast.error('Passwords do not match.');
+        toast.error(t('auth.passwordMismatch'));
         setIsLoading(false);
         return;
       }
       if (!isValidFullName(fullName)) {
-        toast.error('Valid full name (2+ words, letters only).');
+        toast.error(t('auth.validNameHelper'));
         setIsLoading(false);
         return;
       }
       if (!isValidAddress(address)) {
-        toast.error('Valid address (2-100 chars).');
+        toast.error(t('auth.validAddressHelper'));
         setIsLoading(false);
         return;
       }
       if (!isValidPhone(phone)) {
-        toast.error('Valid phone (e.g., +251912345678).');
+        toast.error(t('auth.validPhoneHelper'));
         setIsLoading(false);
         return;
       }
       if (!agreeToTerms) {
-        toast.error('Agree to Terms and Privacy.');
+        toast.error(t('auth.agreeTermsError'));
         setIsLoading(false);
         return;
       }
@@ -297,10 +297,10 @@ const Login = () => {
           setInitialOtp(response.data.otp);
           setShowOTP(true);
         } else {
-          toast.error(response.data.error || 'Registration failed.');
+          toast.error(response.data.error || t('auth.registrationFailed'));
         }
       } catch (error) {
-        toast.error(error.response?.data?.error || 'Registration failed.');
+        toast.error(error.response?.data?.error || t('auth.registrationFailed'));
       }
     }
     setIsLoading(false);
