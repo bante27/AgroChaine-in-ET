@@ -41,71 +41,45 @@ const Header = () => {
       initial={{ opacity: 0, y: -50 }}
       animate={controls}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="sticky top-0 z-50 bg-gradient-to-b from-purple-800 to-blue-700 text-white polygon-bg shadow-lg hover:shadow-xl transition-shadow duration-300 animate-gradient-shift"
+      // Updated to ISPA-like Clean White Style
+      className="sticky top-0 z-50 bg-white text-gray-800 shadow-md transition-shadow duration-300"
     >
       <style>
         {`
-          .polygon-bg {
-            clip-path: polygon(0 0, 100% 0, 100% 75%, 85% 100%, 15% 100%, 0 75%);
-            width: 100%;
-            height: 100%;
-          }
           .glow-effect {
-            filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.7));
-          }
-          .pulse-animation {
-            animation: pulse 2s infinite;
-          }
-          @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-          }
-          .animate-gradient-shift {
-            animation: gradientShift 10s ease infinite;
-            background-size: 200% 200%;
-          }
-          @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-          @media (max-width: 640px) {
-            .polygon-bg {
-              clip-path: polygon(0 0, 100% 0, 100% 85%, 80% 100%, 20% 100%, 0 85%);
-            }
+            filter: drop-shadow(0 0 5px rgba(4, 106, 56, 0.2)); /* Subtle Green glow */
           }
           .hover-lift {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
           }
           .hover-lift:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Softer shadow */
           }
         `}
       </style>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <motion.div
             initial={{ scale: 1.9, y: 10 }}
             animate={{ scale: 1, y: 0 }}
             transition={{ duration: 0.8, type: 'spring', stiffness: 100 }}
-            className="flex items-center space-x-3"
+            className="flex items-center space-x-3 shrink-0"
           >
             <Link to="/" className="flex items-center space-x-2">
               <div className="relative">
-                {/* Circular logo with no background box */}
+                {/* Circular logo with transparency */}
                 <img
                   src={logoIconDarkTransparent}
                   alt="AgroChain Logo Icon"
-                  className="h-12 w-12 object-cover rounded-full bg-transparent glow-effect"
+                  className="h-10 w-10 sm:h-12 sm:w-12 object-cover rounded-full bg-white p-0.5 border border-gray-100"
                 />
               </div>
               <div className="flex flex-col -space-y-1">
-                <span className="text-2xl font-bold text-white hover:text-teal-300 transition-colors duration-300">{t('nav.brand')}</span>
-                <span className="text-sm font-semibold text-amber-400 hover:text-teal-300 transition-colors duration-300">{t('nav.country')}</span>
+                <span className="text-xl sm:text-2xl font-bold text-[#046A38] tracking-tight">{t('nav.brand')}</span> {/* ISPA Green Brand */}
+                <span className="text-xs sm:text-sm font-medium text-gray-500">{t('nav.country')}</span>
               </div>
             </Link>
           </motion.div>
@@ -114,11 +88,11 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-6">
             <Navigation />
             <div className="flex items-center space-x-2">
-              <Globe className="h-5 w-5 text-white hover:text-teal-300 transition-colors duration-300" />
+              <Globe className="h-5 w-5 text-gray-600 hover:text-[#046A38] transition-colors duration-300" />
               <select
                 value={language}
                 onChange={(e) => changeLanguage(e.target.value)}
-                className="text-sm border-none bg-transparent focus:ring-0 text-white hover:text-teal-300 transition-colors duration-300"
+                className="text-sm border-none bg-transparent focus:ring-0 text-gray-700 hover:text-[#046A38] transition-colors duration-300 font-medium"
               >
                 <option value="en" className="text-gray-800">{language === 'en' ? 'EN' : 'እንግ'}</option>
                 <option value="am" className="text-gray-800">{language === 'en' ? 'AM' : 'አማ'}</option>
@@ -127,18 +101,18 @@ const Header = () => {
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <User className="h-5 w-5 text-white" />
-                  <span className="text-sm font-medium text-white hover:text-teal-300 transition-colors duration-300">{user?.name}</span>
+                  <User className="h-5 w-5 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-700 hover:text-[#046A38] transition-colors duration-300">{user?.name}</span>
                 </div>
                 <Link
                   to="/dashboard"
-                  className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 hover-lift transition-all duration-300 glow-effect"
+                  className="px-4 py-2 bg-[#046A38] text-white rounded-lg hover:bg-[#03542c] hover-lift transition-all duration-300 shadow-sm"
                 >
                   {t('nav.dashboard')}
                 </Link>
                 <button
                   onClick={logout}
-                  className="text-sm font-medium text-white hover:text-teal-300 transition-colors duration-300 hover-lift"
+                  className="text-sm font-medium text-gray-600 hover:text-[#046A38] transition-colors duration-300 hover-lift"
                 >
                   {t('nav.logout')}
                 </button>
@@ -147,8 +121,8 @@ const Header = () => {
               <Link
                 to="/login"
                 className={`text-sm font-medium transition-colors duration-300 ${location.pathname === '/login'
-                    ? 'text-teal-300'
-                    : 'text-white hover:text-teal-300'
+                  ? 'text-[#046A38]'
+                  : 'text-gray-600 hover:text-[#046A38]'
                   }`}
               >
                 {t('nav.login')}
@@ -161,7 +135,7 @@ const Header = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={toggleMenu}
-            className="md:hidden p-14 text-white transition-colors duration-300 glow-effect hover-lift"
+            className="md:hidden p-2 text-gray-600 transition-colors duration-300 hover-lift rounded-lg hover:bg-gray-100"
             aria-label="Toggle mobile menu"
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -176,7 +150,7 @@ const Header = () => {
             animate={{ opacity: 1, height: '65vh' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden py-3 border-t border-teal-500/20 bg-gradient-to-r from-purple-800 to-blue-700 backdrop-blur-md"
+            className="md:hidden py-3 border-t border-gray-100 bg-white backdrop-blur-md shadow-2xl"
           >
             <Navigation mobile onItemClick={() => setIsMenuOpen(false)} />
             <div className="flex items-center justify-between px-4 py-2 border-t border-teal-500/20 mt-4">
@@ -217,8 +191,8 @@ const Header = () => {
                   <Link
                     to="/login"
                     className={`block px-4 py-2 rounded-lg transition-colors duration-300 ${location.pathname === '/login'
-                        ? 'bg-teal-500 text-white'
-                        : 'text-white hover:text-teal-300 hover:bg-teal-600'
+                      ? 'bg-teal-500 text-white'
+                      : 'text-white hover:text-teal-300 hover:bg-teal-600'
                       }`}
                     onClick={() => setIsMenuOpen(false)}
                   >

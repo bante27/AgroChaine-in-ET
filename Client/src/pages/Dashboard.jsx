@@ -1264,14 +1264,14 @@ const Dashboard = () => {
                 <X className="h-3 w-3" />
               </Button>
             </div>
-            <div className="space-y-3">
+            <div className="max-h-[60vh] overflow-y-auto space-y-3 pr-1 scrollbar-thin scrollbar-thumb-blue-400 dark:scrollbar-thumb-gray-600">
               {customers.map((customer, index) => (
                 <div
                   key={index}
                   className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-blue-100/10 dark:bg-blue-900/10 rounded-lg hover:bg-blue-100/20 dark:hover:bg-blue-900/20 transition-all border border-blue-200/20 dark:border-blue-700/20"
                 >
                   <div className="flex items-center space-x-3 mb-2 sm:mb-0">
-                    <div className="relative w-10 h-10 rounded-full overflow-hidden">
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0 border-2 border-white dark:border-gray-700 shadow-sm">
                       <img src={customer.profilePic} alt={customer.fullName} className="w-full h-full object-cover" />
                     </div>
                     <div>
@@ -1283,7 +1283,7 @@ const Dashboard = () => {
                 </div>
               ))}
               {customers.length === 0 && (
-                <p className="text-gray-600 dark:text-gray-300 text-sm">No customers found.</p>
+                <p className="text-gray-600 dark:text-gray-300 text-sm italic text-center py-4">No customers found.</p>
               )}
             </div>
           </div>

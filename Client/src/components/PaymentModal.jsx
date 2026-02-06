@@ -80,14 +80,14 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 text-center">
-              {t('payment.title')}
+              {t('Wallet Pop-up')}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Amount */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('payment.amount')}
+                  {t('Money to add')}
                 </label>
                 <input
                   type="number"
@@ -130,7 +130,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-blue-400"
                 disabled={loading}
               >
-                {loading ? t('payment.processing') : t('payment.payNow')}
+                {loading ? t('payment processing') : t('Add to Wallet')}
               </Button>
             </form>
 
@@ -139,7 +139,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
               className="w-full mt-3 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 py-2 rounded-lg text-sm"
               onClick={onClose}
             >
-              {t('payment.cancel')}
+              {t('cancel')}
             </Button>
           </motion.div>
         </motion.div>

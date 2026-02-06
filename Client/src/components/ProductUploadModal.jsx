@@ -228,7 +228,7 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
               variant="outline"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-green-500 hover:text-green-600"
+              className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white border-transparent hover:bg-gray-300 dark:hover:bg-gray-600 rounded-xl"
             >
               {t('dashboard.productUpload.cancel')}
             </Button>

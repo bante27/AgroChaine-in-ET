@@ -26,10 +26,10 @@ const ProductsDisplay = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600 shadow-text">
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600 shadow-text text-center md:text-left">
             {totalItems > 0 ? `${totalItems} ${t('marketplace.productsFound')}` : t('marketplace.noProductsFound')}
           </h2>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center gap-3 w-full md:w-auto">
             <Button
               variant="outline"
               size="small"

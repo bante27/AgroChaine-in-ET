@@ -706,6 +706,15 @@ const translations = {
         retry: 'Retry',
         useLocation: 'Use Current Location'
       },
+      payment: {
+        title: 'Add Balance',
+        amount: 'Amount (ETB)',
+        enterAmount: 'Enter amount',
+        method: 'Payment Method',
+        payNow: 'Add to Wallet',
+        processing: 'Processing...',
+        cancel: 'Cancel'
+      },
 
     },
   },
@@ -1453,7 +1462,7 @@ const translations = {
         amount: 'መጠን (ETB)',
         enterAmount: 'መጠን ያስገቡ',
         method: 'የክፍያ ዘዴ',
-        payNow: 'አሁን ይክፈሉ',
+        payNow: 'ወደ ቦርሳ ጨምር',
         processing: 'በማስኬድ ላይ...',
         cancel: 'ይቅር'
       },
