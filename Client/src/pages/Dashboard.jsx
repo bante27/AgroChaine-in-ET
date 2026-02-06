@@ -37,8 +37,9 @@ import ProfileImageUploadModal from '../components/ProfileImageUploadModal';
 import PaymentModal from '../components/PaymentModal';
 import Chart from 'chart.js/auto';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
-const EthiopianClock = () => {
+const EthiopianClock = ({ theme }) => {
   const { t, language } = useLanguage();
   const [time, setTime] = useState(new Date());
 
@@ -64,26 +65,34 @@ const EthiopianClock = () => {
     let ethiopianHour = (hours - 6 + 24) % 12;
     if (ethiopianHour === 0) ethiopianHour = 12;
 
-    let period = '';
-    if (hours >= 6 && hours < 12) period = language === 'am' ? 'ጥዋት' : 'Morning';
-    else if (hours >= 12 && hours < 18) period = language === 'am' ? 'ከሰዓት' : 'Afternoon';
-    else if (hours >= 18 && hours < 24) period = language === 'am' ? 'ማታ' : 'Evening';
-    else period = language === 'am' ? 'ሌሊት' : 'Night';
+    let periodKey = '';
+    if (hours >= 6 && hours < 12) periodKey = 'morning';
+    else if (hours >= 12 && hours < 18) periodKey = 'afternoon';
+    else if (hours >= 18 && hours < 24) periodKey = 'evening';
+    else periodKey = 'night';
 
     const pad = (num) => num.toString().padStart(2, '0');
-    return `${ethiopianHour}:${pad(minutes)}:${pad(seconds)} ${period}`;
+    return `${ethiopianHour}:${pad(minutes)}:${pad(seconds)} ${t(`dashboard.time.periods.${periodKey}`)}`;
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4 bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20 shadow-lg glow-effect animate-in fade-in slide-in-from-top-4 duration-700">
+    <div className={`flex flex-col sm:flex-row items-center gap-6 px-8 py-4 rounded-2xl border-2 shadow-xl animate-in fade-in slide-in-from-top-4 duration-700 ${theme === 'dark'
+      ? 'bg-gray-800 border-blue-900'
+      : 'bg-white border-blue-200'
+      }`}>
       <div className="flex flex-col items-center sm:items-start">
-        <span className="text-[10px] uppercase tracking-widest text-blue-200 font-bold">{t('dashboard.time.local')}</span>
-        <span className="text-lg font-mono font-bold text-white tabular-nums tracking-wider">{formatLocalTime(time)}</span>
+        <span className={`text-[11px] uppercase tracking-[0.2em] font-extrabold mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+          }`}>{t('dashboard.time.local')}</span>
+        <span className={`text-2xl font-mono font-black tabular-nums tracking-widest ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+          }`}>{formatLocalTime(time)}</span>
       </div>
-      <div className="hidden sm:block w-px h-8 bg-white/20"></div>
+      <div className={`hidden sm:block w-px h-10 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-300'
+        }`}></div>
       <div className="flex flex-col items-center sm:items-start">
-        <span className="text-[10px] uppercase tracking-widest text-amber-200 font-bold">{t('dashboard.time.ethiopian')}</span>
-        <span className="text-lg font-mono font-bold text-amber-400 tabular-nums tracking-wider">{getEthiopianTime(time)}</span>
+        <span className={`text-[11px] uppercase tracking-[0.2em] font-extrabold mb-1 ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
+          }`}>{t('dashboard.time.ethiopian')}</span>
+        <span className={`text-2xl font-mono font-black tabular-nums tracking-widest ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
+          }`}>{getEthiopianTime(time)}</span>
       </div>
     </div>
   );
@@ -110,7 +119,8 @@ const Dashboard = () => {
   });
   const [error, setError] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+  const { isDark, toggleTheme } = useTheme();
+  const theme = isDark ? 'dark' : 'light';
   const [stats, setStats] = useState([
     { title: t('dashboard.stats.posted'), value: t('dashboard.loading'), change: '0', trend: 'up', icon: Package, color: 'cyan', gradient: 'from-cyan-400 to-blue-500' },
     { title: t('dashboard.stats.totalOrders'), value: t('dashboard.loading'), change: '0', trend: 'up', icon: BarChart3, color: 'purple', gradient: 'from-purple-400 to-indigo-500' },
@@ -122,11 +132,7 @@ const Dashboard = () => {
   const [chartInstance, setChartInstance] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState('90 Days');
 
-  // Theme management
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+
 
   // Google Maps function
   const openGoogleMaps = (address) => {
@@ -821,7 +827,7 @@ const Dashboard = () => {
                           : 'bg-red-100 text-red-600 border-red-200'
                         }`}
                     >
-                      {verificationStatus.charAt(0).toUpperCase() + verificationStatus.slice(1)}
+                      {t(`dashboard.status.${verificationStatus}`)}
                     </span>
                   </div>
                 </div>
@@ -829,7 +835,7 @@ const Dashboard = () => {
                   <div>
                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">{t('dashboard.profile.email')}</label>
                     <p className="w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 text-gray-900 dark:text-white text-xs shadow-sm">
-                      {user?.email || 'Not set'}
+                      {user?.email || t('dashboard.profile.notSet')}
                     </p>
                   </div>
                   <div>
@@ -854,7 +860,7 @@ const Dashboard = () => {
                         value={profileData[field.key]}
                         onChange={(e) => setProfileData({ ...profileData, [field.key]: e.target.value })}
                         className="w-full px-2 py-1 rounded-lg bg-blue-100/20 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50 text-gray-900 dark:text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm"
-                        placeholder={`Enter ${field.label.toLowerCase()}`}
+                        placeholder={`${t('dashboard.profile.enter')} ${field.label.toLowerCase()}`}
                         aria-label={field.label}
                       />
                     </div>
@@ -869,13 +875,13 @@ const Dashboard = () => {
                     {t('dashboard.profile.saveChanges')}
                   </Button>
                   <Button
-                    onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                    onClick={toggleTheme}
                     variant="outline"
                     className="w-full flex items-center justify-center space-x-2 border-blue-300/50 dark:border-blue-600/50 text-blue-600 dark:text-blue-400 bg-blue-100/10 dark:bg-blue-900/10 hover:bg-blue-200/20 dark:hover:bg-blue-800/20 text-xs rounded-lg py-1.5 shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                    aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
                   >
-                    {theme === 'light' ? <Moon className="h-3 w-3" /> : <Sun className="h-3 w-3" />}
-                    <span>{theme === 'light' ? t('dashboard.profile.darkMode') : t('dashboard.profile.lightMode')}</span>
+                    {!isDark ? <Moon className="h-3 w-3" /> : <Sun className="h-3 w-3" />}
+                    <span>{isDark ? t('dashboard.profile.lightMode') : t('dashboard.profile.darkMode')}</span>
                   </Button>
                   <Button
                     variant="outline"
@@ -915,7 +921,7 @@ const Dashboard = () => {
               </button>
               <button
                 onClick={handleSellClick}
-                className="group flex items-center gap-3 bg-emerald-500/10 hover:bg-emerald-500 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:text-white px-8 py-4 rounded-2xl font-bold text-lg border-2 border-emerald-500/30 dark:border-emerald-500/50 transition-all duration-300 hover:scale-105 active:scale-95"
+                className="group flex items-center gap-3 bg-emerald-500/10 hover:bg-emerald-500 dark:bg-emerald-500/30 text-emerald-600 dark:text-emerald-300 hover:text-white px-8 py-4 rounded-2xl font-bold text-lg border-2 border-emerald-500/30 dark:border-emerald-400/50 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/10"
               >
                 <Upload className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
                 {t('dashboard.sellProducts')}
@@ -929,7 +935,7 @@ const Dashboard = () => {
             transition={{ delay: 0.2 }}
             className="flex flex-col items-center lg:items-end gap-4"
           >
-            <EthiopianClock />
+            <EthiopianClock theme={theme} />
           </motion.div>
         </div>
 

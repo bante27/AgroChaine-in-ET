@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import Button from "./Button";
 
 const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
+  const { t } = useLanguage();
   const [product, setProduct] = useState({
     title: "",
     price: "",
@@ -36,7 +38,7 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 6) {
-      toast.error("Maximum 6 images allowed");
+      toast.error(t('dashboard.productUpload.maxImages'));
       return;
     }
     setProduct({ ...product, images: files });
@@ -51,7 +53,7 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
       !product.type ||
       !product.quantity
     ) {
-      toast.error("Please fill in all required fields");
+      toast.error(t('dashboard.productUpload.fillRequired'));
       return;
     }
     setIsLoading(true);
@@ -75,10 +77,10 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
         type: "",
         images: [],
       });
-      toast.success("Product uploaded successfully");
+      toast.success(t('dashboard.productUpload.uploadSuccess'));
       onClose();
     } catch (error) {
-      toast.error(error.response?.data?.error || "Product upload failed");
+      toast.error(error.response?.data?.error || t('dashboard.productUpload.uploadFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -97,20 +99,20 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
         className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 w-full max-w-[95vw] sm:max-w-lg overflow-y-auto max-h-[90vh]"
       >
         <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
-          Upload Product
+          {t('dashboard.productUpload.title')}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
           {/* Product Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Product Title
+              {t('dashboard.productUpload.productTitle')}
             </label>
             <input
               type="text"
               value={product.title}
               onChange={(e) => setProduct({ ...product, title: e.target.value })}
-              placeholder="Enter product title"
+              placeholder={t('dashboard.productUpload.enterTitle')}
               required
               disabled={isLoading}
               className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -120,7 +122,7 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
           {/* Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Type
+              {t('dashboard.productUpload.type')}
             </label>
             <select
               value={product.type}
@@ -129,19 +131,19 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
               disabled={isLoading}
               className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             >
-              <option value="">Select Type</option>
-              <option value="vegetable">Vegetable</option>
-              <option value="fruit">Fruit</option>
-              <option value="grain">Grain</option>
-              <option value="dairy">Dairy</option>
-              <option value="other">Other</option>
+              <option value="">{t('dashboard.productUpload.selectType')}</option>
+              <option value="vegetable">{t('dashboard.productUpload.types.vegetable')}</option>
+              <option value="fruit">{t('dashboard.productUpload.types.fruit')}</option>
+              <option value="grain">{t('dashboard.productUpload.types.grain')}</option>
+              <option value="dairy">{t('dashboard.productUpload.types.dairy')}</option>
+              <option value="other">{t('dashboard.productUpload.types.other')}</option>
             </select>
           </div>
 
           {/* Price */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Price (ETB)
+              {t('dashboard.productUpload.price')}
             </label>
             <input
               type="number"
@@ -159,7 +161,7 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
           {/* Quantity */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Quantity (kg)
+              {t('dashboard.productUpload.quantity')}
             </label>
             <input
               type="number"
@@ -177,13 +179,13 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
           {/* Origin Address */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Origin Address
+              {t('dashboard.productUpload.originAddress')}
             </label>
             <input
               type="text"
               value={product.originAddress}
               onChange={(e) => setProduct({ ...product, originAddress: e.target.value })}
-              placeholder="Enter origin address"
+              placeholder={t('dashboard.productUpload.enterAddress')}
               required
               disabled={isLoading}
               className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -193,7 +195,7 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
           {/* Images */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Images (max 6)
+              {t('dashboard.productUpload.images')}
             </label>
             <input
               type="file"
@@ -208,12 +210,12 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Description
+              {t('dashboard.productUpload.description')}
             </label>
             <textarea
               value={product.description}
               onChange={(e) => setProduct({ ...product, description: e.target.value })}
-              placeholder="Describe your product..."
+              placeholder={t('dashboard.productUpload.describeProduct')}
               disabled={isLoading}
               rows={4}
               className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
@@ -228,14 +230,14 @@ const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
               disabled={isLoading}
               className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-green-500 hover:text-green-600"
             >
-              Cancel
+              {t('dashboard.productUpload.cancel')}
             </Button>
             <Button
               type="submit"
               disabled={isLoading}
               className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold"
             >
-              {isLoading ? "Uploading..." : "Upload"}
+              {isLoading ? t('dashboard.productUpload.uploading') : t('dashboard.productUpload.upload')}
             </Button>
           </div>
         </form>

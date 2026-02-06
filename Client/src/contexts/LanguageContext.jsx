@@ -25,7 +25,16 @@ const translations = {
       logout: 'Logout',
       dashboard: 'Dashboard',
       faq: 'FAQ',
-      legal: 'Legal'
+      legal: 'Legal',
+      payment: {
+        title: 'Add Balance',
+        amount: 'Amount (ETB)',
+        enterAmount: 'Enter amount',
+        method: 'Payment Method',
+        payNow: 'Pay Now',
+        processing: 'Processing...',
+        cancel: 'Cancel'
+      },
     },
     auth: {
       verifyEmail: 'Verify Your Email',
@@ -452,7 +461,43 @@ const translations = {
       about: 'About Platform',
       time: {
         local: 'Local Time',
-        ethiopian: 'Ethiopian Time'
+        ethiopian: 'Ethiopian Time',
+        periods: {
+          morning: 'Morning',
+          afternoon: 'Afternoon',
+          evening: 'Evening',
+          night: 'Night'
+        }
+      },
+      productUpload: {
+        title: 'Upload Product',
+        productTitle: 'Product Title',
+        enterTitle: 'Enter product title',
+        type: 'Type',
+        selectType: 'Select Type',
+        price: 'Price (ETB)',
+        quantity: 'Quantity (kg)',
+        originAddress: 'Origin Address',
+        enterAddress: 'Enter origin address',
+        images: 'Images (max 6)',
+        description: 'Description',
+        describeProduct: 'Describe your product...',
+        upload: 'Upload',
+        uploading: 'Uploading...',
+        cancel: 'Cancel',
+        chooseFiles: 'Choose Files',
+        noFileChosen: 'No file chosen',
+        maxImages: 'Maximum 6 images allowed',
+        fillRequired: 'Please fill in all required fields',
+        uploadSuccess: 'Product uploaded successfully',
+        uploadFailed: 'Product upload failed',
+        types: {
+          vegetable: 'Vegetable',
+          fruit: 'Fruit',
+          grain: 'Grain',
+          dairy: 'Dairy',
+          other: 'Other'
+        }
       },
       profile: {
         email: 'Email',
@@ -466,7 +511,9 @@ const translations = {
         lightMode: 'Light Mode',
         logout: 'Logout',
         accountRestricted: 'Account Restricted',
-        restrictedMessage: 'Your account has been restricted by an administrator. You cannot buy or sell products at this time. Please contact support for assistance.'
+        restrictedMessage: 'Your account has been restricted by an administrator. You cannot buy or sell products at this time. Please contact support for assistance.',
+        notSet: 'Not set',
+        enter: 'Enter'
       },
       theme: {
         light: 'Light Mode',
@@ -483,7 +530,10 @@ const translations = {
         completed: 'Completed',
         shipped: 'Shipped',
         pending: 'Pending',
-        cancelled: 'Cancelled'
+        cancelled: 'Cancelled',
+        verified: 'Verified',
+        unverified: 'Unverified',
+        rejected: 'Rejected'
       },
       actions: {
         markShipped: 'Mark Shipped',
@@ -656,20 +706,7 @@ const translations = {
         retry: 'Retry',
         useLocation: 'Use Current Location'
       },
-      dashboard: {
-        time: { local: 'Local Time', ethiopian: 'Ethiopian Time' },
-        stats: { posted: 'Posted Products', totalOrders: 'Total Orders', sold: 'Sold Products', rating: 'Rating', loading: 'Loading...' },
-        status: { completed: 'Completed', shipped: 'Shipped', pending: 'Pending', cancelled: 'Cancelled' },
-        chart: { sales: 'Sales', date: 'Date', salesAmount: 'Sales Amount' },
-        quickActions: {
-          addProduct: 'Add Product', addProductDesc: 'List a new item for sale',
-          addBalance: 'Add Balance', addBalanceDesc: 'Top up your wallet',
-          viewCustomers: 'View Customers', viewCustomersDesc: 'Manage your customer base',
-          about: 'About Platform', aboutDesc: 'Learn more about AgroChain',
-          verifyAccount: 'Verify Account', verifyAccountDesc: 'Upload ID for verification'
-        },
-        profile: { accountRestricted: 'Account Restricted', restrictedMessage: 'Your account has been restricted. Please contact support.' }
-      }
+
     },
   },
   am: {
@@ -1118,7 +1155,43 @@ const translations = {
       about: 'ስለ መድረኩ',
       time: {
         local: 'የአካባቢ ሰዓት',
-        ethiopian: 'የኢትዮጵያ ሰዓት'
+        ethiopian: 'የኢትዮጵያ ሰዓት',
+        periods: {
+          morning: 'ጥዋት',
+          afternoon: 'ከሰዓት',
+          evening: 'ማታ',
+          night: 'ሌሊት'
+        }
+      },
+      productUpload: {
+        title: 'ምርት ይስቀሉ',
+        productTitle: 'የምርት ስም',
+        enterTitle: 'የምርቱን ስም ያስገቡ',
+        type: 'ዓይነት',
+        selectType: 'ዓይነት ይምረጡ',
+        price: 'ዋጋ (ETB)',
+        quantity: 'ብዛት (ኪ.ግ)',
+        originAddress: 'መነሻ አድራሻ',
+        enterAddress: 'መነሻ አድራሻ ያስገቡ',
+        images: 'ምስሎች (ከፍተኛ 6)',
+        description: 'መግለጫ',
+        describeProduct: 'ስለ ምርትዎ ይግለጹ...',
+        upload: 'ስቀል',
+        uploading: 'በመጫን ላይ...',
+        cancel: 'ይቅር',
+        chooseFiles: 'ፋይል ይምረጡ',
+        noFileChosen: 'ምንም ፋይል አልተመረጠም',
+        maxImages: 'ከፍተኛ 6 ምስሎች ብቻ ይፈቀዳሉ',
+        fillRequired: 'እባክዎ ሁሉንም አስፈላጊ መረጃዎች ይሙሉ',
+        uploadSuccess: 'ምርቱ በተሳካ ሁኔታ ተሰቅሏል',
+        uploadFailed: 'ምርቱን መስቀል አልተቻለም',
+        types: {
+          vegetable: 'አትክልት',
+          fruit: 'ፍራፍሬ',
+          grain: 'ጥራጥሬ',
+          dairy: 'ወተት እና የወተት ተዋጽኦ',
+          other: 'ሌላ'
+        }
       },
       profile: {
         email: 'ኢሜይል',
@@ -1132,7 +1205,9 @@ const translations = {
         lightMode: 'ብርሃን',
         logout: 'ውጣ',
         accountRestricted: 'መለያ ተገድቧል',
-        restrictedMessage: 'መለያዎ በአስተዳዳሪ ተገድቧል። በዚህ ጊዜ ምርቶችን መግዛት ወይም መሸጥ አይችሉም። እባክዎ ለእርዳታ ድጋፍን ያነጋግሩ።'
+        restrictedMessage: 'መለያዎ በአስተዳዳሪ ተገድቧል። በዚህ ጊዜ ምርቶችን መግዛት ወይም መሸጥ አይችሉም። እባክዎ ለእርዳታ ድጋፍን ያነጋግሩ።',
+        notSet: 'አልተዘጋጀም',
+        enter: 'ያስገቡ'
       },
       theme: {
         light: 'የብርሃን ሁነታ',
@@ -1151,7 +1226,10 @@ const translations = {
         delivered: 'ደርሷል',
         cancelled: 'ተሰርዟል',
         completed: 'ተጠናቋል',
-        unknown: 'ያልታወቀ'
+        unknown: 'ያልታወቀ',
+        verified: 'የተረጋገጠ',
+        unverified: 'ያልተረጋገጠ',
+        rejected: 'ውድቅ ተደርጓል'
       },
       actions: {
         markShipped: 'ተልኳል በል',
@@ -1369,6 +1447,15 @@ const translations = {
         high: 'ከፍተኛ',
         low: 'ዝቅተኛ',
         updateInfo: 'የአየር ሁኔታ መረጃ ከበስተጀርባ በእውነተኛ ጊዜ ተገኝቷል። በእያንዳንዱ ጭነት ይዘምናል።'
+      },
+      payment: {
+        title: 'ሂሳብ ይጨምሩ',
+        amount: 'መጠን (ETB)',
+        enterAmount: 'መጠን ያስገቡ',
+        method: 'የክፍያ ዘዴ',
+        payNow: 'አሁን ይክፈሉ',
+        processing: 'በማስኬድ ላይ...',
+        cancel: 'ይቅር'
       },
       cta: {
         title: 'የኢትዮጵያን ግብርና ዛሬ ይለውጡ',

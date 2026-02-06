@@ -73,6 +73,7 @@ const Marketplace = () => {
     try {
       const response = await axios.get(`${API_URL}/api/products`, {
         headers: { Authorization: token ? `Bearer ${token}` : undefined },
+        params: { limit: 1000 } // Fetch more products for client-side pagination
       });
 
       let products = response.data.items || response.data.products || [];
@@ -129,6 +130,8 @@ const Marketplace = () => {
     const paginated = filtered.slice(startIndex, startIndex + pageSize);
     setDisplayedProducts(paginated);
   }, [searchTerm, selectedCategory, sortBy, allProducts, page]);
+
+  const totalItems = searchTerm || selectedCategory ? displayedProducts.length : allProducts.length;
 
   // LIVE Search
   const handleSearchChange = (e) => {
@@ -226,6 +229,7 @@ const Marketplace = () => {
           <div className="mt-8">
             <ProductsDisplay
               products={displayedProducts}
+              totalItems={searchTerm || selectedCategory ? (allProducts.filter(p => (searchTerm ? p.title.toLowerCase().includes(searchTerm.toLowerCase()) : true) && (selectedCategory ? p.type === selectedCategory : true)).length) : allProducts.length}
               viewMode={viewMode}
               page={page}
               totalPages={totalPages}

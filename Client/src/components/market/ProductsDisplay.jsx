@@ -7,6 +7,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 
 const ProductsDisplay = ({
   products,
+  totalItems, // New prop
   viewMode,
   page,
   totalPages,
@@ -26,7 +27,7 @@ const ProductsDisplay = ({
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
           <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600 shadow-text">
-            {products.length > 0 ? `${products.length} ${t('marketplace.productsFound')}` : t('marketplace.noProductsFound')}
+            {totalItems > 0 ? `${totalItems} ${t('marketplace.productsFound')}` : t('marketplace.noProductsFound')}
           </h2>
           <div className="flex items-center gap-3">
             <Button

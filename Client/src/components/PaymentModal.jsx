@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Smartphone, Banknote, Wallet } from "lucide-react";
 import Button from "./Button";
@@ -7,6 +8,7 @@ import { API_URL } from '../utils/apiConfig';
 
 
 const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
+  const { t } = useLanguage();
   const [amount, setAmount] = useState("");
   const [selectedMethod, setSelectedMethod] = useState("cbe");
   const [loading, setLoading] = useState(false);
@@ -78,21 +80,21 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 text-center">
-              Add Balance
+              {t('payment.title')}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Amount */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Amount (ETB)
+                  {t('payment.amount')}
                 </label>
                 <input
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 text-sm"
-                  placeholder="Enter amount"
+                  placeholder={t('payment.enterAmount')}
                   min="1"
                   step="0.01"
                   required
@@ -102,7 +104,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
               {/* Payment Methods */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Payment Method
+                  {t('payment.method')}
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {paymentMethods.map((method) => (
@@ -111,8 +113,8 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
                       type="button"
                       onClick={() => setSelectedMethod(method.value)}
                       className={`flex-1 min-w-[45%] sm:min-w-[30%] flex flex-col items-center p-3 rounded-lg border-2 text-xs sm:text-sm transition-all ${selectedMethod === method.value
-                          ? method.active
-                          : "border-gray-200 dark:border-gray-600 hover:border-gray-400 text-gray-900 dark:text-gray-100"
+                        ? method.active
+                        : "border-gray-200 dark:border-gray-600 hover:border-gray-400 text-gray-900 dark:text-gray-100"
                         }`}
                     >
                       <method.icon className="h-5 w-5 mb-1" />
@@ -128,7 +130,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-blue-400"
                 disabled={loading}
               >
-                {loading ? "Processing..." : "Pay Now"}
+                {loading ? t('payment.processing') : t('payment.payNow')}
               </Button>
             </form>
 
@@ -137,7 +139,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
               className="w-full mt-3 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 py-2 rounded-lg text-sm"
               onClick={onClose}
             >
-              Cancel
+              {t('payment.cancel')}
             </Button>
           </motion.div>
         </motion.div>
