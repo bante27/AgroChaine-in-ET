@@ -70,11 +70,11 @@ const Header = () => {
           >
             <Link to="/" className="flex items-center space-x-2">
               <div className="relative">
-                {/* Circular logo with transparency */}
+                {/* Free view logo */}
                 <img
                   src={logoIconDarkTransparent}
                   alt="AgroChain Logo Icon"
-                  className="h-10 w-10 sm:h-12 sm:w-12 object-cover rounded-full bg-white p-0.5 border border-gray-100"
+                  className="h-10 w-10 sm:h-12 sm:w-12 object-contain"
                 />
               </div>
               <div className="flex flex-col -space-y-1">
