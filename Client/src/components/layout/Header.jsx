@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, useAnimation } from 'framer-motion';
+import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 import { Menu, X, User, Globe } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -135,74 +135,79 @@ const Header = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={toggleMenu}
-            className="md:hidden p-2 text-gray-600 transition-colors duration-300 hover-lift rounded-lg hover:bg-gray-100"
+            className="md:hidden p-2 text-gray-700 hover:text-[#046A38] hover:bg-green-50 rounded-full transition-all duration-300"
             aria-label="Toggle mobile menu"
           >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMenuOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
           </motion.button>
         </div>
 
         {/* Mobile Menu */}
-        {isMenuOpen && (
-          <motion.div
-            ref={menuRef}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: '65vh' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden py-3 border-t border-gray-100 bg-white backdrop-blur-md shadow-2xl"
-          >
-            <Navigation mobile onItemClick={() => setIsMenuOpen(false)} />
-            <div className="flex items-center justify-between px-4 py-2 border-t border-teal-500/20 mt-4">
-              <div className="flex items-center space-x-2">
-                <Globe className="h-5 w-5 text-white hover:text-teal-300 transition-colors duration-300" />
-                <select
-                  value={language}
-                  onChange={(e) => changeLanguage(e.target.value)}
-                  className="text-base border-none bg-transparent focus:ring-0 text-white hover:text-teal-300 transition-colors duration-300"
-                >
-                  <option value="en">{language === 'en' ? 'English' : 'እንግሊዝኛ'}</option>
-                  <option value="am">{language === 'en' ? 'Amharic' : 'አማርኛ'}</option>
-                </select>
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              ref={menuRef}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="md:hidden overflow-hidden bg-white border-t border-gray-100 shadow-xl rounded-b-2xl absolute left-0 right-0 top-20 px-4 pb-6"
+            >
+              <div className="pt-4 space-y-4">
+                <Navigation mobile onItemClick={() => setIsMenuOpen(false)} />
+
+                <div className="border-t border-gray-100 pt-4 space-y-4">
+                  <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center space-x-2 text-gray-600">
+                      <Globe className="h-5 w-5 text-[#046A38]" />
+                      <select
+                        value={language}
+                        onChange={(e) => changeLanguage(e.target.value)}
+                        className="text-sm font-medium border-none bg-transparent focus:ring-0 text-gray-700 hover:text-[#046A38] cursor-pointer"
+                      >
+                        <option value="en">English</option>
+                        <option value="am">አማርኛ</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {isAuthenticated ? (
+                    <div className="space-y-3">
+                      <Link
+                        to="/dashboard"
+                        className="flex items-center justify-center w-full px-4 py-3 bg-[#046A38] text-white rounded-xl hover:bg-[#03542c] font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <User className="h-5 w-5 mr-2" />
+                        {t('nav.dashboard')}
+                      </Link>
+                      <button
+                        onClick={() => {
+                          logout();
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors duration-300 text-center"
+                      >
+                        {t('nav.logout')}
+                      </button>
+                    </div>
+                  ) : (
+                    <Link
+                      to="/login"
+                      className={`block w-full text-center px-4 py-3 rounded-xl font-bold transition-all duration-300 ${location.pathname === '/login'
+                          ? 'bg-[#046A38] text-white shadow-lg'
+                          : 'bg-gray-100 text-gray-800 hover:bg-[#046A38] hover:text-white hover:shadow-lg'
+                        }`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {t('nav.login')}
+                    </Link>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="mt-4 pt-4 border-t border-teal-500/20">
-              {isAuthenticated ? (
-                <div className="space-y-2">
-                  <Link
-                    to="/dashboard"
-                    className="block px-4 py-2 text-white hover:text-teal-300 bg-teal-500 rounded-lg transition-colors duration-300 hover-lift"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {t('nav.dashboard')}
-                  </Link>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-white hover:text-teal-300 rounded-lg transition-colors duration-300 hover-lift"
-                  >
-                    {t('nav.logout')}
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Link
-                    to="/login"
-                    className={`block px-4 py-2 rounded-lg transition-colors duration-300 ${location.pathname === '/login'
-                      ? 'bg-teal-500 text-white'
-                      : 'text-white hover:text-teal-300 hover:bg-teal-600'
-                      }`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {t('nav.login')}
-                  </Link>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.header>
   );

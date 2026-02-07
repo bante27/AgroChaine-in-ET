@@ -19,17 +19,16 @@ const Navigation = ({ mobile = false, onItemClick }) => {
 
   if (mobile) {
     return (
-      <nav className="space-y-2">
+      <nav className="space-y-1">
         {navItems.map((item) => (
           <Link
             key={item.path}
             to={item.path}
             onClick={onItemClick}
-            className={`block px-4 py-2 rounded-lg transition-colors duration-200 ${
-              isActive(item.path)
-                ? 'bg-emerald-100 text-blue-600 dark:bg-emerald-700 dark:text-white'
-                : 'text-gray-200 hover:text-blue-600 dark:hover:bg-gray-800'
-            }`}
+            className={`block px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${isActive(item.path)
+                ? 'bg-[#046A38]/10 text-[#046A38]'
+                : 'text-gray-700 hover:bg-gray-50 hover:text-[#046A38]'
+              }`}
           >
             {item.label}
           </Link>
@@ -39,18 +38,18 @@ const Navigation = ({ mobile = false, onItemClick }) => {
   }
 
   return (
-    <nav className="flex items-center space-x-6">
+    <nav className="flex items-center space-x-8">
       {navItems.map((item) => (
         <Link
           key={item.path}
           to={item.path}
-          className={`text-sm font-medium transition-colors duration-200 ${
-            isActive(item.path)
-              ? 'text-blue-600 dark:text-blue-600'
-              : 'text-gray-200 hover:text-blue-600 dark:text-gray-300 dark:hover:text-white'
-          }`}
+          className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group ${isActive(item.path)
+              ? 'text-[#046A38]'
+              : 'text-gray-600 hover:text-[#046A38]'
+            }`}
         >
           {item.label}
+          <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-[#046A38] transition-all duration-300 group-hover:w-full ${isActive(item.path) ? 'w-full' : ''}`}></span>
         </Link>
       ))}
     </nav>

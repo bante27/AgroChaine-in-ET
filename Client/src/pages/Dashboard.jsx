@@ -701,6 +701,8 @@ const Dashboard = () => {
     setShowProductModal(true);
   };
 
+
+
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       navigate('/login', { replace: true });
@@ -755,7 +757,8 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-10">
         {user?.isRestricted && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -773,7 +776,7 @@ const Dashboard = () => {
         )}
 
         {/* Profile Section */}
-        <div ref={profileRef} className="fixed top-4 right-4 z-50">
+        <div ref={profileRef} className="fixed top-20 right-4 z-40">
           <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
             className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border-2 border-blue-300/50 dark:border-blue-600/50 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 bg-white/10 dark:bg-gray-800/10 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500"

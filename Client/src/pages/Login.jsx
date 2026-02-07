@@ -14,17 +14,18 @@ import LiveChat from '../components/LiveChat';
 import { API_URL } from '../utils/apiConfig';
 import { useLanguage } from '../contexts/LanguageContext';
 
+
 // OTP Input component
-const OTPInput = ({ email, otp, onVerify, onResend }) => {
+const OTPInput = ({ email, onVerify, onResend }) => {
   const { t } = useLanguage();
   const [inputOtp, setInputOtp] = useState('');
   const [timer, setTimer] = useState(300);
 
+  // Countdown timer
   useEffect(() => {
-    setInputOtp(otp || '');
     const interval = setInterval(() => setTimer(prev => (prev > 0 ? prev - 1 : 0)), 1000);
     return () => clearInterval(interval);
-  }, [otp]);
+  }, []);
 
   const handleVerify = () => {
     if (!inputOtp || inputOtp.length !== 6) return toast.error(t('auth.enterValidOtp'));
@@ -82,7 +83,6 @@ const OTPInput = ({ email, otp, onVerify, onResend }) => {
               className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
             >
               {t('auth.verifyButton')}
-              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </form>
         </Card>
@@ -90,6 +90,7 @@ const OTPInput = ({ email, otp, onVerify, onResend }) => {
     </div>
   );
 };
+
 
 const Login = () => {
   const { t } = useLanguage();
@@ -188,24 +189,32 @@ const Login = () => {
     setError(null);
   };
 
-  const handleVerifyOTP = async (otp) => {
-    try {
-      const res = await axios.post(`${API_URL}/api/users/verify-otp`, { email: otpEmail, otp });
-      if (res.data.success) {
-        // Manually set auth data instead of calling context login (which calls the API again)
-        localStorage.setItem('token', res.data.token);
-        setToken(res.data.token);
-        setUser(res.data.user);
-        setIsAuthenticated(true);
+  const handleVerifyOTP = async (typedOtp) => {
+  try {
+    const res = await axios.post(`${API_URL}/api/users/verify-otp`, {
+      email: otpEmail,
+      otp: typedOtp
+    });
+
+    if (res.data.success) {
+      // OTP is correct, now log in the user via context
+      const loginResult = await login({ email: otpEmail, password: formData.password });
+
+      if (loginResult.success) {
         toast.success(t('auth.otpVerified'));
-        navigate(from, { replace: true });
+        navigate('/dashboard', { replace: true });
       } else {
-        toast.error(res.data.error);
+        toast.error(loginResult.error || t('auth.loginFailed'));
       }
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'OTP verification failed');
+    } else {
+      toast.error(res.data.error || t('auth.otpInvalid'));
     }
-  };
+  } catch (err) {
+    console.error(err);
+    toast.error(err.response?.data?.error || t('auth.otpVerificationFailed'));
+  }
+};
+
 
   const handleResendOTP = async () => {
     try {
