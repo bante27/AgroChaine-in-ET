@@ -27,13 +27,13 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!amount || parseFloat(amount) <= 0) {
-      toast.error("Please enter a valid amount greater than 0 ETB");
+      toast.error(t('nav.payment.enterAmount'));
       return;
     }
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      if (!token) throw new Error("Authentication required. Please log in.");
+      if (!token) throw new Error(t('marketplace.toast.loginRequired'));
 
       const response = await fetch(`${API_URL}/api/users/add-balance`, {
         method: "POST",
@@ -47,15 +47,15 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Payment request failed");
+        throw new Error(errorData.message || t('nav.payment.paymentFailed'));
       }
 
       const data = await response.json();
-      toast.success(`+${amount} ETB added via ${selectedMethod.toUpperCase()}`);
+      toast.success(`+${amount} ETB ${t('nav.payment.addedVia')} ${selectedMethod.toUpperCase()}`);
       onPaymentSuccess(data.balance);
       onClose();
     } catch (error) {
-      toast.error(error.message || "Payment failed. Try again.");
+      toast.error(error.message || t('nav.payment.paymentError'));
     } finally {
       setLoading(false);
     }
@@ -80,21 +80,21 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 text-center">
-              {t('Wallet Pop-up')}
+              {t('nav.payment.title')}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Amount */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('Money to add')}
+                  {t('nav.payment.amount')}
                 </label>
                 <input
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 text-sm"
-                  placeholder={t('payment.enterAmount')}
+                  placeholder={t('nav.payment.enterAmount')}
                   min="1"
                   step="0.01"
                   required
@@ -104,7 +104,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
               {/* Payment Methods */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('payment.method')}
+                  {t('nav.payment.method')}
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {paymentMethods.map((method) => (
@@ -130,7 +130,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-blue-400"
                 disabled={loading}
               >
-                {loading ? t('payment processing') : t('Add to Wallet')}
+                {loading ? t('nav.payment.processing') : t('nav.payment.payNow')}
               </Button>
             </form>
 
@@ -139,7 +139,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
               className="w-full mt-3 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 py-2 rounded-lg text-sm"
               onClick={onClose}
             >
-              {t('cancel')}
+              {t('nav.payment.cancel')}
             </Button>
           </motion.div>
         </motion.div>

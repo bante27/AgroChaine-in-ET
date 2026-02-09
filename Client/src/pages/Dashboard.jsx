@@ -605,28 +605,58 @@ const Dashboard = () => {
 
   const handleVerify = async (data) => {
     try {
+      console.log('📤 Starting verification submission...', data);
       const token = localStorage.getItem('token');
+
+      if (!token) {
+        toast.error('Please login to verify your account');
+        return;
+      }
+
       const formData = new FormData();
       formData.append('name', data.name);
       formData.append('govIdFront', data.govIdFront);
       formData.append('govIdBack', data.govIdBack);
-      formData.append('role', data.role);
-      await axios.post(`${API_URL}/api/users/verify-id`, formData, {
+
+      console.log('📋 FormData prepared:', {
+        name: data.name,
+        govIdFront: data.govIdFront?.name,
+        govIdBack: data.govIdBack?.name
+      });
+
+      console.log('🚀 Sending verification request...');
+      const response = await axios.post(`${API_URL}/api/users/verify-id`, formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
+
+      console.log('✅ Verification response:', response.data);
+
       setVerificationStatus('pending');
       setShowVerificationModal(false);
-      await axios.patch(
-        `${API_URL}/api/users/profile`,
-        { fullName: data.name },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+
+      // Update user's full name if provided
+      if (data.name) {
+        console.log('📝 Updating user profile with name:', data.name);
+        await axios.patch(
+          `${API_URL}/api/users/profile`,
+          { fullName: data.name },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
       fetchUserProfileLocal();
-      toast.success('Government ID uploaded, pending verification');
+      toast.success(t('dashboard.verification.verificationSubmitted'));
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Verification failed');
+      console.error('❌ Verification error:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+
+      const errorMessage = error.response?.data?.error || error.message || t('dashboard.verification.verificationFailed');
+      toast.error(errorMessage);
+      throw error; // Re-throw so VerificationModal can handle it
     }
   };
+
 
   const handleProductSubmit = async (productData) => {
     try {
@@ -757,7 +787,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white">
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-10">
         {user?.isRestricted && (
           <motion.div

@@ -68,7 +68,7 @@ const CheckoutModal = ({
     }
 
     if (!cartItems || cartItems.length === 0) {
-      toast.error("Your cart is empty", {
+      toast.error(t('marketplace.checkout.emptyCart'), {
         style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
       });
       return;
@@ -88,7 +88,7 @@ const CheckoutModal = ({
         (o) => !o.productId || !o.quantity || o.quantity <= 0
       );
       if (invalidOrder) {
-        toast.error("All items must have a valid quantity and product ID", {
+        toast.error(t('marketplace.checkout.invalidItems'), {
           style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
         });
         setLoading(false);
@@ -119,8 +119,22 @@ const CheckoutModal = ({
       }
     } catch (error) {
       console.error("Order Error:", error.response?.data || error.message);
-      toast.error(error.response?.data?.error || "Server error during purchase", {
+
+      // Check if error is related to verification
+      const errorMessage = error.response?.data?.error || "";
+      let displayMessage;
+
+      if (errorMessage.includes("Government ID verification") ||
+        errorMessage.includes("verification pending") ||
+        errorMessage.includes("not completed")) {
+        displayMessage = t('marketplace.toast.verificationRequired');
+      } else {
+        displayMessage = errorMessage || t('marketplace.checkout.serverError');
+      }
+
+      toast.error(displayMessage, {
         style: { background: "#ef4444", color: "#fff", borderRadius: "8px" },
+        duration: 5000, // Show for 5 seconds for verification errors
       });
     } finally {
       setLoading(false);
@@ -206,7 +220,7 @@ const CheckoutModal = ({
           </div>
 
           <p className="text-gray-700 text-sm mt-4">
-            Delivery Date:{" "}
+            {t('marketplace.checkout.deliveryDate')}:{" "}
             <span className="font-semibold">{deliveryDate.toLocaleDateString()}</span>
           </p>
 

@@ -74,7 +74,7 @@ const encodeAddressForMaps = (address) => {
   return encodeURIComponent(address.trim());
 };
 
-// BUY PRODUCT
+// BUY PRODUCT - OPTIMIZED FOR SPEED
 // -----------------------------
 router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, res) => {
   try {
@@ -95,6 +95,7 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
     // Calculate total charges for all orders
     let totalChargeToBuyer = 0;
     const transactionList = [];
+    const emailQueue = []; // Store email data for async sending
 
     for (const order of orders) {
       const { productId, quantity } = order;
@@ -186,11 +187,41 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
         { $push: { recentActivity: { type: "order-received", message: `You received a new order for ${product.title} (${quantity}x)`, date: new Date() } } }
       );
 
-      // Send emails with Google Maps + Website Link
-      await sendEmail(
-        seller.email,
-        "New Order Received – View on Map",
-        `
+      // Queue emails for async sending (don't wait for them)
+      emailQueue.push({
+        type: 'seller',
+        to: seller.email,
+        data: { seller, buyer, product, transaction, quantity, totalPrice, buyerFee, sellerFee, netAmountToSeller, deliveryAddress, mapsUrl }
+      });
+      emailQueue.push({
+        type: 'buyer',
+        to: buyer.email,
+        data: { buyer, seller, product, transaction, quantity, totalPrice, buyerFee, deliveryAddress, mapsUrl }
+      });
+      emailQueue.push({
+        type: 'admin',
+        to: "tilahunsitotaw87@gmail.com",
+        data: { buyer, seller, product, transaction, quantity, totalPrice }
+      });
+    }
+
+    // Send response immediately (don't wait for emails)
+    res.json({
+      success: true,
+      message: `Purchase successful. Seller notified. Total charged: ${totalChargeToBuyer.toFixed(2)} ETB.`,
+      transactions: transactionList,
+    });
+
+    // Send all emails asynchronously AFTER response
+    setImmediate(() => {
+      emailQueue.forEach(async (emailData) => {
+        try {
+          if (emailData.type === 'seller') {
+            const { seller, buyer, product, transaction, quantity, totalPrice, sellerFee, netAmountToSeller, deliveryAddress, mapsUrl } = emailData.data;
+            await sendEmail(
+              emailData.to,
+              "New Order Received – View on Map",
+              `
         <p>Dear <strong>${seller.fullName}</strong>,</p>
         <p>You received a new order from <strong>${buyer.fullName}</strong>.</p>
         <table style="width:100%;border-collapse:collapse;margin:12px 0;">
@@ -218,12 +249,13 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
         </p>
         <p style="margin-top:10px;">Please prepare the order and mark it as <strong>Shipped</strong> once ready.</p>
       `
-      ).catch(console.error);
-
-      await sendEmail(
-        buyer.email,
-        "Order Placed – Track Delivery",
-        `
+            );
+          } else if (emailData.type === 'buyer') {
+            const { buyer, seller, product, transaction, quantity, totalPrice, buyerFee, deliveryAddress, mapsUrl } = emailData.data;
+            await sendEmail(
+              emailData.to,
+              "Order Placed – Track Delivery",
+              `
         <p>Hi <strong>${buyer.fullName}</strong>,</p>
         <p>Your order has been placed successfully. Below is a summary:</p>
         <table style="width:100%;border-collapse:collapse;margin:12px 0;">
@@ -252,13 +284,13 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
         </p>
         <p style="margin-top:10px;">Thank you for choosing Agrochain Ethiopia. We will notify you when the seller ships your order.</p>
       `
-      ).catch(console.error);
-
-      // Notify Admin
-      await sendEmail(
-        "tilahunsitotaw87@gmail.com",
-        "New Order Placed on Agrochain",
-        `
+            );
+          } else if (emailData.type === 'admin') {
+            const { buyer, seller, product, transaction, quantity, totalPrice } = emailData.data;
+            await sendEmail(
+              emailData.to,
+              "New Order Placed on Agrochain",
+              `
         <p>A new order has been placed on the platform.</p>
         <table style="width:100%;border-collapse:collapse;margin:12px 0;">
           <tr><td style="padding:6px 8px;"><strong>Order ID</strong></td><td style="padding:6px 8px;">${transaction._id}</td></tr>
@@ -270,14 +302,14 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
         </table>
         <p>Please monitor the order for shipping and completion.</p>
         `
-      ).catch(console.error);
-    }
-
-    res.json({
-      success: true,
-      message: `Purchase successful. Seller notified. Total charged: ${totalChargeToBuyer.toFixed(2)} ETB.`,
-      transactions: transactionList,
+            );
+          }
+        } catch (err) {
+          console.error(`Email failed for ${emailData.type}:`, err.message);
+        }
+      });
     });
+
   } catch (error) {
     console.error("Transaction error:", error);
     res.status(500).json({ success: false, error: "Server error during transaction" });

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from '../utils/apiConfig';
+import { useLanguage } from "../contexts/LanguageContext";
 
 import {
   FaPhone,
@@ -16,6 +17,7 @@ import {
 } from "react-icons/fa";
 
 const SellerProfile = () => {
+  const { t, language, transliterateName } = useLanguage();
   const { id } = useParams();
   const [seller, setSeller] = useState(null);
   const [postedProducts, setPostedProducts] = useState([]);
@@ -33,11 +35,11 @@ const SellerProfile = () => {
           setSeller(resSeller.data.user);
           setPostedProducts(resSeller.data.user.postedProducts || []);
         } else {
-          setError("Seller not found");
+          setError(t('marketplace.seller.notFound'));
         }
       } catch (err) {
         console.error(err);
-        setError("Failed to fetch seller info");
+        setError(t('marketplace.seller.error'));
       } finally {
         setLoading(false);
       }
@@ -58,9 +60,9 @@ const SellerProfile = () => {
     }));
   };
 
-  if (loading) return <p className="text-center mt-10 text-gray-500">Loading seller info...</p>;
+  if (loading) return <p className="text-center mt-10 text-gray-500">{t('marketplace.seller.loading')}</p>;
   if (error) return <p className="text-center mt-10 text-red-600">{error}</p>;
-  if (!seller) return <p className="text-center mt-10 text-gray-700">No seller info available.</p>;
+  if (!seller) return <p className="text-center mt-10 text-gray-700">{t('marketplace.seller.noInfo')}</p>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-white p-6">
@@ -73,28 +75,28 @@ const SellerProfile = () => {
             className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-gray-300 shadow-lg"
           />
           <div className="flex-1">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 drop-shadow-sm">{seller.fullName}</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4 drop-shadow-sm">{language === 'am' ? transliterateName(seller.fullName) : seller.fullName}</h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-gray-800 text-base">
               <p className="flex items-center gap-2"><FaPhone className="text-gray-500" /> {seller.phone || "N/A"}</p>
               <p className="flex items-center gap-2"><FaMapMarkerAlt className="text-gray-500" /> {seller.address || "N/A"}</p>
-              <p className="flex items-center gap-2"><FaMedal className="text-gray-500" /> Rank: {seller.rank ?? "N/A"}</p>
-              <p className="flex items-center gap-2"><FaCheckCircle className="text-gray-500" /> Verified: {seller.verified ? "Yes" : "No"}</p>
+              <p className="flex items-center gap-2"><FaMedal className="text-gray-500" /> {t('marketplace.seller.rank')}: {seller.rank ?? "N/A"}</p>
+              <p className="flex items-center gap-2"><FaCheckCircle className="text-gray-500" /> {t('marketplace.seller.verified')}: {seller.verified ? t('marketplace.seller.yes') : t('marketplace.seller.no')}</p>
               <p className="flex items-center gap-2">
                 <FaStar className="text-yellow-500" />
-                Avg Rating: {postedProducts.length > 0
+                {t('marketplace.seller.avgRating')}: {postedProducts.length > 0
                   ? (postedProducts.reduce((acc, p) => acc + parseFloat(getProductAvgRating(p)), 0) / postedProducts.length).toFixed(1)
                   : 0}
               </p>
-              <p className="flex items-center gap-2"><FaCalendarAlt className="text-gray-500" /> Joined: {new Date(seller.registrationDate).toLocaleDateString()}</p>
+              <p className="flex items-center gap-2"><FaCalendarAlt className="text-gray-500" /> {t('marketplace.seller.joined')}: {new Date(seller.registrationDate).toLocaleDateString()}</p>
             </div>
           </div>
         </div>
 
         {/* Posted Products Grid */}
         <div className="p-6 rounded-3xl shadow-xl border border-white/20 bg-white/30 backdrop-blur-md transition-shadow duration-300 hover:shadow-2xl">
-          <h2 className="text-3xl font-semibold mb-6 text-gray-900 drop-shadow-sm">Posted Products</h2>
+          <h2 className="text-3xl font-semibold mb-6 text-gray-900 drop-shadow-sm">{t('marketplace.seller.postedProducts')}</h2>
           {postedProducts.length === 0 ? (
-            <p className="text-gray-800 text-center py-6 text-lg">No products posted yet.</p>
+            <p className="text-gray-800 text-center py-6 text-lg">{t('marketplace.seller.noProducts')}</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {postedProducts.map((prod) => {
@@ -119,18 +121,18 @@ const SellerProfile = () => {
                       />
                       <span className={`absolute top-3 left-3 text-xs px-2 py-1 rounded-full font-semibold shadow-md ${availableCount > 0 ? "bg-green-600 text-white" : "bg-red-600 text-white"
                         }`}>
-                        {availableCount > 0 ? `Available: ${availableCount}` : "Sold Out"}
+                        {availableCount > 0 ? `${t('marketplace.seller.available')}: ${availableCount}` : t('marketplace.seller.soldOut')}
                       </span>
                     </div>
                     <div className="p-4 flex flex-col gap-2">
-                      <h3 className="text-xl font-semibold text-gray-900">{prod.title}</h3>
+                      <h3 className="text-xl font-semibold text-gray-900">{language === 'am' ? transliterateName(prod.title) : prod.title}</h3>
                       <p className="text-gray-800 text-sm">{prod.price ? `${prod.price} ETB` : "Price N/A"}</p>
                       <div className="flex justify-between text-xs text-gray-700 mt-2">
-                        <span className="flex items-center gap-1"><FaShoppingCart /> {soldCount} Sold</span>
-                        <span className="flex items-center gap-1"><FaBoxOpen /> {availableCount} Available</span>
+                        <span className="flex items-center gap-1"><FaShoppingCart /> {soldCount} {t('marketplace.seller.sold')}</span>
+                        <span className="flex items-center gap-1"><FaBoxOpen /> {availableCount} {t('marketplace.seller.available')}</span>
                       </div>
                       <div className="flex justify-between text-xs text-gray-700 mt-1">
-                        <span className="flex items-center gap-1 text-red-500"><FaHeart /> {likesCount} Likes</span>
+                        <span className="flex items-center gap-1 text-red-500"><FaHeart /> {likesCount} {t('marketplace.seller.likes')}</span>
                         <span className="flex items-center gap-1 text-yellow-500">
                           <FaStar /> {getProductAvgRating(prod)} ({reviewsCount})
                         </span>
@@ -139,7 +141,7 @@ const SellerProfile = () => {
                         <div className="mt-3 border-t border-white/30 pt-2">
                           {reviewsToShow.map((rev, i) => (
                             <div key={i} className="mb-1 bg-white/20 p-2 rounded text-xs text-gray-800">
-                              <p className="font-semibold">{rev.userName || "Anonymous"}</p>
+                              <p className="font-semibold">{rev.userName || t('marketplace.seller.anonymous')}</p>
                               <p>{rev.comment}</p>
                             </div>
                           ))}
@@ -148,7 +150,7 @@ const SellerProfile = () => {
                               className="text-gray-800 text-xs hover:underline mt-1"
                               onClick={() => toggleReviews(prod._id)}
                             >
-                              {isExpanded ? "See less" : `See all (${reviewsCount})`}
+                              {isExpanded ? t('marketplace.seller.seeLess') : `${t('marketplace.seller.seeAll')} (${reviewsCount})`}
                             </button>
                           )}
                         </div>

@@ -33,7 +33,10 @@ const translations = {
         method: 'Payment Method',
         payNow: 'Pay Now',
         processing: 'Processing...',
-        cancel: 'Cancel'
+        cancel: 'Cancel',
+        paymentFailed: 'Payment request failed',
+        paymentError: 'Payment failed. Try again.',
+        addedVia: 'added via'
       },
     },
     auth: {
@@ -90,7 +93,38 @@ const translations = {
       agreeTerms: 'Agree to Terms and Privacy.',
       loginError: 'Login error.',
       otpResendFailed: 'Failed to resend OTP',
-      otpVerificationFailed: 'OTP verification failed'
+      otpVerificationFailed: 'OTP verification failed',
+      // Forgot Password Flow
+      forgotPasswordPage: {
+        title: 'Forgot Password',
+        enterOtpTitle: 'Enter OTP',
+        resetPasswordTitle: 'Reset Password',
+        emailPlaceholder: 'Enter your email address',
+        otpPlaceholder: 'Enter OTP code',
+        newPasswordPlaceholder: 'New password',
+        confirmPasswordPlaceholder: 'Confirm new password',
+        sendOtpButton: 'Send OTP',
+        sendingButton: 'Sending...',
+        verifyOtpButton: 'Verify OTP',
+        verifyingButton: 'Verifying...',
+        resetPasswordButton: 'Reset Password',
+        resettingButton: 'Resetting...',
+        otpExpiresIn: 'OTP expires in',
+        didntReceiveOtp: "Didn't receive OTP?",
+        resendOtp: 'Resend OTP',
+        // Toast Messages
+        enterEmail: 'Please enter your email',
+        otpSentSuccess: 'OTP sent to your email',
+        otpSendFailed: 'Failed to send OTP',
+        otpResentSuccess: 'OTP resent to your email',
+        otpResendFailed: 'Failed to resend OTP',
+        enterOtp: 'Please enter the OTP',
+        fillAllFields: 'Please fill all fields',
+        passwordsDontMatch: "Passwords don't match",
+        resetSuccess: 'Password reset successful! Redirecting...',
+        resetFailed: 'Failed to reset password',
+        enterEmailFirst: 'Enter your email first'
+      }
     },
     hero: {
       title: 'AgroChain',
@@ -191,7 +225,10 @@ const translations = {
         addedToCart: 'added to cart',
         loginRequired: 'Login required to perform this action.',
         orderSuccess: 'Order placed successfully!',
-        orderError: 'Failed to place order.'
+        orderError: 'Failed to place order.',
+        verificationRequired: 'Action restricted: Government ID verification pending or not completed',
+        verificationPending: 'Please complete your Government ID verification to purchase products',
+        accountNotVerified: 'Your account is not verified. Please verify your account to continue.'
       },
       cart: {
         title: 'Your Cart',
@@ -213,13 +250,27 @@ const translations = {
         platformFee: 'Platform Fee',
         shipping: 'Shipping',
         total: 'Total',
-        deliveryDate: 'Delivery Date'
+        deliveryDate: 'Delivery Date',
+        emptyCart: 'Your cart is empty',
+        invalidItems: 'All items must have a valid quantity and product ID',
+        serverError: 'Server error during purchase'
       },
       product: {
         verified: 'Verified',
         soldOut: 'Sold Out',
         unknown: 'Unknown',
         seller: 'Seller',
+        by: 'by',
+        perKg: '/kg',
+        available: 'Available',
+        soldCount: 'Sold',
+        view: 'View',
+        cart: 'Cart',
+        buyNow: 'Buy Now',
+        soldOut: 'Sold Out',
+        unknown: 'Unknown',
+        loginToContinue: 'Please login to continue',
+        orderPlacedSuccess: 'Order placed successfully!',
         from: 'From',
         view: 'View',
         cart: 'Add to Cart',
@@ -247,6 +298,29 @@ const translations = {
         next: 'Next',
         page: 'Page',
         of: 'of'
+      },
+      seller: {
+        loading: 'Loading seller info...',
+        error: 'Failed to fetch seller info',
+        notFound: 'Seller not found',
+        noInfo: 'No seller info available.',
+        phone: 'Phone',
+        address: 'Address',
+        rank: 'Rank',
+        verified: 'Verified',
+        yes: 'Yes',
+        no: 'No',
+        avgRating: 'Avg Rating',
+        joined: 'Joined',
+        postedProducts: 'Posted Products',
+        noProducts: 'No products posted yet.',
+        available: 'Available',
+        soldOut: 'Sold Out',
+        sold: 'Sold',
+        likes: 'Likes',
+        seeAll: 'See all',
+        seeLess: 'See less',
+        anonymous: 'Anonymous'
       }
     },
     features: {
@@ -538,6 +612,27 @@ const translations = {
       actions: {
         markShipped: 'Mark Shipped',
         confirmDelivery: 'Confirm Delivery'
+      },
+      verification: {
+        title: 'Verify Your Account',
+        fullName: 'Full Name',
+        fullNamePlaceholder: 'Enter your full name',
+        nationalIdFront: 'National ID (Front)',
+        nationalIdBack: 'National ID (Back)',
+        scanWithCamera: 'Scan with Camera',
+        captureFront: 'Capture Front',
+        captureBack: 'Capture Back',
+        cancel: 'Cancel',
+        submitVerification: 'Submit Verification',
+        submitting: 'Submitting...',
+        verificationPending: 'Verification pending...',
+        verifiedSuccessfully: 'Verified successfully!',
+        provideBothIds: 'Please provide name and both ID images',
+        verificationSubmitted: 'Verification submitted, pending review',
+        verificationFailed: 'Verification failed',
+        frontIdCaptured: 'Front ID captured',
+        backIdCaptured: 'Back ID captured',
+        cameraAccessFailed: 'Failed to access camera'
       }
     },
     contact: {
@@ -733,7 +828,19 @@ const translations = {
       logout: 'ውጣ',
       dashboard: 'ዳሽቦርድ',
       faq: 'ተደጋጋሚ ጥያቄዎች',
-      legal: 'ህጋዊ'
+      legal: 'ህጋዊ',
+      payment: {
+        title: 'ቀሪ ሂሳብ ጨምር',
+        amount: 'መጠን (ETB)',
+        enterAmount: 'መጠን ያስገቡ',
+        method: 'የክፍያ ዘዴ',
+        payNow: 'አሁን ይክፈሉ',
+        processing: 'በማስኬድ ላይ...',
+        cancel: 'ይቅር',
+        paymentFailed: 'የክፍያ ጥያቄ አልተሳካም',
+        paymentError: 'ክፍያ አልተሳካም። እንደገና ይሞክሩ።',
+        addedVia: 'በኩል ተጨምሯል'
+      },
     },
     marketplace: {
       hero: {
@@ -771,7 +878,10 @@ const translations = {
         addedToCart: 'ወደ ጋሪ ተጨምሯል',
         loginRequired: 'ይህንን ተግባር ለማከናወን መግባት ያስፈልጋል።',
         orderSuccess: 'ትዕዛዝዎ በተሳካ ሁኔታ ተልኳል!',
-        orderError: 'ትዕዛዝ መላክ አልተቻለም።'
+        orderError: 'ትዕዛዝ መላክ አልተቻለም።',
+        verificationRequired: 'ተግባር ተገድቧል፡ የመንግስት መታወቂያ ማረጋገጫ በመጠባበቅ ላይ ወይም አልተጠናቀቀም',
+        verificationPending: 'ምርቶችን ለመግዛት እባክዎ የመንግስት መታወቂያ ማረጋገጫዎን ያጠናቅቁ',
+        accountNotVerified: 'መለያዎ አልተረጋገጠም። ለመቀጠል እባክዎ መለያዎን ያረጋግጡ።'
       },
       cart: {
         title: 'የእርስዎ ጋሪ',
@@ -793,7 +903,10 @@ const translations = {
         platformFee: 'የመድረክ ክፍያ',
         shipping: 'የማጓጓዣ ክፍያ',
         total: 'መክፈል ያለብዎት',
-        deliveryDate: 'የሚረከቡበት ቀን'
+        deliveryDate: 'የሚረከቡበት ቀን',
+        emptyCart: 'የእርስዎ ጋሪ ባዶ ነው',
+        invalidItems: 'ሁሉም እቃዎች ትክክለኛ መጠን እና የምርት መታወቂያ ሊኖራቸው ይገባል',
+        serverError: 'በግዢ ወቅት የአገልግሎት ስህተት'
       },
       product: {
         verified: 'የተረጋገጠ',
@@ -826,6 +939,29 @@ const translations = {
         next: 'ቀጣይ',
         page: 'ገጽ',
         of: 'ከ'
+      },
+      seller: {
+        loading: 'የሻጭ መረጃ በመጫን ላይ...',
+        error: 'የሻጭ መረጃ ማግኘት አልተቻለም',
+        notFound: 'ሻጭ አልተገኘም',
+        noInfo: 'ምንም የሻጭ መረጃ የለም።',
+        phone: 'ስልክ',
+        address: 'አድራሻ',
+        rank: 'ደረጃ',
+        verified: 'የተረጋገጠ',
+        yes: 'አዎ',
+        no: 'አይ',
+        avgRating: 'አማካይ ደረጃ',
+        joined: 'የተቀላቀለበት',
+        postedProducts: 'የተለጠፉ ምርቶች',
+        noProducts: 'እስካሁን ምንም ምርቶች አልተለጠፉም።',
+        available: 'ያለ',
+        soldOut: 'ያለቀ',
+        sold: 'የተሸጠ',
+        likes: 'ውዶች',
+        seeAll: 'ሁሉንም ይመልከቱ',
+        seeLess: 'ያነሰ ይመልከቱ',
+        anonymous: 'ስም-አልባ'
       }
     },
     auth: {
@@ -882,7 +1018,38 @@ const translations = {
       agreeTerms: 'በደንቦች እና ግላዊነት ፖሊሲ ይስማሙ።',
       loginError: 'የመግባት ስህተት።',
       otpResendFailed: 'ኮዱን እንደገና መላክ አልተቻለም።',
-      otpVerificationFailed: 'ኮድ ማረጋገጥ አልተቻለም።'
+      otpVerificationFailed: 'ኮድ ማረጋገጥ አልተቻለም።',
+      // Forgot Password Flow
+      forgotPasswordPage: {
+        title: 'የይለፍ ቃል ረሱ',
+        enterOtpTitle: 'ኮድ ያስገቡ',
+        resetPasswordTitle: 'የይለፍ ቃል ዳግም ያስቀምጡ',
+        emailPlaceholder: 'የኢሜይል አድራሻዎን ያስገቡ',
+        otpPlaceholder: 'የኮድ ቁጥር ያስገቡ',
+        newPasswordPlaceholder: 'አዲስ የይለፍ ቃል',
+        confirmPasswordPlaceholder: 'አዲስ የይለፍ ቃል ያረጋግጡ',
+        sendOtpButton: 'ኮድ ላክ',
+        sendingButton: 'በመላክ ላይ...',
+        verifyOtpButton: 'ኮድ አረጋግጥ',
+        verifyingButton: 'በማረጋገጥ ላይ...',
+        resetPasswordButton: 'የይለፍ ቃል ዳግም አስቀምጥ',
+        resettingButton: 'በማስቀመጥ ላይ...',
+        otpExpiresIn: 'ኮዱ የሚያልቅበት ጊዜ',
+        didntReceiveOtp: 'ኮድ አልደረሰዎትም?',
+        resendOtp: 'ኮድ እንደገና ላክ',
+        // Toast Messages
+        enterEmail: 'እባክዎ ኢሜይልዎን ያስገቡ',
+        otpSentSuccess: 'ኮድ ወደ ኢሜይልዎ ተልኳል',
+        otpSendFailed: 'ኮድ መላክ አልተቻለም',
+        otpResentSuccess: 'ኮድ እንደገና ወደ ኢሜይልዎ ተልኳል',
+        otpResendFailed: 'ኮድ እንደገና መላክ አልተቻለም',
+        enterOtp: 'እባክዎ ኮዱን ያስገቡ',
+        fillAllFields: 'እባክዎ ሁሉንም መረጃ ይሙሉ',
+        passwordsDontMatch: 'የይለፍ ቃሎች አይመሳሰሉም',
+        resetSuccess: 'የይለፍ ቃል በተሳካ ሁኔታ ተቀይሯል! በመሄድ ላይ...',
+        resetFailed: 'የይለፍ ቃል መቀየር አልተቻለም',
+        enterEmailFirst: 'መጀመሪያ ኢሜይልዎን ያስገቡ'
+      }
     },
     hero: {
       title: 'አግሮቼይን',
@@ -1244,6 +1411,27 @@ const translations = {
       actions: {
         markShipped: 'ተልኳል በል',
         confirmDelivery: 'መድረሱን አረጋግጥ'
+      },
+      verification: {
+        title: 'መለያዎን ያረጋግጡ',
+        fullName: 'ሙሉ ስም',
+        fullNamePlaceholder: 'ሙሉ ስምዎን ያስገቡ',
+        nationalIdFront: 'የመንግስት መታወቂያ (ቀዳሚ)',
+        nationalIdBack: 'የመንግስት መታወቂያ (አመታዲ)',
+        scanWithCamera: 'በካሜራ ይስካኑ',
+        captureFront: 'ቀዳሚ ይአክሉ',
+        captureBack: 'አመታዲ ይአክሉ',
+        cancel: 'ሰርዝ',
+        submitVerification: 'ማረጋገጫ ላክ',
+        submitting: 'በመላክ ላይ...',
+        verificationPending: 'ማረጋገጫ በመጠባበቅ ላይ...',
+        verifiedSuccessfully: 'በተሳካ ሁኔታ ተረጋግጧል!',
+        provideBothIds: 'እባክዎ ስም እና ሁለቱንም የመታወቂያ ፎቶዎች ያስገቡ',
+        verificationSubmitted: 'ማረጋገጫ ተልኗል፣ በመጠባበቅ ላይ',
+        verificationFailed: 'ማረጋገጫ አልተሳካም',
+        frontIdCaptured: 'ቀዳሚ መታወቂያ ተአክላል',
+        backIdCaptured: 'አመታዲ መታወቂያ ተአክላል',
+        cameraAccessFailed: 'ካሜራን መጠቀም አልተቻለም'
       }
     },
     contact: {
@@ -1474,18 +1662,149 @@ const translations = {
         contactSales: 'ሽያጭ ያግኙ'
       },
       dashboard: {
-        time: { local: 'የአካባቢ ሰዓት', ethiopian: 'የኢትዮጵያ ሰዓት' },
-        stats: { posted: 'የተለጠፉ ምርቶች', totalOrders: 'ጠቅላላ ትዕዛዞች', sold: 'የተሸጡ ምርቶች', rating: 'ደረጃ', loading: 'በመጫን ላይ...' },
-        status: { completed: 'ተጠናቀቀ', shipped: 'ተልኳል', pending: 'በመጠባበቅ ላይ', cancelled: 'ተሰርዟል' },
-        chart: { sales: 'ሽያጭ', date: 'ቀን', salesAmount: 'የሽያጭ መጠን' },
-        quickActions: {
-          addProduct: 'ምርት ጨምር', addProductDesc: 'አዲስ ምርት ለሽያጭ ይለጥፉ',
-          addBalance: 'ሂሳብ ጨምር', addBalanceDesc: 'ቦርሳዎን ይሙሉ',
-          viewCustomers: 'ደንበኞችን ይመልከቱ', viewCustomersDesc: 'የደንበኛ መሰረትዎን ያስተዳድሩ',
-          about: 'ስለ መድረኩ', aboutDesc: 'ስለ አግሮቼይን የበለጠ ይወቁ',
-          verifyAccount: 'መለያ አረጋግጥ', verifyAccountDesc: 'ለማረጋገጫ መታወቂያ ይስቀሉ'
+        welcome: 'እንኳን ደህና መጡ',
+        subtitle: 'የግብርና ንግድዎን በብቃት ያስተዳድሩ።',
+        buyProducts: 'ምርቶችን ይግዙ',
+        sellProducts: 'ምርቶችን ይሽጡ',
+        salesOverview: 'የሽያጭ አጠቃላይ እይታ',
+        periods: {
+          d7: '7 ቀናት',
+          d30: '30 ቀናት',
+          d90: '90 ቀናት'
         },
-        profile: { accountRestricted: 'መለያ ተገድቧል', restrictedMessage: 'መለያዎ ተገድቧል። እባክዎን ድጋፍ ሰጪን ያነጋግሩ።' }
+        loading: 'በመጫን ላይ...',
+        stats: {
+          posted: 'የተለጠፉ ምርቶች',
+          totalOrders: 'ጠቅላላ ትዕዛዞች',
+          sold: 'የተሸጡ ምርቶች',
+          rating: 'የደንበኛ ደረጃ'
+        },
+        recentActivity: 'የቅርብ ጊዜ እንቅስቃሴዎች',
+        noActivity: 'ምንም የቅርብ ጊዜ እንቅስቃሴ የለም።',
+        quickActions: {
+          title: 'ፈጣን ተግባራት',
+          addProduct: 'አዲስ ምርት አክል',
+          addProductDesc: 'የግብርና ምርቶችዎን ለሽያጭ ይዘርዝሩ',
+          viewMarket: 'ገበያ',
+          about: 'ስለ እኛ',
+          aboutDesc: 'ስለ ተልዕኳችን የበለጠ ይወቁ',
+          addBalance: 'ቀሪ ሂሳብ ጨምር',
+          addBalanceDesc: 'ለግብይቶች ገንዘብ ወደ ቦርሳዎ ያስገቡ',
+          viewCustomers: 'ደንበኞችን ይመልከቱ',
+          viewCustomersDesc: 'በአካባቢዎ ያሉ ሊሆኑ የሚችሉ ገዢዎችን ይመልከቱ',
+          verifyAccount: 'መለያ ያረጋግጡ',
+          verifyAccountDesc: 'ሙሉ ባህሪያትን ለማግኘት KYCን ያጠናቅቁ'
+        },
+        chart: {
+          sales: 'ሽያጭ (ETB)',
+          date: 'ቀን',
+          salesAmount: 'የሽያጭ መጠን (ETB)'
+        },
+        viewAllOrders: 'ሁሉንም ትዕዛዞች ይመልከቱ',
+        about: 'ስለ መድረኩ',
+        time: {
+          local: 'የአካባቢ ሰዓት',
+          ethiopian: 'የኢትዮጵያ ሰዓት',
+          periods: {
+            morning: 'ጥዋት',
+            afternoon: 'ከሰዓት',
+            evening: 'ማታ',
+            night: 'ሌሊት'
+          }
+        },
+        productUpload: {
+          title: 'ምርት ይስቀሉ',
+          productTitle: 'የምርት ስም',
+          enterTitle: 'የምርቱን ስም ያስገቡ',
+          type: 'ዓይነት',
+          selectType: 'ዓይነት ይምረጡ',
+          price: 'ዋጋ (ETB)',
+          quantity: 'ብዛት (ኪ.ግ)',
+          originAddress: 'መነሻ አድራሻ',
+          enterAddress: 'መነሻ አድራሻ ያስገቡ',
+          images: 'ምስሎች (ከፍተኛ 6)',
+          description: 'መግለጫ',
+          describeProduct: 'ስለ ምርትዎ ይግለጹ...',
+          upload: 'ስቀል',
+          uploading: 'በመጫን ላይ...',
+          cancel: 'ይቅር',
+          chooseFiles: 'ፋይል ይምረጡ',
+          noFileChosen: 'ምንም ፋይል አልተመረጠም',
+          maxImages: 'ከፍተኛ 6 ምስሎች ብቻ ይፈቀዳሉ',
+          fillRequired: 'እባክዎ ሁሉንም አስፈላጊ መረጃዎች ይሙሉ',
+          uploadSuccess: 'ምርቱ በተሳካ ሁኔታ ተሰቅሏል',
+          uploadFailed: 'ምርቱን መስቀል አልተቻለም',
+          types: {
+            vegetable: 'አትክልት',
+            fruit: 'ፍራፍሬ',
+            grain: 'ጥራጥሬ',
+            dairy: 'ወተት እና የወተት ተዋጽኦ',
+            other: 'ሌላ'
+          }
+        },
+        profile: {
+          email: 'ኢሜይል',
+          balance: 'ቀሪ ሂሳብ',
+          fullName: 'ሙሉ ስም',
+          phone: 'ስልክ ቁጥር',
+          address: 'አድራሻ',
+          location: 'ቦታ',
+          saveChanges: 'ለውጦችን ያስቀምጡ',
+          darkMode: 'ጨለማ',
+          lightMode: 'ብርሃን',
+          logout: 'ውጣ',
+          accountRestricted: 'መለያ ተገድቧል',
+          restrictedMessage: 'መለያዎ በአስተዳዳሪ ተገድቧል። በዚህ ጊዜ ምርቶችን መግዛት ወይም መሸጥ አይችሉም። እባክዎ ለእርዳታ ድጋፍን ያነጋግሩ።',
+          notSet: 'አልተዘጋጀም',
+          enter: 'ያስገቡ'
+        },
+        theme: {
+          light: 'የብርሃን ሁነታ',
+          dark: 'የጨለማ ሁነታ'
+        },
+        activity: {
+          youSold: 'ሸጠዋል',
+          to: 'ለ',
+          youPurchased: 'ገዝተዋል',
+          from: 'ከ',
+          you: 'እርስዎ'
+        },
+        status: {
+          pending: 'በጥበቃ ላይ',
+          shipped: 'ተልኳል',
+          delivered: 'ደርሷል',
+          cancelled: 'ተሰርዟል',
+          completed: 'ተጠናቋል',
+          unknown: 'ያልታወቀ',
+          verified: 'የተረጋገጠ',
+          unverified: 'ያልተረጋገጠ',
+          rejected: 'ውድቅ ተደርጓል'
+        },
+        actions: {
+          markShipped: 'ተልኳል በል',
+          confirmDelivery: 'መድረሱን አረጋግጥ'
+        },
+        verification: {
+          title: 'መለያዎን ያረጋግጡ',
+          fullName: 'ሙሉ ስም',
+          fullNamePlaceholder: 'ሙሉ ስምዎን ያስገቡ',
+          nationalIdFront: 'የመንግስት መታወቂያ (ቀዳሚ)',
+          nationalIdBack: 'የመንግስት መታወቂያ (አመታዲ)',
+          scanWithCamera: 'በካሜራ ይስካኑ',
+          captureFront: 'ቀዳሚ ይአክሉ',
+          captureBack: 'አመታዲ ይአክሉ',
+          cancel: 'ሰርዝ',
+          submitVerification: 'ማረጋገጫ ላክ',
+          submitting: 'በመላክ ላይ...',
+          verificationPending: 'ማረጋገጫ በመጠባበቅ ላይ...',
+          verifiedSuccessfully: 'በተሳካ ሁኔታ ተረጋግጧል!',
+          provideBothIds: 'እባክዎ ስም እና ሁለቱንም የመታወቂያ ፎቶዎች ያስገቡ',
+          verificationSubmitted: 'ማረጋገጫ ተልኗል፣ በመጠባበቅ ላይ',
+          verificationFailed: 'ማረጋገጫ አልተሳካም',
+          frontIdCaptured: 'ቀዳሚ መታወቂያ ተአክላል',
+          backIdCaptured: 'አመታዲ መታወቂያ ተአክላል',
+          cameraAccessFailed: 'ካሜራን መጠቀም አልተቻለም'
+        }
       }
     }
   },

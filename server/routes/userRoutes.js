@@ -557,32 +557,66 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      if (!req.files?.govIdFront || !req.files?.govIdBack)
+      console.log('📤 Verification upload request received');
+      console.log('Files:', req.files);
+      console.log('Body:', req.body);
+
+      if (!req.files?.govIdFront || !req.files?.govIdBack) {
+        console.error('❌ Missing ID files');
         return res
           .status(400)
           .json({ success: false, error: 'Both ID images required' });
+      }
 
       const user = await User.findOne({ userId: req.user.userId });
-      if (!user)
+      if (!user) {
+        console.error('❌ User not found:', req.user.userId);
         return res.status(404).json({ success: false, error: 'User not found' });
+      }
 
+      console.log('👤 User found:', user.email, 'Current status:', user.govIdStatus);
+
+      // Allow re-submission if rejected or unverified
+      if (user.govIdStatus === 'rejected' || user.govIdStatus === 'unverified' || !user.govIdStatus) {
+        console.log('✅ Allowing re-submission for status:', user.govIdStatus);
+      }
+
+      // Update user with new ID images
       user.govIdFront = req.files.govIdFront[0].path;
       user.govIdBack = req.files.govIdBack[0].path;
       user.govIdStatus = 'pending';
       user.verified = false;
 
+      console.log('💾 Saving user with new ID images...');
       await user.save();
+
+      console.log('✅ ID uploaded successfully');
       res.json({
         success: true,
         message: 'ID uploaded, pending admin review',
         govIdFront: user.govIdFront,
         govIdBack: user.govIdBack,
+        govIdStatus: user.govIdStatus
       });
     } catch (err) {
-      console.error('Error uploading government ID:', err);
+      console.error('❌ Error uploading government ID:', err);
+      console.error('Error stack:', err.stack);
+
+      // Provide more detailed error message
+      let errorMessage = 'Server error uploading government ID';
+      if (err.name === 'ValidationError') {
+        errorMessage = 'Validation error: ' + Object.values(err.errors).map(e => e.message).join(', ');
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
       res
         .status(500)
-        .json({ success: false, error: 'Server error uploading government ID' });
+        .json({
+          success: false,
+          error: errorMessage,
+          details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
     }
   }
 );

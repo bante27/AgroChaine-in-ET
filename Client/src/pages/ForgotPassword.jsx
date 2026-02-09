@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../utils/apiConfig";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(1);
@@ -16,6 +17,7 @@ const ForgotPassword = () => {
 
   const navigate = useNavigate();
   const { setUser, setToken, setIsAuthenticated } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     let interval;
@@ -27,31 +29,31 @@ const ForgotPassword = () => {
 
   const handleEmailSubmit = async (e) => {
     if (e) e.preventDefault();
-    if (!email) return toast.error("Please enter your email");
+    if (!email) return toast.error(t('auth.forgotPasswordPage.enterEmail'));
 
     setIsLoading(true);
     try {
       await axios.post(`${API_URL}/api/users/forgot-password`, { email });
-      toast.success("OTP sent to your email");
+      toast.success(t('auth.forgotPasswordPage.otpSentSuccess'));
       setStep(2);
-      setTimer(300);
+      setTimer(180); // 3 minutes
     } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to send OTP");
+      toast.error(err.response?.data?.error || t('auth.forgotPasswordPage.otpSendFailed'));
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleResendOtp = async () => {
-    if (!email) return toast.error("Enter your email first");
+    if (!email) return toast.error(t('auth.forgotPasswordPage.enterEmailFirst'));
 
     setIsLoading(true);
     try {
       await axios.post(`${API_URL}/api/users/forgot-password`, { email });
-      toast.success("OTP resent to your email");
-      setTimer(300);
+      toast.success(t('auth.forgotPasswordPage.otpResentSuccess'));
+      setTimer(180); // 3 minutes
     } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to resend OTP");
+      toast.error(err.response?.data?.error || t('auth.forgotPasswordPage.otpResendFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -59,15 +61,15 @@ const ForgotPassword = () => {
 
   const handleOtpSubmit = (e) => {
     e.preventDefault();
-    if (!otp) return toast.error("Please enter the OTP");
+    if (!otp) return toast.error(t('auth.forgotPasswordPage.enterOtp'));
     setStep(3);
   };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
 
-    if (!newPassword || !confirmPassword) return toast.error("Please fill all fields");
-    if (newPassword !== confirmPassword) return toast.error("Passwords don't match");
+    if (!newPassword || !confirmPassword) return toast.error(t('auth.forgotPasswordPage.fillAllFields'));
+    if (newPassword !== confirmPassword) return toast.error(t('auth.forgotPasswordPage.passwordsDontMatch'));
 
     setIsLoading(true);
     try {
@@ -85,10 +87,10 @@ const ForgotPassword = () => {
       if (setUser) setUser(res.data.user);
       if (setIsAuthenticated) setIsAuthenticated(true);
 
-      toast.success("Password reset successful! Redirecting...");
+      toast.success(t('auth.forgotPasswordPage.resetSuccess'));
       navigate("/dashboard");
     } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to reset password");
+      toast.error(err.response?.data?.error || t('auth.forgotPasswordPage.resetFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -104,9 +106,9 @@ const ForgotPassword = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-4">
       <div className="max-w-md w-full bg-white p-4 rounded-2xl shadow-lg border border-gray-100">
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-          {step === 1 && "Forgot Password"}
-          {step === 2 && "Enter OTP"}
-          {step === 3 && "Reset Password"}
+          {step === 1 && t('auth.forgotPasswordPage.title')}
+          {step === 2 && t('auth.forgotPasswordPage.enterOtpTitle')}
+          {step === 3 && t('auth.forgotPasswordPage.resetPasswordTitle')}
         </h2>
 
         {/* Step 1: Enter Email */}
@@ -114,7 +116,7 @@ const ForgotPassword = () => {
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <input
               type="email"
-              placeholder="Enter your email address"
+              placeholder={t('auth.forgotPasswordPage.emailPlaceholder')}
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -124,7 +126,7 @@ const ForgotPassword = () => {
               disabled={isLoading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 rounded-lg shadow-md transition"
             >
-              {isLoading ? "Sending..." : "Send OTP"}
+              {isLoading ? t('auth.forgotPasswordPage.sendingButton') : t('auth.forgotPasswordPage.sendOtpButton')}
             </button>
           </form>
         )}
@@ -134,7 +136,7 @@ const ForgotPassword = () => {
           <form onSubmit={handleOtpSubmit} className="space-y-4">
             <input
               type="text"
-              placeholder="Enter OTP code"
+              placeholder={t('auth.forgotPasswordPage.otpPlaceholder')}
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700 tracking-widest text-center font-mono"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
@@ -142,18 +144,18 @@ const ForgotPassword = () => {
 
             {timer > 0 ? (
               <p className="text-sm text-center">
-                OTP expires in{" "}
+                {t('auth.forgotPasswordPage.otpExpiresIn')}{" "}
                 <span className="font-semibold text-red-500">{formatTimer(timer)}</span>
               </p>
             ) : (
               <p className="text-sm text-center">
-                Didn’t receive OTP?{" "}
+                {t('auth.forgotPasswordPage.didntReceiveOtp')}{" "}
                 <button
                   type="button"
                   className="text-blue-600 underline hover:text-blue-800"
                   onClick={handleResendOtp}
                 >
-                  Resend OTP
+                  {t('auth.forgotPasswordPage.resendOtp')}
                 </button>
               </p>
             )}
@@ -163,7 +165,7 @@ const ForgotPassword = () => {
               disabled={isLoading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 rounded-lg shadow-md transition"
             >
-              {isLoading ? "Verifying..." : "Verify OTP"}
+              {isLoading ? t('auth.forgotPasswordPage.verifyingButton') : t('auth.forgotPasswordPage.verifyOtpButton')}
             </button>
           </form>
         )}
@@ -173,14 +175,14 @@ const ForgotPassword = () => {
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <input
               type="password"
-              placeholder="New password"
+              placeholder={t('auth.forgotPasswordPage.newPasswordPlaceholder')}
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:outline-none text-gray-700"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
             />
             <input
               type="password"
-              placeholder="Confirm new password"
+              placeholder={t('auth.forgotPasswordPage.confirmPasswordPlaceholder')}
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:outline-none text-gray-700"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -190,7 +192,7 @@ const ForgotPassword = () => {
               disabled={isLoading}
               className="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 rounded-lg shadow-md transition"
             >
-              {isLoading ? "Resetting..." : "Reset Password"}
+              {isLoading ? t('auth.forgotPasswordPage.resettingButton') : t('auth.forgotPasswordPage.resetPasswordButton')}
             </button>
           </form>
         )}
