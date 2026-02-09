@@ -50,23 +50,50 @@ router.post(
       // Send email reply to the user
       const mailOptions = {
         to: message.email,
+        bcc: process.env.EMAIL_USER, // Send a copy to the admin
+        replyTo: process.env.EMAIL_USER, // Allow user to reply
         subject: `Re: ${message.subject}`,
         html: `
-          <p>Hi ${message.name},</p>
-          <p>Thank you for your message. Here is our response:</p>
-          <p>${reply}</p>
-          <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 25px; text-align: center;">
+              <h2 style="margin: 0;">Message from AgroChain Ethiopia</h2>
+            </div>
+            <div style="padding: 30px; background: #ffffff;">
+              <p style="font-size: 16px; color: #111827; margin-top: 0;">Hi ${message.name},</p>
+              <p style="color: #374151; line-height: 1.6;">Thank you for contacted us. Here is our official response to your inquiry:</p>
+              
+              <div style="margin: 25px 0; padding: 20px; background: #f9fafb; border-radius: 8px; border-left: 4px solid #10b981;">
+                <p style="margin: 0; line-height: 1.6; color: #111827; white-space: pre-wrap;">${reply}</p>
+              </div>
+
+              <p style="color: #6b7280; font-size: 14px;">If you have any further questions, please feel free to reach out.</p>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #f0f0f0;">
+                <p style="margin: 0; color: #111827; font-weight: bold;">Best Regards,</p>
+                <p style="margin: 4px 0 0; color: #10b981; font-weight: 600;">AgroChain Ethiopia Team</p>
+              </div>
+
+              <div style="margin-top: 30px; padding: 15px; background: #f3f4f6; border-radius: 8px; font-size: 12px; color: #6b7280;">
+                <strong>Original Message Snapshot:</strong><br>
+                <div style="margin-top: 8px; font-style: italic;">
+                  "${message.message}"
+                </div>
+              </div>
+            </div>
+            <div style="background: #f9fafb; padding: 15px; text-align: center; color: #9ca3af; font-size: 11px;">
+              Addis Ababa | +251 985 076 701 | sales@agrochain.et
+            </div>
+          </div>
         `,
       };
 
-      // Send email
       try {
         await transporter.sendMail(mailOptions);
+        console.log(`✅ Reply sent to ${message.email}`);
       } catch (emailErr) {
-        console.error('❌ Error sending reply email:', emailErr.message);
-        if (emailErr.statusCode === 403) {
-          console.error("💡 TIP: Verify your domain at Resend.com to send to this address.");
-        }
+        console.error('❌ Error sending reply email:', emailErr);
+        // Don't fail the request, but log it.
+        // If needed, we could return a warning, but UI usually expects success.
       }
 
       // Update message status

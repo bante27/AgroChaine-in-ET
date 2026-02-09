@@ -10,13 +10,13 @@ const router = express.Router();
  * @access  Public
  */
 router.post("/", (req, res, next) => {
-  // Try to upload files, but don't fail if it errors
   contactUpload(req, res, (err) => {
     if (err) {
-      // Log the error but continue processing the form
-      console.warn('File upload error (continuing without files):', err.message);
-      // Don't attach files but still process the contact form
-      req.files = null;
+      console.error('❌ Multer/Cloudinary Error:', err);
+      return res.status(400).json({
+        success: false,
+        error: `File upload failed: ${err.message}`
+      });
     }
     next();
   });

@@ -14,36 +14,82 @@ export const handleContactForm = async (req, res) => {
       return res.status(400).json({ success: false, error: "All fields are required" });
     }
 
+    console.log("--- CONTACT FORM DEBUG ---");
+    console.log("Body:", { name, email, subject });
+    console.log("Raw req.files:", req.files);
+
+    if (req.files) {
+      Object.keys(req.files).forEach(key => {
+        console.log(`Field [${key}]: ${req.files[key].length} files`);
+        req.files[key].forEach((f, i) => {
+          console.log(`  File ${i}: ${f.originalname}, path: ${f.path || 'MISSING'}, mimetype: ${f.mimetype}`);
+        });
+      });
+    }
+
     const attachments = [];
     const attachmentLinks = [];
 
     // ===== Process general files =====
     if (req.files?.files && Array.isArray(req.files.files)) {
-      req.files.files.forEach((file) => {
-        const url = file.path || file.location; // Cloudinary URL
+      console.log(`Processing ${req.files.files.length} document files...`);
+      req.files.files.forEach((file, index) => {
+        let url = file.path || file.location || file.secure_url || file.url; // Cloudinary URL
+        console.log(`  File ${index} raw data:`, {
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+          path: file.path ? 'exists' : 'null',
+          secure_url: file.secure_url ? 'exists' : 'null',
+          url: file.url ? 'exists' : 'null'
+        });
+
         if (url) {
+          // Force HTTPS
+          if (typeof url === 'string' && url.startsWith('http:')) {
+            url = url.replace('http:', 'https:');
+          }
+
           attachments.push({
             filename: file.originalname || 'attachment',
             path: url,
+            contentType: file.mimetype
           });
+
           attachmentLinks.push({
             filename: file.originalname || 'attachment',
             path: url,
             mimetype: file.mimetype,
             size: file.size
           });
+          console.log(`  File ${index} processed successfully`);
+        } else {
+          console.warn(`  File ${index} has no URL/path!`);
         }
       });
     }
 
     // ===== Process voice/audio =====
     if (req.files?.voice && Array.isArray(req.files.voice)) {
-      req.files.voice.forEach((file) => {
-        const url = file.path || file.location; // Cloudinary URL
+      console.log(`Processing ${req.files.voice.length} voice files...`);
+      req.files.voice.forEach((file, index) => {
+        let url = file.path || file.location || file.secure_url || file.url; // Cloudinary URL
+        console.log(`  Voice ${index} raw data:`, {
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+          path: file.path ? 'exists' : 'null',
+          secure_url: file.secure_url ? 'exists' : 'null'
+        });
+
         if (url) {
+          // Force HTTPS
+          if (typeof url === 'string' && url.startsWith('http:')) {
+            url = url.replace('http:', 'https:');
+          }
+
           attachments.push({
-            filename: file.originalname || 'voice_message',
+            filename: file.originalname || 'voice_message.webm',
             path: url,
+            contentType: file.mimetype || 'audio/webm'
           });
           attachmentLinks.push({
             filename: file.originalname || 'voice_message',
@@ -51,11 +97,15 @@ export const handleContactForm = async (req, res) => {
             mimetype: file.mimetype || 'audio/webm',
             size: file.size
           });
+          console.log(`  Voice ${index} processed successfully`);
+        } else {
+          console.warn(`  Voice ${index} has no URL/path!`);
         }
       });
     }
 
     // ===== Save to MongoDB =====
+    console.log(`Processing ${attachmentLinks.length} attachments for DB storage`);
     const newMessage = new Message({
       name,
       email,
@@ -63,62 +113,114 @@ export const handleContactForm = async (req, res) => {
       message,
       attachments: attachmentLinks, // store URLs
     });
-    await newMessage.save();
-    console.log("Message saved to DB");
+    const savedMsg = await newMessage.save();
+    console.log("Message saved to DB with ID:", savedMsg._id);
+    console.log("Saved Attachments count:", savedMsg.attachments?.length || 0);
 
-    // ===== Email to Admin =====
-    let adminHtml = `
-      <h2>📩 New Contact Form Submission</h2>
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Subject:</strong> ${subject}</p>
-      <p><strong>Message:</strong><br/>${message}</p>
-    `;
+    // 🚀 FAST RESPONSE: Send success immediately to client
+    res.status(200).json({ success: true, message: "Message sent successfully" });
 
-    if (attachmentLinks.length > 0) {
-      adminHtml += "<p><strong>Attachments:</strong></p><ul>";
-      attachmentLinks.forEach((a) => {
-        adminHtml += `<li>${a.filename}: <a href="${a.path}" target="_blank">${a.path}</a></li>`;
-      });
-      adminHtml += "</ul>";
-    }
-    // Send email to admin
-    const adminEmailOptions = {
-      to: 'tilahunsitotaw87@gmail.com', // Admin email
-      subject: `📩 Contact Form: ${subject}`,
-      html: adminHtml,
-    };
+    // 📧 BACKGROUND PROCESS: Send emails asynchronously
+    (async () => {
+      try {
+        // ===== Email to Admin =====
+        let adminHtml = `
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="background: linear-gradient(135deg, #a0b910ff 0%, #380596ff 100%); color: white; padding: 30px; text-align: center;">
+              <h1 style="margin: 0; font-size: 22px; letter-spacing: 1px;">📩 New Contact Form Submission</h1>
+              <p style="margin: 5px 0 0; opacity: 0.9;">AgroChain Ethiopia Portal</p>
+            </div>
+            
+            <div style="padding: 25px; background: #ffffff;">
+              <div style="margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #f0f0f0;">
+                <p style="margin: 0 0 5px; color: #6b7280; font-size: 11px; text-transform: uppercase; font-weight: bold;">Sender Info</p>
+                <p style="margin: 0; font-size: 15px; color: #111827;"><strong>Name:</strong> ${name}</p>
+                <p style="margin: 5px 0 0; font-size: 15px; color: #111827;"><strong>Email:</strong> <a href="mailto:${email}" style="color: #10b981; text-decoration: none;">${email}</a></p>
+              </div>
 
-    // Only add attachments if array has items
-    if (attachments.length > 0) {
-      adminEmailOptions.attachments = attachments;
-    }
+              <div style="margin-bottom: 25px;">
+                <p style="margin: 0 0 5px; color: #6b7280; font-size: 11px; text-transform: uppercase; font-weight: bold;">Subject</p>
+                <p style="margin: 0; font-size: 16px; color: #111827; font-weight: 600;">${subject}</p>
+              </div>
 
-    // Send email to admin
-    try {
-      await transporter.sendMail(adminEmailOptions);
-      console.log("Admin email sent");
-    } catch (emailErr) {
-      console.error("Admin notification email failed:", emailErr.message);
-    }
+              <div style="margin-bottom: 25px; background: #f9fafb; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981;">
+                <p style="margin: 0; line-height: 1.6; color: #374151; white-space: pre-wrap;">${message}</p>
+              </div>
+            </div>
+        `;
 
-    // Send auto-reply to user (no attachments)
-    try {
-      await transporter.sendMail({
-        to: email,
-        subject: `Re: ${subject}`,
-        html: `<p>Hi ${name},</p>
-         <p>Thank you for contacting us. We have received your message and will respond soon.</p>
-         <p>Best regards,<br/>Agrochain Ethiopia Team</p>`
-      });
-      console.log("User auto-reply sent");
-    } catch (emailErr) {
-      console.error("User auto-reply email failed (likely Resend limitation):", emailErr.message);
-    }
+        // Add links to body
+        if (attachmentLinks.length > 0) {
+          adminHtml += `
+            <div style="padding: 0 25px 25px; background: #ffffff;">
+              <p style="margin: 0 0 12px; color: #6b7280; font-size: 11px; text-transform: uppercase; font-weight: bold;">📂 Attachments</p>
+              <div style="display: grid; gap: 10px;">
+          `;
+          attachmentLinks.forEach((a) => {
+            const safeUrl = a.path.startsWith('http') ? a.path : `${process.env.VITE_API_URL || 'http://localhost:5000'}${a.path}`;
+            const isAudio = a.mimetype?.startsWith('audio') || a.filename?.endsWith('.webm');
+            adminHtml += `
+              <div style="padding: 10px; background: ${isAudio ? '#fff7ed' : '#f0fdf4'}; border-radius: 8px; border: 1px solid ${isAudio ? '#ffedd5' : '#dcfce7'}; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                <span style="font-size: 13px; font-weight: 600; color: ${isAudio ? '#9a3412' : '#166534'};">
+                  ${isAudio ? '🎤 Voice' : '📎 Doc'}: ${a.filename}
+                </span>
+                <br>
+                <a href="${safeUrl}" target="_blank" style="display: inline-block; margin-top: 6px; padding: 4px 10px; background: #10b981; color: white; text-decoration: none; border-radius: 4px; font-size: 11px; font-weight: bold;">Open Asset ↗</a>
+              </div>
+            `;
+          });
+          adminHtml += "</div></div>";
+        }
 
-    return res
-      .status(200)
-      .json({ success: true, message: "Message sent successfully" });
+        adminHtml += `
+            <div style="background: #f3f4f6; padding: 20px; text-align: center; color: #9ca3af; font-size: 11px;">
+              <p style="margin: 0;">&copy; ${new Date().getFullYear()} AgroChain Ethiopia. Professional Contact Inquiry</p>
+            </div>
+          </div>
+        `;
+
+        const adminEmailOptions = {
+          to: 'tilahunsitotaw87@gmail.com', // Primary admin email as requested
+          bcc: process.env.EMAIL_USER,
+          replyTo: email,
+          subject: `📩 Contact Form: ${subject}`,
+          html: adminHtml,
+        };
+
+        // Attach files physically for the icon in Gmail
+        if (attachments.length > 0) {
+          adminEmailOptions.attachments = attachments;
+        }
+
+        await transporter.sendMail(adminEmailOptions);
+        console.log("✅ Admin notification sent to:", adminEmailOptions.to);
+
+        // ===== Auto-reply to User =====
+        await transporter.sendMail({
+          to: email,
+          subject: `Re: ${subject}`,
+          html: `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden;">
+              <div style="background: #10b981; padding: 25px; text-align: center;">
+                <h2 style="color: white; margin: 0;">AgroChain Ethiopia</h2>
+              </div>
+              <div style="padding: 30px; background: #ffffff;">
+                <p style="font-size: 18px; color: #111827; margin-top: 0;">Hi ${name},</p>
+                <p style="color: #374151; line-height: 1.6;">Thank you for contacted us. We have received your message regarding "<strong>${subject}</strong>".</p>
+                <div style="margin: 25px 0; padding: 20px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">
+                  <p style="margin: 0; font-style: italic; color: #166534;">"We are committed to empowering Ethiopian agriculture through technology."</p>
+                </div>
+                <p style="color: #6b7280; font-size: 14px;">Best regards,<br><strong>The AgroChain Ethiopia Team</strong></p>
+              </div>
+            </div>
+          `
+        });
+        console.log("✅ User auto-reply sent");
+
+      } catch (bgError) {
+        console.error("❌ Background email worker failed:", bgError);
+      }
+    })();
   } catch (error) {
     console.error("Contact form error:", error);
     return res

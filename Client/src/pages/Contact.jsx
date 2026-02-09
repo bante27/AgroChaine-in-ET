@@ -68,7 +68,7 @@ const styles = `
   }
 `;
 
-const MAX_FILE_SIZE = 15 * 1024 * 1024 * 1024; // 15GB
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
 const Contact = () => {
   const { t } = useLanguage();
@@ -192,9 +192,10 @@ const Contact = () => {
       icon: Mail,
       title: t('contact.emailAddresses'),
       details: [
-        { text: 'tilahunsitotaw87@gmail.com', link: 'tilahunsitotaw87@gmail.com' },
-        { text: 'mitikubanitalem@gmail.com', link: 'mitikubanitalem@gmail.com' },
-        { text: 'sales@agrochain.et', link: 'sales@agrochain.et' },
+
+        { text: 'tilahunsitotaw87@gmail.com', link: 'mailto:tilahunsitotaw87@gmail.com' },
+        { text: 'mitikubanitalem@gmail.com', link: 'mailto:mitikubanitalem@gmail.com' },
+        { text: 'sales@agrochain.et', link: 'mailto:sales@agrochain.et' },
       ],
     },
     {

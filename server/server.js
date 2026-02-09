@@ -23,8 +23,8 @@ import weatherRoutes from "./routes/weather.js";
 
 const app = express();
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB (Will be called at the end to start server)
+
 
 // For __dirname in ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -65,6 +65,9 @@ app.use(morgan("combined"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve uploaded files (fallback for local storage)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // === NEW: Weather Route ===
 app.use("/api/weather", weatherRoutes);
 
@@ -86,4 +89,12 @@ app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT} ✅`);
+    console.log("Database connected & Server ready.");
+  });
+}).catch(err => {
+  console.error("❌ Failed to connect to MongoDB. Server not started.", err);
+  process.exit(1);
+});

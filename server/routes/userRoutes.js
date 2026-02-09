@@ -24,15 +24,15 @@ const pendingUsers = new Map();
 
 transporter.verify((err, success) => {
   if (err) console.error('Email service error:', err);
-  else console.log('Email service (Resend) ready');
+  else console.log('Email service (Gmail) ready');
 });
 
 // Middleware to check email credentials
 const checkEmailCredentials = (req, res, next) => {
-  if (!process.env.RESEND_API_KEY) {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     return res
       .status(500)
-      .json({ success: false, error: 'Email service (Resend) key missing' });
+      .json({ success: false, error: 'Email service credentials missing' });
   }
   next();
 };
@@ -118,9 +118,9 @@ router.post(
         });
       } catch (emailErr) {
         console.error('Registration OTP email failed:', emailErr.message);
-        return res.status(emailErr.statusCode || 500).json({
+        return res.status(500).json({
           success: false,
-          error: `Email failed: ${emailErr.message}. Please use your registered Resend email or verify your domain.`
+          error: `Email failed to send. Please try again later or contact support.`
         });
       }
 
@@ -184,9 +184,9 @@ router.post(
         });
       } catch (emailErr) {
         console.error('Resend OTP email failed:', emailErr.message);
-        return res.status(emailErr.statusCode || 500).json({
+        return res.status(500).json({
           success: false,
-          error: `Email failed: ${emailErr.message}. Please use your registered Resend email or verify your domain.`
+          error: `Email failed to send. Please try again later or contact support.`
         });
       }
 

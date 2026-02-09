@@ -11,8 +11,14 @@ import { API_URL } from '../utils/apiConfig';
 // ✅ Add below your imports (right after "import { useAuth } from '../context/AuthContext';")
 const getFullURL = (path) => {
   if (!path) return '#';
-  if (path.startsWith('http')) return path; // Cloudinary or absolute URL
-  return `${API_URL}${path}`; // Prepend backend base URL
+  if (path.startsWith('http')) {
+    // If it's a Cloudinary URL, force download attachment mode to prevent XML extraction in browser
+    if (path.includes('cloudinary.com') && !path.includes('fl_attachment')) {
+      return path.replace('/upload/', '/upload/fl_attachment/');
+    }
+    return path;
+  }
+  return `${API_URL}${path}`;
 };
 
 const Messages = () => {
@@ -310,6 +316,7 @@ const Messages = () => {
       >
         {selectedMessage && (
           <div className="space-y-6">
+
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
@@ -319,7 +326,21 @@ const Messages = () => {
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {selectedMessage.name}
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400">{selectedMessage.email}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Mail className="h-4 w-4 text-gray-400" />
+                    <p className="text-gray-600 dark:text-gray-300 font-medium">{selectedMessage.email}</p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(selectedMessage.email);
+                        // Optional: Show a small tooltip/toast "Copied!"
+                      }}
+                      className="text-xs text-emerald-600 hover:text-emerald-700 font-semibold px-2 py-1 bg-emerald-50 rounded border border-emerald-100 transition-colors"
+                      title="Copy Email"
+                    >
+                      Copy
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -344,47 +365,62 @@ const Messages = () => {
             {selectedMessage.attachments?.length > 0 && (
               <div>
                 <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                  Attachments
+                  Attachments ({selectedMessage.attachments.length})
                 </h4>
                 <div className="space-y-3">
-                  {selectedMessage.attachments.map((attachment) => {
-                    const isAudio = attachment.mimetype?.startsWith("audio/");
-                    const fileName = attachment.filename || attachment.originalname;
-                    const fileSize = attachment.size
-                      ? `(${(attachment.size / 1024).toFixed(2)} KB)`
-                      : "";
+                  {selectedMessage.attachments.map((attachment, index) => {
+                    const isAudio =
+                      attachment.mimetype?.startsWith("audio/") ||
+                      attachment.contentType?.startsWith("audio/") ||
+                      (attachment.filename && attachment.filename.endsWith(".webm"));
+
+                    const fileName = attachment.filename || attachment.originalname || `File ${index + 1}`;
+                    const fileSize = attachment.size ? `(${(attachment.size / 1024).toFixed(2)} KB)` : "";
+
+                    // Robust URL handling
+                    let fileUrl = "#";
+                    if (attachment.path) {
+                      fileUrl = getFullURL(attachment.path);
+                    } else if (attachment.url) { // Fallback for some cloudinary responses
+                      fileUrl = attachment.url;
+                    }
 
                     return (
                       <div
-                        key={attachment._id}
-                        className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-between"
+                        key={attachment._id || index}
+                        className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 flex flex-col gap-2"
                       >
-                        <div className="flex-1">
-                          {isAudio ? (
-                            <>
-                              <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 font-medium">
-                                🎧 {fileName} {fileSize}
-                              </p>
-                              <audio
-                                controls
-                                className="w-full rounded-lg"
-                                src={getFullURL(attachment.path)}
-                              >
-                                Your browser does not support the audio element.
-                              </audio>
-                            </>
-                          ) : (
-                            <a
-                              href={getFullURL(attachment.path)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-emerald-600 dark:text-emerald-500 hover:underline text-sm font-medium"
-                            >
-                              📎 {fileName} {fileSize}
-                            </a>
-                          )}
-
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate max-w-[70%] flex items-center gap-2">
+                            {isAudio ? "🎤 Voice Message" : "📎 Document"}
+                            <span className="text-gray-500 font-normal text-xs ml-1">{fileName}</span>
+                          </span>
+                          <span className="text-xs text-gray-500">{fileSize}</span>
                         </div>
+
+                        {isAudio ? (
+                          <audio
+                            controls
+                            className="w-full mt-1"
+                            src={fileUrl}
+                          >
+                            Your browser does not support the audio element.
+                          </audio>
+                        ) : (
+                          <a
+                            href={fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download={fileName}
+                            className="text-emerald-600 dark:text-emerald-500 hover:text-emerald-700 hover:underline text-sm font-medium flex items-center gap-2 mt-1 p-2 bg-emerald-50 dark:bg-emerald-900/10 rounded border border-emerald-100 dark:border-emerald-800 transition-colors"
+                            onClick={(e) => {
+                              // If it's a raw file (no extension in Cloudinary URL sometimes), browser might download instead of view
+                              // Not much we can do if it's 401, but at least we try to open.
+                            }}
+                          >
+                            Download / View Document <span className="text-xs">↗</span>
+                          </a>
+                        )}
                       </div>
                     );
                   })}

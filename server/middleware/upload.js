@@ -7,6 +7,7 @@ cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
 });
 
 // ===================== GENERIC STORAGE MAKER =====================
@@ -48,20 +49,53 @@ const contactStorage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    let resourceType = "auto"; // auto-detect images, pdfs, etc.
 
-    // Cloudinary needs resource_type = "video" for audio files
-    if (file.mimetype.startsWith("audio")) {
-      resourceType = "video";
+    // 1. Determine Resource Category
+    let resourceType = "auto";
+    let isDocument = false;
+
+    if (file.mimetype.startsWith("image/")) {
+      resourceType = "image";
+    } else if (file.mimetype.startsWith("audio/") || file.mimetype.startsWith("video/")) {
+      resourceType = "video"; // Audio is handled as 'video' in Cloudinary
+    } else if (
+      file.mimetype.includes("pdf") ||
+      file.mimetype.includes("msword") ||
+      file.mimetype.includes("officedocument") ||
+      file.mimetype.includes("powerpoint") ||
+      file.mimetype.includes("excel") ||
+      file.mimetype.includes("text/plain")
+    ) {
+      resourceType = "raw";
+      isDocument = true;
     }
 
-    return {
+    // 2. Sanitize Filename & Preserve Extension
+    const parts = file.originalname.split('.');
+    const ext = parts.length > 1 ? parts.pop() : '';
+    const nameWithoutExt = parts.join('.');
+    const sanitizedName = nameWithoutExt.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+    // 3. Construct Public ID
+    const publicId = `${uniqueSuffix}-${sanitizedName}${ext ? '.' + ext : ''}`;
+
+    const config = {
       folder: "uploads/contact",
       resource_type: resourceType,
-      public_id: uniqueSuffix + "-" + file.originalname,
+      type: 'upload',
+      access_mode: 'public',
+      public_id: publicId,
     };
+
+    // 4. Only force download for documents to prevent XML extraction issues
+    if (isDocument) {
+      config.flags = "attachment";
+    }
+
+    return config;
   },
 });
+
 
 export const contactUpload = multer({
   storage: contactStorage,
@@ -73,9 +107,15 @@ export const contactUpload = multer({
     const allowedTypes = [
       "image/jpeg",
       "image/png",
+      "image/webp",
       "application/pdf",
       "application/msword", // .doc
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+      "application/vnd.ms-powerpoint", // .ppt
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation", // .pptx
+      "application/vnd.ms-excel", // .xls
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+      "text/plain",
       "audio/webm",
       "audio/mpeg",
       "audio/wav",
