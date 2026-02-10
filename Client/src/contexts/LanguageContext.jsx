@@ -38,6 +38,17 @@ const translations = {
         paymentError: 'Payment failed. Try again.',
         addedVia: 'added via'
       },
+      chat: {
+        title: 'AgroChain Support',
+        chatWith: 'Chat with',
+        welcomeHeader: 'Hello! 👋',
+        welcomeMessage: 'How can we help you succeed today? Our team is live and ready.',
+        typePlaceholder: 'Type your message...',
+        connectionError: 'Failed to connect to chat',
+        reconnecting: 'Reconnecting to server...',
+        agentJoined: 'has joined the chat',
+        conversationClosed: 'Conversation has been closed'
+      }
     },
     auth: {
       verifyEmail: 'Verify Your Email',
@@ -265,18 +276,12 @@ const translations = {
         available: 'Available',
         soldCount: 'Sold',
         view: 'View',
-        cart: 'Cart',
+        cart: 'Add to Cart',
         buyNow: 'Buy Now',
-        soldOut: 'Sold Out',
-        unknown: 'Unknown',
         loginToContinue: 'Please login to continue',
         orderPlacedSuccess: 'Order placed successfully!',
         from: 'From',
-        view: 'View',
-        cart: 'Add to Cart',
-        buyNow: 'Buy Now',
         price: 'Price',
-        available: 'Available',
         type: 'Type',
         origin: 'Origin',
         description: 'Description',
@@ -841,6 +846,17 @@ const translations = {
         paymentError: 'ክፍያ አልተሳካም። እንደገና ይሞክሩ።',
         addedVia: 'በኩል ተጨምሯል'
       },
+      chat: {
+        title: 'የአግሮቼይን ድጋፍ',
+        chatWith: 'ጋር ይወያዩ',
+        welcomeHeader: 'ሰላም! 👋',
+        welcomeMessage: 'ዛሬ እንዴት ልናግዝዎ እንችላለን? ቡድናችን ለመርዳት ዝግጁ ነው።',
+        typePlaceholder: 'መልዕክትዎን ይተይቡ...',
+        connectionError: 'ከቻቱ ጋር መገናኘት አልተቻለም',
+        reconnecting: 'እንደገና እየተገናኘ ነው...',
+        agentJoined: 'ወደ ውይይቱ ተቀላቅሏል',
+        conversationClosed: 'ውይይቱ ተዘግቷል'
+      }
     },
     marketplace: {
       hero: {
@@ -1660,151 +1676,6 @@ const translations = {
         title: 'የኢትዮጵያን ግብርና ዛሬ ይለውጡ',
         subtitle: 'ግልጽነትን እና ፈጠራን በመጠቀም ግብርናን አብዮት ከሚያደርጉ በሺዎች የሚቆጠሩ ገበሬዎች እና ንግዶች ጋር ይቀላቀሉ።',
         contactSales: 'ሽያጭ ያግኙ'
-      },
-      dashboard: {
-        welcome: 'እንኳን ደህና መጡ',
-        subtitle: 'የግብርና ንግድዎን በብቃት ያስተዳድሩ።',
-        buyProducts: 'ምርቶችን ይግዙ',
-        sellProducts: 'ምርቶችን ይሽጡ',
-        salesOverview: 'የሽያጭ አጠቃላይ እይታ',
-        periods: {
-          d7: '7 ቀናት',
-          d30: '30 ቀናት',
-          d90: '90 ቀናት'
-        },
-        loading: 'በመጫን ላይ...',
-        stats: {
-          posted: 'የተለጠፉ ምርቶች',
-          totalOrders: 'ጠቅላላ ትዕዛዞች',
-          sold: 'የተሸጡ ምርቶች',
-          rating: 'የደንበኛ ደረጃ'
-        },
-        recentActivity: 'የቅርብ ጊዜ እንቅስቃሴዎች',
-        noActivity: 'ምንም የቅርብ ጊዜ እንቅስቃሴ የለም።',
-        quickActions: {
-          title: 'ፈጣን ተግባራት',
-          addProduct: 'አዲስ ምርት አክል',
-          addProductDesc: 'የግብርና ምርቶችዎን ለሽያጭ ይዘርዝሩ',
-          viewMarket: 'ገበያ',
-          about: 'ስለ እኛ',
-          aboutDesc: 'ስለ ተልዕኳችን የበለጠ ይወቁ',
-          addBalance: 'ቀሪ ሂሳብ ጨምር',
-          addBalanceDesc: 'ለግብይቶች ገንዘብ ወደ ቦርሳዎ ያስገቡ',
-          viewCustomers: 'ደንበኞችን ይመልከቱ',
-          viewCustomersDesc: 'በአካባቢዎ ያሉ ሊሆኑ የሚችሉ ገዢዎችን ይመልከቱ',
-          verifyAccount: 'መለያ ያረጋግጡ',
-          verifyAccountDesc: 'ሙሉ ባህሪያትን ለማግኘት KYCን ያጠናቅቁ'
-        },
-        chart: {
-          sales: 'ሽያጭ (ETB)',
-          date: 'ቀን',
-          salesAmount: 'የሽያጭ መጠን (ETB)'
-        },
-        viewAllOrders: 'ሁሉንም ትዕዛዞች ይመልከቱ',
-        about: 'ስለ መድረኩ',
-        time: {
-          local: 'የአካባቢ ሰዓት',
-          ethiopian: 'የኢትዮጵያ ሰዓት',
-          periods: {
-            morning: 'ጥዋት',
-            afternoon: 'ከሰዓት',
-            evening: 'ማታ',
-            night: 'ሌሊት'
-          }
-        },
-        productUpload: {
-          title: 'ምርት ይስቀሉ',
-          productTitle: 'የምርት ስም',
-          enterTitle: 'የምርቱን ስም ያስገቡ',
-          type: 'ዓይነት',
-          selectType: 'ዓይነት ይምረጡ',
-          price: 'ዋጋ (ETB)',
-          quantity: 'ብዛት (ኪ.ግ)',
-          originAddress: 'መነሻ አድራሻ',
-          enterAddress: 'መነሻ አድራሻ ያስገቡ',
-          images: 'ምስሎች (ከፍተኛ 6)',
-          description: 'መግለጫ',
-          describeProduct: 'ስለ ምርትዎ ይግለጹ...',
-          upload: 'ስቀል',
-          uploading: 'በመጫን ላይ...',
-          cancel: 'ይቅር',
-          chooseFiles: 'ፋይል ይምረጡ',
-          noFileChosen: 'ምንም ፋይል አልተመረጠም',
-          maxImages: 'ከፍተኛ 6 ምስሎች ብቻ ይፈቀዳሉ',
-          fillRequired: 'እባክዎ ሁሉንም አስፈላጊ መረጃዎች ይሙሉ',
-          uploadSuccess: 'ምርቱ በተሳካ ሁኔታ ተሰቅሏል',
-          uploadFailed: 'ምርቱን መስቀል አልተቻለም',
-          types: {
-            vegetable: 'አትክልት',
-            fruit: 'ፍራፍሬ',
-            grain: 'ጥራጥሬ',
-            dairy: 'ወተት እና የወተት ተዋጽኦ',
-            other: 'ሌላ'
-          }
-        },
-        profile: {
-          email: 'ኢሜይል',
-          balance: 'ቀሪ ሂሳብ',
-          fullName: 'ሙሉ ስም',
-          phone: 'ስልክ ቁጥር',
-          address: 'አድራሻ',
-          location: 'ቦታ',
-          saveChanges: 'ለውጦችን ያስቀምጡ',
-          darkMode: 'ጨለማ',
-          lightMode: 'ብርሃን',
-          logout: 'ውጣ',
-          accountRestricted: 'መለያ ተገድቧል',
-          restrictedMessage: 'መለያዎ በአስተዳዳሪ ተገድቧል። በዚህ ጊዜ ምርቶችን መግዛት ወይም መሸጥ አይችሉም። እባክዎ ለእርዳታ ድጋፍን ያነጋግሩ።',
-          notSet: 'አልተዘጋጀም',
-          enter: 'ያስገቡ'
-        },
-        theme: {
-          light: 'የብርሃን ሁነታ',
-          dark: 'የጨለማ ሁነታ'
-        },
-        activity: {
-          youSold: 'ሸጠዋል',
-          to: 'ለ',
-          youPurchased: 'ገዝተዋል',
-          from: 'ከ',
-          you: 'እርስዎ'
-        },
-        status: {
-          pending: 'በጥበቃ ላይ',
-          shipped: 'ተልኳል',
-          delivered: 'ደርሷል',
-          cancelled: 'ተሰርዟል',
-          completed: 'ተጠናቋል',
-          unknown: 'ያልታወቀ',
-          verified: 'የተረጋገጠ',
-          unverified: 'ያልተረጋገጠ',
-          rejected: 'ውድቅ ተደርጓል'
-        },
-        actions: {
-          markShipped: 'ተልኳል በል',
-          confirmDelivery: 'መድረሱን አረጋግጥ'
-        },
-        verification: {
-          title: 'መለያዎን ያረጋግጡ',
-          fullName: 'ሙሉ ስም',
-          fullNamePlaceholder: 'ሙሉ ስምዎን ያስገቡ',
-          nationalIdFront: 'የመንግስት መታወቂያ (ቀዳሚ)',
-          nationalIdBack: 'የመንግስት መታወቂያ (አመታዲ)',
-          scanWithCamera: 'በካሜራ ይስካኑ',
-          captureFront: 'ቀዳሚ ይአክሉ',
-          captureBack: 'አመታዲ ይአክሉ',
-          cancel: 'ሰርዝ',
-          submitVerification: 'ማረጋገጫ ላክ',
-          submitting: 'በመላክ ላይ...',
-          verificationPending: 'ማረጋገጫ በመጠባበቅ ላይ...',
-          verifiedSuccessfully: 'በተሳካ ሁኔታ ተረጋግጧል!',
-          provideBothIds: 'እባክዎ ስም እና ሁለቱንም የመታወቂያ ፎቶዎች ያስገቡ',
-          verificationSubmitted: 'ማረጋገጫ ተልኗል፣ በመጠባበቅ ላይ',
-          verificationFailed: 'ማረጋገጫ አልተሳካም',
-          frontIdCaptured: 'ቀዳሚ መታወቂያ ተአክላል',
-          backIdCaptured: 'አመታዲ መታወቂያ ተአክላል',
-          cameraAccessFailed: 'ካሜራን መጠቀም አልተቻለም'
-        }
       }
     }
   },

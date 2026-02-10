@@ -10,7 +10,6 @@ import PhoneNumberInput from '../components/common/PhoneNumberInput';
 import toast from 'react-hot-toast';
 import { parsePhoneNumber } from 'libphonenumber-js';
 import axios from 'axios';
-import LiveChat from '../components/LiveChat';
 import { API_URL } from '../utils/apiConfig';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -190,30 +189,30 @@ const Login = () => {
   };
 
   const handleVerifyOTP = async (typedOtp) => {
-  try {
-    const res = await axios.post(`${API_URL}/api/users/verify-otp`, {
-      email: otpEmail,
-      otp: typedOtp
-    });
+    try {
+      const res = await axios.post(`${API_URL}/api/users/verify-otp`, {
+        email: otpEmail,
+        otp: typedOtp
+      });
 
-    if (res.data.success) {
-      // OTP is correct, now log in the user via context
-      const loginResult = await login({ email: otpEmail, password: formData.password });
+      if (res.data.success) {
+        // OTP is correct, now log in the user via context
+        const loginResult = await login({ email: otpEmail, password: formData.password });
 
-      if (loginResult.success) {
-        toast.success(t('auth.otpVerified'));
-        navigate('/dashboard', { replace: true });
+        if (loginResult.success) {
+          toast.success(t('auth.otpVerified'));
+          navigate('/dashboard', { replace: true });
+        } else {
+          toast.error(loginResult.error || t('auth.loginFailed'));
+        }
       } else {
-        toast.error(loginResult.error || t('auth.loginFailed'));
+        toast.error(res.data.error || t('auth.otpInvalid'));
       }
-    } else {
-      toast.error(res.data.error || t('auth.otpInvalid'));
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.error || t('auth.otpVerificationFailed'));
     }
-  } catch (err) {
-    console.error(err);
-    toast.error(err.response?.data?.error || t('auth.otpVerificationFailed'));
-  }
-};
+  };
 
 
   const handleResendOTP = async () => {
@@ -536,7 +535,6 @@ const Login = () => {
           </div>
         </Card>
       </motion.div>
-      <LiveChat />
     </div>
   );
 };

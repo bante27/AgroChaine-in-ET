@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Users, Leaf, TrendingUp, CheckCircle, ArrowRight, Play, Star, Award, ChevronLeft, ChevronRight, ShoppingCart, Globe, X } from 'lucide-react';
-import LiveChat from '../components/LiveChat';
 import { useLanguage } from '../contexts/LanguageContext';
 
 // Import videos
@@ -595,9 +594,6 @@ const Home = () => {
         )}
       </AnimatePresence>
 
-      <div className="fixed bottom-6 right-6 z-50">
-        <LiveChat />
-      </div>
     </div>
   );
 };

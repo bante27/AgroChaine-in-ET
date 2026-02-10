@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import LiveChat from '../components/LiveChat';
 import {
   BarChart3,
   TrendingUp,
@@ -1331,7 +1330,6 @@ const Dashboard = () => {
           </div>
         </div>
       </Modal>
-      <LiveChat />
     </div>
   );
 };

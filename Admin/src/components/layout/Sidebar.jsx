@@ -1,14 +1,14 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { 
-  Home, 
-  Users, 
-  Package, 
-  ShoppingCart, 
-  MessageSquare, 
+import {
+  Home,
+  Users,
+  Package,
+  ShoppingCart,
+  MessageSquare,
   User,
-  Settings, 
-  LogOut 
+  Settings,
+  LogOut
 } from 'lucide-react';
 import Button from '../common/Button';
 
@@ -21,6 +21,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     { id: 'products', label: 'Products', icon: Package, path: '/products' },
     { id: 'Transactions', label: 'Transactions', icon: ShoppingCart, path: '/orders' },
     { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/messages' },
+    { id: 'chat', label: 'Live Chat', icon: MessageSquare, path: '/chat' },
     { id: 'Admins', label: 'Admins', icon: User, path: '/profile' },
     { id: 'Verifications', label: 'Verifications', icon: Settings, path: '/settings' },
   ];
@@ -53,10 +54,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 key={item.id}
                 to={item.path}
                 className={({ isActive }) =>
-                  `w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-emerald-500/20 to-blue-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-                      : 'text-gray-700 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
+                  `w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${isActive
+                    ? 'bg-gradient-to-r from-emerald-500/20 to-blue-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                    : 'text-gray-700 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
                   }`
                 }
                 onClick={() => setSidebarOpen(false)}
@@ -75,7 +75,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
         {/* Sign Out Button */}
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-white/10">
-          <Button 
+          <Button
             onClick={handleLogout}
             variant="danger"
             className="w-full flex items-center gap-3 text-gray-800 dark:text-white"

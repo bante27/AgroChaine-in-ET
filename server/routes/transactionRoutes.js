@@ -200,7 +200,7 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
       });
       emailQueue.push({
         type: 'admin',
-        to: "tilahunsitotaw87@gmail.com",
+        to: process.env.EMAIL_USER || "agrochainethiopia@gmail.com",
         data: { buyer, seller, product, transaction, quantity, totalPrice }
       });
     }

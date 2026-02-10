@@ -5,6 +5,7 @@ import admin from '../middleware/adminMiddleware.js';
 import User from '../models/User.js';
 import Product from '../models/Product.js';
 import Transaction from '../models/Transaction.js';
+import Contact from '../models/Contact.js';
 import Message from '../models/Message.js';
 import PlatformFee from "../models/PlatformFee.js";
 import transporter from '../utils/mailer.js';
@@ -16,7 +17,7 @@ const router = express.Router();
 // Get all messages sent to admin
 router.get('/messages', auth, admin, async (req, res) => {
   try {
-    const messages = await Message.find()
+    const messages = await Contact.find()
       .sort({ createdAt: -1 })
       .select('name email subject message attachments status createdAt');
     res.json({ success: true, messages });
@@ -42,7 +43,7 @@ router.post(
       }
 
       const { reply } = req.body;
-      const message = await Message.findById(req.params.messageId);
+      const message = await Contact.findById(req.params.messageId);
       if (!message) {
         return res.status(404).json({ success: false, error: 'Message not found' });
       }
@@ -60,7 +61,7 @@ router.post(
             </div>
             <div style="padding: 30px; background: #ffffff;">
               <p style="font-size: 16px; color: #111827; margin-top: 0;">Hi ${message.name},</p>
-              <p style="color: #374151; line-height: 1.6;">Thank you for contacted us. Here is our official response to your inquiry:</p>
+              <p style="color: #374151; line-height: 1.6;">Thank you for contacting us. Here is our official response to your inquiry:</p>
               
               <div style="margin: 25px 0; padding: 20px; background: #f9fafb; border-radius: 8px; border-left: 4px solid #10b981;">
                 <p style="margin: 0; line-height: 1.6; color: #111827; white-space: pre-wrap;">${reply}</p>
@@ -126,6 +127,27 @@ router.post(
   }
 );
 
+// Mark a message as read
+router.patch('/messages/:messageId/read', auth, admin, async (req, res) => {
+  try {
+    const message = await Contact.findById(req.params.messageId);
+    if (!message) {
+      return res.status(404).json({ success: false, error: 'Message not found' });
+    }
+
+    // Only update if it's currently pending
+    if (message.status === 'pending') {
+      message.status = 'replied'; // Or add a 'read' status if you prefer
+      await message.save();
+    }
+
+    res.json({ success: true, message: 'Message marked as read' });
+  } catch (err) {
+    console.error('Error marking message as read:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
 // Delete a message
 router.delete(
   '/messages/:messageId',
@@ -141,7 +163,7 @@ router.delete(
         return res.status(400).json({ success: false, errors: errors.array() });
       }
 
-      const message = await Message.findById(req.params.messageId);
+      const message = await Contact.findById(req.params.messageId);
       if (!message) {
         return res.status(404).json({ success: false, error: 'Message not found' });
       }

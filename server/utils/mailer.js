@@ -17,25 +17,28 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  tls: {
+    rejectUnauthorized: false // Helps avoid certificate issues in some network environments
+  }
 });
+
+console.log('📬 Mailer initialized with user:', process.env.EMAIL_USER);
 
 const mailer = {
   sendMail: async (options) => {
     try {
-      const { from, to, subject, html, attachments } = options;
-
       if (!transporter) {
         console.error('❌ Nodemailer transporter not initialized');
         return;
       }
 
-      const info = await transporter.sendMail({
-        from: from || `"AgroChain Ethiopia" <${process.env.EMAIL_USER}>`,
-        to: Array.isArray(to) ? to.join(',') : to,
-        subject,
-        html,
-        attachments: attachments,
-      });
+      // Merge defaults with options
+      const mailOptions = {
+        from: `"AgroChain Ethiopia" <${process.env.EMAIL_USER}>`,
+        ...options
+      };
+
+      const info = await transporter.sendMail(mailOptions);
 
       console.log('✅ Email sent successfully via Gmail:', info.messageId);
       return info;

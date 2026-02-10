@@ -29,7 +29,7 @@ import {
   CloudRain,
   AlertCircle,
 } from 'lucide-react';
-import LiveChat from '../components/LiveChat';
+import { API_URL } from '../utils/apiConfig';
 
 // Images
 import TeffImage from '../assets/images/teff.jfif';
@@ -42,7 +42,6 @@ import AgricultureHero from '../assets/images/Traceability-2.0-Digital-Solutions
 import MakingEffort from '../assets/images/Digital trac.png';
 import AgriculturalReforms from '../assets/images/image.png';
 import IvecoGenlyonTruckImage from '../assets/images/Iveco-Genlyon-Truck.jfif';
-import { API_URL } from '../utils/apiConfig';
 
 
 const About = () => {
@@ -889,8 +888,6 @@ const About = () => {
         </div>
       </section>
 
-      {/* Live Chat Component */}
-      <LiveChat />
     </div>
   );
 };

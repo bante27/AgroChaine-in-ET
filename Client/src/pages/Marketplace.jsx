@@ -6,7 +6,6 @@ import ProductsDisplay from "../components/market/ProductsDisplay";
 import ProductModal from "../components/market/ProductModal";
 import CartSidebar from "../components/market/CartSidebar";
 import AuthModal from "../components/market/AuthModal";
-import LiveChat from "../components/LiveChat";
 import CheckoutModal from "../components/market/CheckoutModal";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -416,7 +415,6 @@ const Marketplace = () => {
         )}
       </AnimatePresence>
 
-      <LiveChat />
     </div>
   );
 };

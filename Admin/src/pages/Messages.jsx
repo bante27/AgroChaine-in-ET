@@ -12,8 +12,10 @@ import { API_URL } from '../utils/apiConfig';
 const getFullURL = (path) => {
   if (!path) return '#';
   if (path.startsWith('http')) {
-    // If it's a Cloudinary URL, force download attachment mode to prevent XML extraction in browser
-    if (path.includes('cloudinary.com') && !path.includes('fl_attachment')) {
+    // ONLY apply transformations to genuine IMAGES.
+    // Video and Raw files (PDFs, ZIPs) do not support fl_attachment and will return 401.
+    const isImage = /\.(jpg|jpeg|png|webp|gif|avif)$/i.test(path.split('?')[0]);
+    if (path.includes('cloudinary.com') && path.includes('/image/upload/') && !path.includes('fl_attachment') && isImage) {
       return path.replace('/upload/', '/upload/fl_attachment/');
     }
     return path;

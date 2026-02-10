@@ -1,4 +1,4 @@
-import Message from "../models/Message.js";
+import Contact from "../models/Contact.js";
 import transporter from "../utils/mailer.js";
 
 // Helper to send emails
@@ -106,15 +106,15 @@ export const handleContactForm = async (req, res) => {
 
     // ===== Save to MongoDB =====
     console.log(`Processing ${attachmentLinks.length} attachments for DB storage`);
-    const newMessage = new Message({
+    const newContact = new Contact({
       name,
       email,
       subject,
       message,
       attachments: attachmentLinks, // store URLs
     });
-    const savedMsg = await newMessage.save();
-    console.log("Message saved to DB with ID:", savedMsg._id);
+    const savedMsg = await newContact.save();
+    console.log("Contact saved to DB with ID:", savedMsg._id);
     console.log("Saved Attachments count:", savedMsg.attachments?.length || 0);
 
     // 🚀 FAST RESPONSE: Send success immediately to client
@@ -179,8 +179,13 @@ export const handleContactForm = async (req, res) => {
           </div>
         `;
 
+        console.log("📨 Background worker: Preparing to send emails for", name);
+
+        // Final check on attachments for logging
+        console.log("📎 Attachment count for email:", attachments.length);
+
         const adminEmailOptions = {
-          to: 'tilahunsitotaw87@gmail.com', // Primary admin email as requested
+          to: process.env.EMAIL_USER, // Primary admin email as configured in .env
           bcc: process.env.EMAIL_USER,
           replyTo: email,
           subject: `📩 Contact Form: ${subject}`,
@@ -206,7 +211,7 @@ export const handleContactForm = async (req, res) => {
               </div>
               <div style="padding: 30px; background: #ffffff;">
                 <p style="font-size: 18px; color: #111827; margin-top: 0;">Hi ${name},</p>
-                <p style="color: #374151; line-height: 1.6;">Thank you for contacted us. We have received your message regarding "<strong>${subject}</strong>".</p>
+                <p style="color: #374151; line-height: 1.6;">Thank you for contacting us. We have received your message regarding "<strong>${subject}</strong>".</p>
                 <div style="margin: 25px 0; padding: 20px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">
                   <p style="margin: 0; font-style: italic; color: #166534;">"We are committed to empowering Ethiopian agriculture through technology."</p>
                 </div>

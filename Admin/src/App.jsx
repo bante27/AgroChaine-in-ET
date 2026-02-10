@@ -12,6 +12,7 @@ import Messages from './pages/Messages';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
+import AdminChatDashboard from './pages/ChatDashboard';
 
 function App() {
   return (
@@ -21,6 +22,18 @@ function App() {
           <Routes>
             {/* Public route */}
             <Route path="/login" element={<Login />} />
+
+            {/* Live Chat route */}
+            <Route
+              path="/chat"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <AdminChatDashboard />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
 
             {/* Protected admin routes */}
             <Route

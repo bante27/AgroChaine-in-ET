@@ -14,7 +14,6 @@ import {
   ChevronDown,
   ArrowRight,
 } from 'lucide-react';
-import LiveChat from '../components/LiveChat';
 import toast from 'react-hot-toast';
 import contactBg from '../assets/images/bg-login.jfif';
 import { API_URL } from '../utils/apiConfig';
@@ -193,7 +192,7 @@ const Contact = () => {
       title: t('contact.emailAddresses'),
       details: [
 
-        { text: 'tilahunsitotaw87@gmail.com', link: 'mailto:tilahunsitotaw87@gmail.com' },
+        { text: 'agrochainethiopia@gmail.com', link: 'mailto:agrochainethiopia@gmail.com' },
         { text: 'mitikubanitalem@gmail.com', link: 'mailto:mitikubanitalem@gmail.com' },
         { text: 'sales@agrochain.et', link: 'mailto:sales@agrochain.et' },
       ],
@@ -579,8 +578,6 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* Live Chat Component */}
-      <LiveChat />
     </div>
   );
 };

@@ -87,12 +87,26 @@ app.use("/api/admin", adminRoutes);
 // Error handler
 app.use(errorHandler);
 
-// Start server
+// Start server with Socket.io support
 const PORT = process.env.PORT || 5000;
+
+// Import Socket.io initialization
+import { createServer } from 'http';
+import { initializeSocket } from './socket/chatSocket.js';
+
 connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT} ✅`);
-    console.log("Database connected & Server ready.");
+  // Create HTTP server (required for Socket.io)
+  const httpServer = createServer(app);
+
+  // Initialize Socket.io for real-time chat
+  initializeSocket(httpServer);
+
+  // Start listening
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`✅ Database connected`);
+    console.log(`💬 Real-time chat enabled`);
+    console.log(`📡 WebSocket server ready`);
   });
 }).catch(err => {
   console.error("❌ Failed to connect to MongoDB. Server not started.", err);
