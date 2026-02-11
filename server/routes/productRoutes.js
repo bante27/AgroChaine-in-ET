@@ -218,10 +218,24 @@ router.post("/:productId/unlike", auth, async (req, res) => {
 // --------------- Purchase (reduce quantity) ----------------
 router.post("/:productId/purchase", auth, async (req, res) => {
   try {
-    const { quantity = 1 } = req.body;
+    const { quantity: requestedQty = 1 } = req.body;
+    const quantity = parseInt(requestedQty);
     const { productId } = req.params;
 
-    const product = await Product.findOne({ productId });
+    if (isNaN(quantity) || quantity <= 0) {
+      return res.status(400).json({ success: false, error: "Invalid quantity" });
+    }
+
+    // Find by either _id or productId custom field
+    let product;
+    if (mongoose.Types.ObjectId.isValid(productId)) {
+      product = await Product.findById(productId);
+    }
+
+    if (!product) {
+      product = await Product.findOne({ productId: productId });
+    }
+
     if (!product)
       return res.status(404).json({ success: false, error: "Product not found" });
 
@@ -234,20 +248,27 @@ router.post("/:productId/purchase", auth, async (req, res) => {
 
     // Decrease available quantity
     product.quantityAvailable -= quantity;
-    if (product.quantityAvailable <= 0) product.quantityAvailable = 0;
-
-    // Update sold quantity
-    const soldQuantity = product.initialQuantity - product.quantityAvailable;
+    if (product.quantityAvailable < 0) product.quantityAvailable = 0;
 
     await product.save();
+
+    // Update user who acted as seller (optional logic, depending on if you track sales for users)
+    // await User.findOneAndUpdate({ userId: product.ownerUserId }, { $inc: { totalSales: quantity } });
+
+    // Track buyer purchase (optional)
+    await User.findOneAndUpdate(
+      { userId: req.user.userId },
+      { $addToSet: { boughtProducts: product._id } }
+    );
 
     res.status(200).json({
       success: true,
       message: "Purchase successful",
       updatedProduct: {
         ...product.toObject(),
-        soldQuantity, // Include sold quantity
+        soldQuantity: product.initialQuantity - product.quantityAvailable,
       },
+      newQuantity: product.quantityAvailable
     });
   } catch (error) {
     console.error("Error processing purchase:", error);
