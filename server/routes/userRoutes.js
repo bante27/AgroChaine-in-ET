@@ -29,7 +29,10 @@ transporter.verify((err, success) => {
 
 // Middleware to check email credentials
 const checkEmailCredentials = (req, res, next) => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  const emailUser = process.env.EMAIL_USER || process.env.NODEMAILER_EMAIL;
+  const emailPass = process.env.EMAIL_PASS || process.env.NODEMAILER_PASS;
+
+  if (!emailUser || !emailPass) {
     return res
       .status(500)
       .json({ success: false, error: 'Email service credentials missing' });
