@@ -31,6 +31,11 @@ const OTPInput = ({ email, onVerify, onResend }) => {
     onVerify(inputOtp);
   };
 
+  const handleResend = async () => {
+    await onResend();
+    setTimer(300); // Start the 5-minute timer again
+  };
+
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -75,7 +80,7 @@ const OTPInput = ({ email, onVerify, onResend }) => {
               <button
                 type="button"
                 disabled={timer > 0}
-                onClick={onResend}
+                onClick={handleResend}
                 className="text-indigo-600 hover:text-indigo-700 disabled:text-gray-400 font-medium transition-colors hover:underline"
               >
                 {timer > 0 ? `${t('auth.resendTimer')} ${timer} ${t('auth.seconds')}` : t('auth.resendOtp')}
@@ -108,7 +113,6 @@ const Login = () => {
     password: '',
     confirmPassword: '',
     fullName: '',
-    fullNameAmharic: '',
     phone: '',
     address: '',
     agreeToTerms: false,
@@ -150,16 +154,15 @@ const Login = () => {
 
   const isValidEmail = (email) => /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email.trim());
   const isValidFullName = (fullName) => {
-    const nameRegex = /^[a-zA-Z\s-]{2,50}$/;
+    // Allow English (a-zA-Z), Amharic (\u1200-\u137F), spaces, and hyphens. 
+    // Min 2 characters, at least 2 words.
+    const nameRegex = /^[a-zA-Z\u1200-\u137F\s-]{2,100}$/;
     const hasMultipleWords = fullName.trim().split(/\s+/).length >= 2;
     return nameRegex.test(fullName.trim()) && hasMultipleWords;
   };
-  const isValidAmharicName = (name) => {
-    // Basic Amharic range check
-    const amharicRegex = /^[\u1200-\u137F\s-]+$/;
-    return amharicRegex.test(name.trim()) && name.trim().split(/\s+/).length >= 2;
-  };
-  const isValidAddress = (address) => /^[a-zA-Z0-9\s,.-]{5,100}$/.test(address.trim());
+
+  const isValidAddress = (address) => /^[a-zA-Z0-9\u1200-\u137F\s,.-]{5,100}$/.test(address.trim());
+
   const isValidPhone = (phone) => {
     try {
       const phoneNumber = parsePhoneNumber(phone, 'ET');
@@ -191,7 +194,6 @@ const Login = () => {
       password: '',
       confirmPassword: '',
       fullName: '',
-      fullNameAmharic: '',
       phone: '',
       address: '',
       agreeToTerms: false,
@@ -271,9 +273,9 @@ const Login = () => {
         toast.error(error.response?.data?.error || t('auth.loginError'));
       }
     } else {
-      const { fullName, fullNameAmharic, email, password, phone, address, agreeToTerms, confirmPassword } = formData;
+      const { fullName, email, password, phone, address, agreeToTerms, confirmPassword } = formData;
 
-      if (!fullName || !fullNameAmharic || !email || !password || !phone || !address || !confirmPassword) {
+      if (!fullName || !email || !password || !phone || !address || !confirmPassword) {
         toast.error(t('auth.allFieldsRequired'));
         setIsLoading(false);
         return;
@@ -290,11 +292,6 @@ const Login = () => {
       }
       if (!isValidFullName(fullName)) {
         toast.error(t('auth.validNameHelper'));
-        setIsLoading(false);
-        return;
-      }
-      if (!isValidAmharicName(fullNameAmharic)) {
-        toast.error(t('auth.validNameHelper')); // Or a specific Amharic validation helper if available
         setIsLoading(false);
         return;
       }
@@ -315,7 +312,7 @@ const Login = () => {
       }
 
       try {
-        const response = await axios.post(`${API_URL}/api/users/register`, { fullName, fullNameAmharic, email, password, phone, address, agreeToTerms });
+        const response = await axios.post(`${API_URL}/api/users/register`, { fullName, email, password, phone, address, agreeToTerms });
         if (response.data.success) {
           setOtpEmail(email);
           setInitialOtp(response.data.otp);
@@ -352,17 +349,6 @@ const Login = () => {
           onChange={handleInputChange}
           onKeyPress={handleKeyPress}
           placeholder="Tilahun Sitotaw"
-          icon={<User className="h-5 w-5 text-gray-500" />}
-          className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
-        />
-        <Input
-          label={t('auth.fullNameAmharic')}
-          name="fullNameAmharic"
-          type="text"
-          value={formData.fullNameAmharic}
-          onChange={handleInputChange}
-          onKeyPress={handleKeyPress}
-          placeholder="ጥላሁን ስጦታው"
           icon={<User className="h-5 w-5 text-gray-500" />}
           className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
         />

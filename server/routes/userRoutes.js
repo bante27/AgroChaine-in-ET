@@ -63,13 +63,9 @@ router.post(
   [
     checkEmailCredentials,
     body('fullName')
-      .isLength({ min: 2, max: 50 })
-      .matches(/^[a-zA-Z\s-]+$/)
-      .withMessage('Invalid full name'),
-    body('fullNameAmharic')
-      .optional({ checkFalsy: true })
       .isLength({ min: 2, max: 100 })
-      .withMessage('Invalid Amharic full name'),
+      .matches(/^[a-zA-Z\u1200-\u137F\s-]+$/)
+      .withMessage('Invalid full name'),
     body('email').isEmail().withMessage('Invalid email'),
     body('password').isLength({ min: 8 }).withMessage('Password min 8 chars'),
     body('phone').notEmpty().withMessage('Phone required'),
@@ -83,7 +79,7 @@ router.post(
         .json({ success: false, error: errors.array()[0].msg });
 
     try {
-      const { fullName, fullNameAmharic, email, password, phone, address } = req.body;
+      const { fullName, email, password, phone, address } = req.body;
 
       const existingUser = await User.findOne({ email });
       if (existingUser)
@@ -100,7 +96,6 @@ router.post(
       // Store in temporary memory
       pendingUsers.set(email, {
         fullName,
-        fullNameAmharic: fullNameAmharic || '',
         email,
         password: hashedPassword,
         phone,
@@ -117,7 +112,7 @@ router.post(
           html: `
             <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
               <h2 style="color: #10b981;">Welcome to AgroChain Ethiopia</h2>
-              <p>Dear <strong>${fullName}${fullNameAmharic ? ' / ' + fullNameAmharic : ''}</strong>,</p>
+              <p>Dear <strong>${fullName}</strong>,</p>
               <p>Thank you for registering. Please use the following OTP to verify your account:</p>
               <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
                 ${otp}
@@ -189,7 +184,7 @@ router.post(
           html: `
             <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
               <h2 style="color: #10b981;">New OTP Requested</h2>
-              <p>Dear <strong>${pending.fullName}${pending.fullNameAmharic ? ' / ' + pending.fullNameAmharic : ''}</strong>,</p>
+              <p>Dear <strong>${pending.fullName}</strong>,</p>
               <p>You requested a new OTP code for your AgroChain Ethiopia registration. Please use the code below:</p>
               <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
                 ${otp}
@@ -253,7 +248,6 @@ router.post(
       const newUser = new User({
         userId: pending.userId,
         fullName: pending.fullName,
-        fullNameAmharic: pending.fullNameAmharic,
         email: pending.email,
         password: pending.password,
         phone: pending.phone,
@@ -329,7 +323,7 @@ router.post(
           html: `
             <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
               <h2 style="color: #10b981;">Password Reset Request</h2>
-              <p>Dear <strong>${user.fullName}${user.fullNameAmharic ? ' / ' + user.fullNameAmharic : ''}</strong>,</p>
+              <p>Dear <strong>${user.fullName}</strong>,</p>
               <p>We received a request to reset your password. Use the following OTP to proceed:</p>
               <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
                 ${otp}
