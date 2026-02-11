@@ -34,16 +34,34 @@ const userSockets = new Map(); // Map userId to socket ID
 export const initializeSocket = (httpServer) => {
     io = new Server(httpServer, {
         cors: {
-            origin: [
-                process.env.CLIENT_URL || "http://localhost:5173",
-                "http://localhost:5174",
-                process.env.ADMIN_URL || "http://localhost:5175"
-            ],
+            origin: (origin, callback) => {
+                const allowedOrigins = [
+                    "http://localhost:5173",
+                    "http://localhost:5174",
+                    "http://localhost:5175",
+                    "http://localhost:5176",
+                    "http://localhost:3000",
+                    "http://localhost:5000",
+                    process.env.CLIENT_URL,
+                    process.env.ADMIN_URL
+                ].filter(Boolean); // Remove undefined/null entries
+
+                // Allow requests with no origin (like mobile apps or curl requests)
+                if (!origin) return callback(null, true);
+
+                if (allowedOrigins.indexOf(origin) !== -1 ||
+                    origin.includes(".onrender.com") ||
+                    origin.includes(".netlify.app")) {
+                    callback(null, true);
+                } else {
+                    callback(new Error('Not allowed by CORS'));
+                }
+            },
             methods: ["GET", "POST"],
             credentials: true
         },
-        pingTimeout: 60000, // 60 seconds
-        pingInterval: 25000 // 25 seconds
+        pingTimeout: 60000,
+        pingInterval: 25000
     });
 
     io.on('connection', (socket) => {
