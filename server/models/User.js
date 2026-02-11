@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const UserSchema = new mongoose.Schema({
   userId: { type: String, unique: true, required: true }, // 10-digit public ID
   fullName: { type: String, required: true, trim: true },
+  fullNameAmharic: { type: String, trim: true }, // Amharic full name support
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true },
   phone: { type: String, required: true },

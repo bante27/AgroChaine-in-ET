@@ -185,10 +185,9 @@ export const handleContactForm = async (req, res) => {
         console.log("📎 Attachment count for email:", attachments.length);
 
         const adminEmailOptions = {
-          to: process.env.EMAIL_USER, // Primary admin email as configured in .env
-          bcc: process.env.EMAIL_USER,
+          to: process.env.EMAIL_USER, // Primary admin email
           replyTo: email,
-          subject: `📩 Contact Form: ${subject}`,
+          subject: `📩 [Contact Inquiry] ${subject} - from ${name}`,
           html: adminHtml,
         };
 

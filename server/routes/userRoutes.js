@@ -66,6 +66,10 @@ router.post(
       .isLength({ min: 2, max: 50 })
       .matches(/^[a-zA-Z\s-]+$/)
       .withMessage('Invalid full name'),
+    body('fullNameAmharic')
+      .optional({ checkFalsy: true })
+      .isLength({ min: 2, max: 100 })
+      .withMessage('Invalid Amharic full name'),
     body('email').isEmail().withMessage('Invalid email'),
     body('password').isLength({ min: 8 }).withMessage('Password min 8 chars'),
     body('phone').notEmpty().withMessage('Phone required'),
@@ -79,7 +83,7 @@ router.post(
         .json({ success: false, error: errors.array()[0].msg });
 
     try {
-      const { fullName, email, password, phone, address } = req.body;
+      const { fullName, fullNameAmharic, email, password, phone, address } = req.body;
 
       const existingUser = await User.findOne({ email });
       if (existingUser)
@@ -96,6 +100,7 @@ router.post(
       // Store in temporary memory
       pendingUsers.set(email, {
         fullName,
+        fullNameAmharic: fullNameAmharic || '',
         email,
         password: hashedPassword,
         phone,
@@ -108,12 +113,18 @@ router.post(
       try {
         await transporter.sendMail({
           to: email,
-          subject: 'Your OTP Code',
+          subject: 'Your OTP Code - Agrochain Ethiopia',
           html: `
-            <p>Dear  ${fullName},</p>
-            <p>Well Come to Agrochain Ethiopia</p>
-            <p>Your OTP is <strong>${otp}</strong>. It expires in 5 minutes.</p>
-            <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+            <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+              <h2 style="color: #10b981;">Welcome to AgroChain Ethiopia</h2>
+              <p>Dear <strong>${fullName}${fullNameAmharic ? ' / ' + fullNameAmharic : ''}</strong>,</p>
+              <p>Thank you for registering. Please use the following OTP to verify your account:</p>
+              <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
+                ${otp}
+              </div>
+              <p style="color: #666; font-size: 14px; margin-top: 20px;">This OTP will expire in 5 minutes.</p>
+              <p>Best regards,<br/><strong>Agrochain Ethiopia Team</strong></p>
+            </div>
           `,
         });
       } catch (emailErr) {
@@ -174,12 +185,18 @@ router.post(
       try {
         await transporter.sendMail({
           to: email,
-          subject: 'Your New OTP Code',
+          subject: 'Your New OTP Code - Agrochain Ethiopia',
           html: `
-            <p>Dear ${pending.fullName},</p>
-            <p>Well Come to Agrochain Ethiopia</p>
-            <p>Your new OTP is <strong>${otp}</strong>. It expires in 5 minutes.</p>
-            <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+            <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+              <h2 style="color: #10b981;">New OTP Requested</h2>
+              <p>Dear <strong>${pending.fullName}${pending.fullNameAmharic ? ' / ' + pending.fullNameAmharic : ''}</strong>,</p>
+              <p>You requested a new OTP code for your AgroChain Ethiopia registration. Please use the code below:</p>
+              <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
+                ${otp}
+              </div>
+              <p style="color: #666; font-size: 14px; margin-top: 20px;">This OTP will expire in 5 minutes.</p>
+              <p>Best regards,<br/><strong>Agrochain Ethiopia Team</strong></p>
+            </div>
           `,
         });
       } catch (emailErr) {
@@ -236,6 +253,7 @@ router.post(
       const newUser = new User({
         userId: pending.userId,
         fullName: pending.fullName,
+        fullNameAmharic: pending.fullNameAmharic,
         email: pending.email,
         password: pending.password,
         phone: pending.phone,
@@ -307,12 +325,18 @@ router.post(
       try {
         await transporter.sendMail({
           to: email,
-          subject: 'Password Reset OTP',
+          subject: 'Password Reset OTP - Agrochain Ethiopia',
           html: `
-            <p>Dear ${user.fullName},</p>
-            <p>Your OTP for password reset is <strong>${otp}</strong>. It expires in 5 minutes.</p>
-            <p>If you did not request this, please ignore this email.</p>
-            <p>Best regards,<br/>Agrochain Ethiopia Team</p>
+            <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+              <h2 style="color: #10b981;">Password Reset Request</h2>
+              <p>Dear <strong>${user.fullName}${user.fullNameAmharic ? ' / ' + user.fullNameAmharic : ''}</strong>,</p>
+              <p>We received a request to reset your password. Use the following OTP to proceed:</p>
+              <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
+                ${otp}
+              </div>
+              <p style="color: #666; font-size: 14px; margin-top: 20px;">This OTP will expire in 5 minutes. If you did not request this, please ignore this email.</p>
+              <p>Best regards,<br/><strong>Agrochain Ethiopia Team</strong></p>
+            </div>
           `,
         });
       } catch (emailErr) {

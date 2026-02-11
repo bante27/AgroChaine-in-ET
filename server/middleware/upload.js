@@ -87,11 +87,6 @@ const contactStorage = new CloudinaryStorage({
       public_id: publicId,
     };
 
-    // 4. Only force download for documents to prevent XML extraction issues
-    if (isDocument) {
-      config.flags = "attachment";
-    }
-
     return config;
   },
 });

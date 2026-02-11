@@ -66,15 +66,19 @@ const OTPInput = ({ email, onVerify, onResend }) => {
               placeholder={t('auth.otpPlaceholder')}
               className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
             />
-            <div className="flex justify-between items-center text-gray-500 text-sm">
-              <span>{timer > 0 ? `${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}` : t('auth.expired')}</span>
+            <div className="flex flex-col items-center gap-3 text-gray-500 text-sm">
+              <div className="flex items-center gap-2 bg-indigo-50 px-4 py-2 rounded-lg text-indigo-700 font-semibold border border-indigo-100">
+                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+                <span>{timer > 0 ? `${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}` : t('auth.expired')}</span>
+              </div>
+
               <button
                 type="button"
                 disabled={timer > 0}
                 onClick={onResend}
-                className="text-indigo-600 hover:text-indigo-700 disabled:text-gray-400 font-medium transition-colors"
+                className="text-indigo-600 hover:text-indigo-700 disabled:text-gray-400 font-medium transition-colors hover:underline"
               >
-                {t('auth.resendOtp')}
+                {timer > 0 ? `${t('auth.resendTimer')} ${timer} ${t('auth.seconds')}` : t('auth.resendOtp')}
               </button>
             </div>
             <Button
@@ -104,6 +108,7 @@ const Login = () => {
     password: '',
     confirmPassword: '',
     fullName: '',
+    fullNameAmharic: '',
     phone: '',
     address: '',
     agreeToTerms: false,
@@ -149,6 +154,11 @@ const Login = () => {
     const hasMultipleWords = fullName.trim().split(/\s+/).length >= 2;
     return nameRegex.test(fullName.trim()) && hasMultipleWords;
   };
+  const isValidAmharicName = (name) => {
+    // Basic Amharic range check
+    const amharicRegex = /^[\u1200-\u137F\s-]+$/;
+    return amharicRegex.test(name.trim()) && name.trim().split(/\s+/).length >= 2;
+  };
   const isValidAddress = (address) => /^[a-zA-Z0-9\s,.-]{5,100}$/.test(address.trim());
   const isValidPhone = (phone) => {
     try {
@@ -181,6 +191,7 @@ const Login = () => {
       password: '',
       confirmPassword: '',
       fullName: '',
+      fullNameAmharic: '',
       phone: '',
       address: '',
       agreeToTerms: false,
@@ -260,9 +271,9 @@ const Login = () => {
         toast.error(error.response?.data?.error || t('auth.loginError'));
       }
     } else {
-      const { fullName, email, password, phone, address, agreeToTerms, confirmPassword } = formData;
+      const { fullName, fullNameAmharic, email, password, phone, address, agreeToTerms, confirmPassword } = formData;
 
-      if (!fullName || !email || !password || !phone || !address || !confirmPassword) {
+      if (!fullName || !fullNameAmharic || !email || !password || !phone || !address || !confirmPassword) {
         toast.error(t('auth.allFieldsRequired'));
         setIsLoading(false);
         return;
@@ -279,6 +290,11 @@ const Login = () => {
       }
       if (!isValidFullName(fullName)) {
         toast.error(t('auth.validNameHelper'));
+        setIsLoading(false);
+        return;
+      }
+      if (!isValidAmharicName(fullNameAmharic)) {
+        toast.error(t('auth.validNameHelper')); // Or a specific Amharic validation helper if available
         setIsLoading(false);
         return;
       }
@@ -299,7 +315,7 @@ const Login = () => {
       }
 
       try {
-        const response = await axios.post(`${API_URL}/api/users/register`, { fullName, email, password, phone, address, agreeToTerms });
+        const response = await axios.post(`${API_URL}/api/users/register`, { fullName, fullNameAmharic, email, password, phone, address, agreeToTerms });
         if (response.data.success) {
           setOtpEmail(email);
           setInitialOtp(response.data.otp);
@@ -336,6 +352,17 @@ const Login = () => {
           onChange={handleInputChange}
           onKeyPress={handleKeyPress}
           placeholder="Tilahun Sitotaw"
+          icon={<User className="h-5 w-5 text-gray-500" />}
+          className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
+        />
+        <Input
+          label={t('auth.fullNameAmharic')}
+          name="fullNameAmharic"
+          type="text"
+          value={formData.fullNameAmharic}
+          onChange={handleInputChange}
+          onKeyPress={handleKeyPress}
+          placeholder="ጥላሁን ስጦታው"
           icon={<User className="h-5 w-5 text-gray-500" />}
           className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
         />

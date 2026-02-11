@@ -12,11 +12,20 @@ import { API_URL } from '../utils/apiConfig';
 const getFullURL = (path) => {
   if (!path) return '#';
   if (path.startsWith('http')) {
-    // ONLY apply transformations to genuine IMAGES.
-    // Video and Raw files (PDFs, ZIPs) do not support fl_attachment and will return 401.
-    const isImage = /\.(jpg|jpeg|png|webp|gif|avif)$/i.test(path.split('?')[0]);
-    if (path.includes('cloudinary.com') && path.includes('/image/upload/') && !path.includes('fl_attachment') && isImage) {
-      return path.replace('/upload/', '/upload/fl_attachment/');
+    // Standardize Cloudinary URLs
+    if (path.includes('cloudinary.com')) {
+      const isImage = /\.(jpg|jpeg|png|webp|gif|avif)$/i.test(path.split('?')[0]);
+      const isVideoOrAudio = /\.(mp4|webm|mp3|wav|ogg|m4a)$/i.test(path.split('?')[0]);
+
+      // Only apply fl_attachment to images to force download if required.
+      // Raw and Video files should be accessed via their respective types.
+      if (path.includes('/image/upload/') && isImage && !path.includes('fl_attachment')) {
+        return path.replace('/upload/', '/upload/fl_attachment/');
+      }
+
+      // For raw files (PDFs, docs), ensure we use the 'raw' resource type in the URL if not already there
+      // But path usually comes correctly from the backend.
+      return path;
     }
     return path;
   }
