@@ -31,11 +31,9 @@ export const AuthProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${storedToken}` },
         });
 
-        // Backend returns: { status: 'success', data: { user: ... } }
-        const userData = res.data.data?.user || res.data.user;
-
-        if (res.data.status === 'success' && userData) {
-          setUser(userData);
+        // Backend returns: { success: true, user: { ... } }
+        if (res.data.success && res.data.user) {
+          setUser(res.data.user);
           setIsAuthenticated(true);
         } else {
           localStorage.removeItem('token');
@@ -64,20 +62,19 @@ export const AuthProvider = ({ children }) => {
 
       const data = res.data;
 
-      // Backend returns: { status: 'success', token: '...', data: { user: ... } }
-      if (res.status === 200 && data.status === 'success') {
-        const userData = data.data?.user || data.user;
+      // Backend returns: { success: true, token: '...', user: { ... } }
+      if (res.status === 200 && data.success) {
         localStorage.setItem('token', data.token);
         setToken(data.token);
-        setUser(userData);
+        setUser(data.user);
         setIsAuthenticated(true);
-        return { success: true, user: userData };
+        return { success: true, user: data.user };
       } else {
-        return { success: false, error: data.message || 'Login failed' };
+        return { success: false, error: data.error || 'Login failed' };
       }
     } catch (err) {
       console.error('Login error:', err);
-      return { success: false, error: err.response?.data?.message || 'Network error' };
+      return { success: false, error: err.response?.data?.error || 'Network error' };
     }
   };
 
