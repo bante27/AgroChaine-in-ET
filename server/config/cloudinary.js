@@ -10,10 +10,14 @@ cloudinary.config({
 });
 
 // Verify configuration (without exposing secret)
+const maskedSecret = process.env.CLOUDINARY_API_SECRET
+    ? `***${process.env.CLOUDINARY_API_SECRET.trim().slice(-3)}`
+    : 'MISSING';
+
 console.log('☁️ Cloudinary Config Status:', {
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'OK (Configured)' : 'MISSING',
-    api_key: process.env.CLOUDINARY_API_KEY ? 'Present (***' + process.env.CLOUDINARY_API_KEY.trim().slice(-4) + ')' : 'MISSING',
-    has_secret: !!process.env.CLOUDINARY_API_SECRET
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'OK' : 'MISSING',
+    api_key: process.env.CLOUDINARY_API_KEY ? `Present (***${process.env.CLOUDINARY_API_KEY.trim().slice(-4)})` : 'MISSING',
+    api_secret: maskedSecret
 });
 
 export default cloudinary;

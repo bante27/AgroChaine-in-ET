@@ -13,15 +13,17 @@ if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // Use STARTTLS
+  port: 465, // Using port 465 (SSL) for better reliability on cloud hosts
+  secure: true,
   auth: {
-    user: process.env.EMAIL_USER || process.env.NODEMAILER_EMAIL,
-    pass: process.env.EMAIL_PASS || process.env.NODEMAILER_PASS,
+    user: (process.env.EMAIL_USER || process.env.NODEMAILER_EMAIL || '').trim(),
+    pass: (process.env.EMAIL_PASS || process.env.NODEMAILER_PASS || '').trim(),
   },
   tls: {
     rejectUnauthorized: false
-  }
+  },
+  // Force IPv4 to avoid ENETUNREACH on IPv6 addresses in cloud environments like Render
+  family: 4
 });
 
 console.log('📬 Mailer initialized with user:', process.env.EMAIL_USER ? process.env.EMAIL_USER.slice(0, 3) + '***@' + process.env.EMAIL_USER.split('@')[1] : 'MISSING');

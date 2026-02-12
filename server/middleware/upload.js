@@ -8,10 +8,9 @@ const makeStorage = (folder) =>
     cloudinary,
     params: {
       folder: `uploads/${folder}`,
-      public_id: (req, file) => {
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        return uniqueSuffix + "-" + file.originalname;
-      },
+      resource_type: "auto",
+      // Removed manual public_id to ensure Cloudinary's auto-signing works perfectly
+      // and to avoid signature mismatch errors in production.
     },
   });
 
