@@ -831,25 +831,33 @@ const translations = {
         title: 'Transform Your Agricultural Business Today',
         subtitle: 'Join thousands of farmers and businesses revolutionizing agriculture with transparency and innovation.',
         contactSales: 'Contact Sales'
-      }
+      },
+      weather: {
+        title: 'Real-Time Weather in',
+        subtitle: 'Accurate meteorological insights for Ethiopian agricultural hubs to optimize your harvest and logistics.',
+        detecting: 'Locating and fetching weather data...',
+        retry: 'Retry Connection',
+        useLocation: 'Detect My Location',
+        humidity: 'Humidity',
+        windSpeed: 'Wind Speed',
+        precipitation: 'Precipitation',
+        tip: 'Agricultural Tip: Monitor precipitation for harvest timing; ensure irrigation if dry conditions persist.',
+        condition: 'Condition',
+        feelsLike: 'Feels Like',
+        high: 'High',
+        low: 'Low',
+        updateInfo: 'Weather data is updated in real-time. Insights provided by the Ethiopian Meteorology Institute.'
+      },
+      payment: {
+        title: 'Add Balance',
+        amount: 'Amount (ETB)',
+        enterAmount: 'Enter amount',
+        method: 'Payment Method',
+        payNow: 'Add to Wallet',
+        processing: 'Processing...',
+        cancel: 'Cancel'
+      },
     },
-    weather: {
-      title: 'Real-Time Weather in',
-      subtitle: 'Accurate meteorological insights for Ethiopian agricultural hubs to optimize your harvest and logistics.',
-      detecting: 'Locating and fetching weather data...',
-      retry: 'Retry Connection',
-      useLocation: 'Detect My Location'
-    },
-    payment: {
-      title: 'Add Balance',
-      amount: 'Amount (ETB)',
-      enterAmount: 'Enter amount',
-      method: 'Payment Method',
-      payNow: 'Add to Wallet',
-      processing: 'Processing...',
-      cancel: 'Cancel'
-    },
-
   },
   am: {
     nav: {
