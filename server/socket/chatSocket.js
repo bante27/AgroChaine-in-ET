@@ -406,9 +406,25 @@ export const getOnlineAgentsCount = () => {
 };
 
 /**
- * Get all online agents
- * @returns {Array} List of online agents
+ * Send a real-time notification to a specific user
+ * @param {string} userId - Target user ID
+ * @param {string} type - Notification type
+ * @param {Object} data - Notification data
  */
-export const getOnlineAgents = () => {
-    return Array.from(onlineAgents.values());
+export const sendNotification = (userId, type, data) => {
+    if (!io) return;
+
+    const socketId = userSockets.get(userId);
+    if (socketId) {
+        io.to(socketId).emit('notification', {
+            type,
+            data,
+            timestamp: new Date()
+        });
+        console.log(`📡 Real-time notification sent to user ${userId} (type: ${type})`);
+    } else {
+        console.log(`⚠️ User ${userId} is offline, real-time notification queued in DB (recentActivity)`);
+    }
 };
+
+export default io;

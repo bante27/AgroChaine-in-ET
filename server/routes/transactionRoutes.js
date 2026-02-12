@@ -5,6 +5,7 @@ import Product from "../models/Product.js";
 import User from "../models/User.js";
 import transporter from "../utils/mailer.js";
 import isNotRestricted from "../middleware/isNotRestricted.js";
+import { sendNotification } from "../socket/chatSocket.js";
 
 const router = express.Router();
 const SERVICE_FEE_PERCENT = 5; // 5% from buyer and seller
@@ -186,6 +187,13 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
         { userId: seller.userId },
         { $push: { recentActivity: { type: "order-received", message: `You received a new order for ${product.title} (${quantity}x)`, date: new Date() } } }
       );
+
+      // Send real-time notifications via socket
+      sendNotification(seller.userId, 'order-received', {
+        message: `You received a new order for ${product.title} (${quantity}x)`,
+        transactionId: transaction._id,
+        productId: product._id
+      });
 
       // Queue emails for async sending (don't wait for them)
       emailQueue.push({
@@ -377,6 +385,12 @@ router.post(
         }
       );
 
+      // Send real-time notification
+      sendNotification(buyer.userId, 'order-shipped-notice', {
+        message: `Your order ${transaction._id} has been shipped.`,
+        transactionId: transaction._id
+      });
+
       // Notify buyer via modern email
       await sendEmail(
         buyer.email,
@@ -498,6 +512,16 @@ router.post(
           },
         }
       );
+
+      // Send real-time notifications
+      sendNotification(seller.userId, 'payment-released', {
+        message: `Funds released for completed order ${transaction._id}`,
+        transactionId: transaction._id
+      });
+      sendNotification(buyer.userId, 'delivery-confirmed', {
+        message: `You confirmed delivery for order ${transaction._id}`,
+        transactionId: transaction._id
+      });
 
       // Notify seller
       await sendEmail(

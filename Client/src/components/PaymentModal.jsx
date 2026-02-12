@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Smartphone, Banknote, Wallet } from "lucide-react";
 import Button from "./Button";
 import toast from "react-hot-toast";
+import axios from "axios";
 import { API_URL } from '../utils/apiConfig';
 
 
@@ -33,29 +34,28 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }) => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      if (!token) throw new Error(t('marketplace.toast.loginRequired'));
-
-      const response = await fetch(`${API_URL}/api/users/add-balance`, {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ amount: parseFloat(amount), paymentMethod: selectedMethod }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || t('nav.payment.paymentFailed'));
+      if (!token) {
+        toast.error(t('marketplace.toast.loginRequired'));
+        return;
       }
 
-      const data = await response.json();
+      const response = await axios.post(`${API_URL}/api/users/add-balance`,
+        { amount: parseFloat(amount), paymentMethod: selectedMethod },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
       toast.success(`+${amount} ETB ${t('nav.payment.addedVia')} ${selectedMethod.toUpperCase()}`);
-      onPaymentSuccess(data.balance);
+      onPaymentSuccess(response.data.balance);
       onClose();
     } catch (error) {
-      toast.error(error.message || t('nav.payment.paymentError'));
+      console.error('Payment error:', error);
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || t('nav.payment.paymentError');
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

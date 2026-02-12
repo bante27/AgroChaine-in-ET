@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { API_URL } from '../utils/apiConfig';
+import { io } from 'socket.io-client';
+import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
 
@@ -15,6 +17,66 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const socketRef = useRef(null);
+
+  // Initialize Socket connection
+  const initSocket = (currentUser) => {
+    if (socketRef.current) return;
+
+    const socket = io(API_URL, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+    });
+
+    socket.on('connect', () => {
+      console.log('📡 Notification socket connected');
+      if (currentUser) {
+        socket.emit('user:join', {
+          userId: currentUser.userId,
+          userName: currentUser.fullName,
+          userEmail: currentUser.email
+        });
+      }
+    });
+
+    socket.on('notification', (data) => {
+      console.log('🔔 Real-time notification:', data);
+      toast.success(data.data.message || 'Updated activity', {
+        icon: '🔔',
+        duration: 5000,
+      });
+
+      // Auto-refresh profile if it's a balance or order update
+      if (['payment-released', 'order-received', 'order-shipped-notice', 'delivery-confirmed'].includes(data.type)) {
+        fetchUserProfile();
+      }
+    });
+
+    socketRef.current = socket;
+  };
+
+  const fetchUserProfile = async () => {
+    const storedToken = localStorage.getItem('token');
+    if (!storedToken) return;
+
+    try {
+      const res = await axios.get(`${API_URL}/api/users/profile`, {
+        headers: { Authorization: `Bearer ${storedToken}` },
+      });
+
+      if (res.data.success && res.data.user) {
+        setUser(res.data.user);
+        setIsAuthenticated(true);
+        initSocket(res.data.user);
+      }
+    } catch (err) {
+      console.error('Fetch profile error:', err);
+      // Only logout if 401 Unauthorized or 403 Forbidden
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        logout();
+      }
+    }
+  };
 
   // Check authentication on app load
   useEffect(() => {
@@ -31,26 +93,35 @@ export const AuthProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${storedToken}` },
         });
 
-        // Backend returns: { success: true, user: { ... } }
         if (res.data.success && res.data.user) {
           setUser(res.data.user);
           setIsAuthenticated(true);
+          initSocket(res.data.user);
         } else {
-          localStorage.removeItem('token');
-          setToken(null);
-          setIsAuthenticated(false);
+          logout();
         }
       } catch (err) {
         console.error('Auth check error:', err);
-        localStorage.removeItem('token');
-        setToken(null);
-        setIsAuthenticated(false);
+        // Do NOT logout on network error, only on explicit auth failure
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          logout();
+        } else {
+          // Keep current state but stop loading
+          console.warn('Network error during auth check, keeping session');
+        }
       } finally {
         setLoading(false);
       }
     };
 
     checkAuth();
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
   }, []);
 
   // Login function
@@ -68,6 +139,7 @@ export const AuthProvider = ({ children }) => {
         setToken(data.token);
         setUser(data.user);
         setIsAuthenticated(true);
+        initSocket(data.user);
         return { success: true, user: data.user };
       } else {
         return { success: false, error: data.error || 'Login failed' };
@@ -84,11 +156,15 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, token, login, logout, loading, isAuthenticated, setUser, setToken, setIsAuthenticated }}
+      value={{ user, token, login, logout, loading, isAuthenticated, setUser, setToken, setIsAuthenticated, fetchUserProfile, socket: socketRef.current }}
     >
       {!loading && children}
     </AuthContext.Provider>
