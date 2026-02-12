@@ -166,19 +166,18 @@ export const handleContactForm = async (req, res) => {
         console.log(`[ContactForm] Background worker: Sending emails for submission from ${maskedUserEmail}`);
 
         const adminEmailOptions = {
-          to: process.env.EMAIL_USER, // Primary admin email
+          to: [process.env.EMAIL_USER, 'info@agrochain.et', 'agrochainethiopia@gmail.com'], // Notify all admin addresses
           replyTo: email,
           subject: `📩 [Contact Inquiry] ${subject} - from ${name}`,
           html: adminHtml,
         };
 
-        // Attach files physically for the icon in Gmail
         if (attachments.length > 0) {
           adminEmailOptions.attachments = attachments;
         }
 
-        await transporter.sendMail(adminEmailOptions);
-        console.log("✅ Admin notification sent");
+        const info = await transporter.sendMail(adminEmailOptions);
+        console.log(`✅ Admin notification sent. Recipient(s): ${adminEmailOptions.to.join(', ')} | ID: ${info.messageId}`);
 
         // ===== Auto-reply to User =====
         await transporter.sendMail({

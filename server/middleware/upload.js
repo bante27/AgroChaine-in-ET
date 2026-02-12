@@ -41,9 +41,9 @@ const contactStorage = new CloudinaryStorage({
   cloudinary,
   params: {
     folder: "uploads/contact",
-    resource_type: "auto",
-    type: "upload", // Ensure it's stored as a standard upload
-    access_mode: "public", // Force public access for links to work
+    resource_type: "raw", // 👈 Forced to 'raw' to fix 401 errors on documents
+    type: "upload",
+    access_mode: "public",
   }
 });
 
