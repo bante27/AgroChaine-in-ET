@@ -31,8 +31,11 @@ export const AuthProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${storedToken}` },
         });
 
-        if (res.data.success && res.data.user) {
-          setUser(res.data.user);
+        // Backend returns: { status: 'success', data: { user: ... } }
+        const userData = res.data.data?.user || res.data.user;
+
+        if (res.data.status === 'success' && userData) {
+          setUser(userData);
           setIsAuthenticated(true);
         } else {
           localStorage.removeItem('token');
@@ -61,18 +64,20 @@ export const AuthProvider = ({ children }) => {
 
       const data = res.data;
 
-      if (res.status === 200 && data.success) {
+      // Backend returns: { status: 'success', token: '...', data: { user: ... } }
+      if (res.status === 200 && data.status === 'success') {
+        const userData = data.data?.user || data.user;
         localStorage.setItem('token', data.token);
         setToken(data.token);
-        setUser(data.user);
+        setUser(userData);
         setIsAuthenticated(true);
-        return { success: true, user: data.user };
+        return { success: true, user: userData };
       } else {
-        return { success: false, error: data.error || 'Login failed' };
+        return { success: false, error: data.message || 'Login failed' };
       }
     } catch (err) {
       console.error('Login error:', err);
-      return { success: false, error: err.response?.data?.error || 'Network error' };
+      return { success: false, error: err.response?.data?.message || 'Network error' };
     }
   };
 

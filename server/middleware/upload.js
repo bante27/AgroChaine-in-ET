@@ -45,49 +45,14 @@ export const govIdUpload = multer({
 
 // ===================== CONTACT UPLOADS (FIXED) =====================
 
+// ===================== CONTACT UPLOADS (FIXED) =====================
 const contactStorage = new CloudinaryStorage({
   cloudinary,
-  params: async (req, file) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-
-    // 1. Determine Resource Category
-    let resourceType = "auto";
-    let isDocument = false;
-
-    if (file.mimetype.startsWith("image/")) {
-      resourceType = "image";
-    } else if (file.mimetype.startsWith("audio/") || file.mimetype.startsWith("video/")) {
-      resourceType = "video"; // Audio is handled as 'video' in Cloudinary
-    } else if (
-      file.mimetype.includes("pdf") ||
-      file.mimetype.includes("msword") ||
-      file.mimetype.includes("officedocument") ||
-      file.mimetype.includes("powerpoint") ||
-      file.mimetype.includes("excel") ||
-      file.mimetype.includes("text/plain")
-    ) {
-      resourceType = "raw";
-      isDocument = true;
-    }
-
-    // 2. Sanitize Filename & Preserve Extension
-    const parts = file.originalname.split('.');
-    const ext = parts.length > 1 ? parts.pop() : '';
-    const nameWithoutExt = parts.join('.');
-    const sanitizedName = nameWithoutExt.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-
-    // 3. Construct Public ID
-    const publicId = `${uniqueSuffix}-${sanitizedName}${ext ? '.' + ext : ''}`;
-
-    const config = {
-      folder: "uploads/contact",
-      resource_type: resourceType,
-      type: 'upload',
-      access_mode: 'public',
-      public_id: publicId,
-    };
-
-    return config;
+  params: {
+    folder: "uploads/contact",
+    resource_type: "auto", // Let Cloudinary detect (image/video/raw)
+    // Removed manual public_id to avoid signature issues, Cloudinary will generate a safe one
+    // or we can use a simple one if needed, but 'auto' is safest.
   },
 });
 
@@ -95,8 +60,8 @@ const contactStorage = new CloudinaryStorage({
 export const contactUpload = multer({
   storage: contactStorage,
   limits: {
-    fileSize: 20 * 1024 * 1024, // ✅ 20MB max per file
-    files: 6, // 5 attachments + 1 voice
+    fileSize: 20 * 1024 * 1024, // 20MB max
+    files: 6,
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
