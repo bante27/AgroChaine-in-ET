@@ -11,7 +11,8 @@ router.get("/", async (req, res) => {
   try {
     const apiKey = process.env.WEATHER_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ success: false, error: "Weather API key not configured in .env file" });
+      console.warn("⚠️ Weather API key missing. Returning empty weather data.");
+      return res.status(200).json({ success: true, weather: null, message: "Weather service unavailable" });
     }
 
     const city = req.query.city || "Addis Ababa,ET";
