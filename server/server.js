@@ -46,7 +46,8 @@ app.use(
       const isAllowed = !origin ||
         allowedOrigins.includes(origin) ||
         origin.includes(".onrender.com") ||
-        origin.includes(".netlify.app");
+        origin.includes(".netlify.app") ||
+        origin.includes(".vercel.app");
 
       if (isAllowed) {
         callback(null, true);
