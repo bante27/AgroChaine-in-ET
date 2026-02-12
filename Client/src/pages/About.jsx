@@ -385,7 +385,7 @@ const About = () => {
               className="bg-yellow-400 text-teal-900 px-10 py-5 rounded-2xl font-bold text-xl hover:bg-yellow-500 hover:shadow-lg transition-all duration-300 hover:scale-105"
               aria-label="Get started with AgroChain"
             >
-              {t('hero.empoweringSection.joinNow')}
+              {t('joinNow')}
             </Link>
           </motion.div>
         </div>
@@ -754,9 +754,9 @@ const About = () => {
             className="text-center mb-12"
           >
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 drop-shadow-md">
-              {t('about.weather.title')} <span className="text-teal-600">{selectedLocation || userCity}</span>
+              {t('Real time weather')} <span className="text-teal-600">{selectedLocation || userCity}</span>
             </h2>
-            <p className="text-xl text-gray-700 mb-6 drop-shadow-sm">{t('about.weather.subtitle')}</p>
+            <p className="text-xl text-gray-700 mb-6 drop-shadow-sm">{t('weather')}</p>
             <div className="flex justify-center items-center gap-4">
               <MapPin className="h-6 w-6 text-teal-600 animate-pulse" />
               <select

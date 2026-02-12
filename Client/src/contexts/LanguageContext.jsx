@@ -138,10 +138,9 @@ const translations = {
       }
     },
     hero: {
-      title: 'AgroChain',
-      subtitle: 'Ethiopia',
       tagline: 'Traceable. Transparent. Trusted.',
-      description: 'Revolutionize Ethiopia’s food supply chain with Technology-powered platform connecting farmers, distributors, retailers, and consumers.',
+      description: 'Revolutionizing Ethiopia’s food supply chain through a secure, technology-powered platform that connects farmers, distributors, retailers, and consumers.',
+      joinNow: 'Join Now',
       explore: 'Explore Marketplace',
       demo: 'Watch Demo',
       slides: [
@@ -198,6 +197,12 @@ const translations = {
             content: 'Customers trust our produce because they can trace its journey. AgroChain has boosted our sales and reputation.',
           },
         ]
+      },
+      empoweringSection: {
+        title: 'AgroChain Ethiopia',
+        description: 'Empowering Ethiopia\'s agriculture with modern technology, transparency, and sustainable growth for farmers and communities.',
+        joinNow: 'Join Now',
+        getStarted: 'Get Started Today'
       }
     },
     marketplace: {
@@ -711,10 +716,10 @@ const translations = {
       ],
     },
     about: {
-      title: 'About AgroChain Ethiopia',
-      titlePart1: 'About',
+      title: 'AgroChain Ethiopia',
+      titlePart1: '',
       titlePart2: 'AgroChain Ethiopia',
-      subtitle: 'Revolutionizing the food supply chain with transparency and technology.',
+      subtitle: 'Revolutionizing the food supply chain with transparency, security, and technology.',
       mission: {
         title: 'Our Mission',
         desc: 'To revolutionize Ethiopian agriculture with a transparent, efficient, and profitable supply chain ecosystem powered by technology.'
@@ -829,11 +834,11 @@ const translations = {
       }
     },
     weather: {
-      title: 'Real-Time Weather',
-      subtitle: 'Auto-detected from your location or select from Ethiopian places for accurate planning.',
-      detecting: 'Fetching real-time weather...',
-      retry: 'Retry',
-      useLocation: 'Use Current Location'
+      title: 'Real-Time Weather in',
+      subtitle: 'Accurate meteorological insights for Ethiopian agricultural hubs to optimize your harvest and logistics.',
+      detecting: 'Locating and fetching weather data...',
+      retry: 'Retry Connection',
+      useLocation: 'Detect My Location'
     },
     payment: {
       title: 'Add Balance',
@@ -1097,10 +1102,9 @@ const translations = {
       }
     },
     hero: {
-      title: 'አግሮቼይን',
-      subtitle: 'ኢትዮጵያ',
       tagline: 'ተከታታይ። ግልጽ። የታመነ።',
       description: 'ገበሬዎችን፣ አከፋፋዮችን፣ ቸርቻሪዎችን እና ሸማቾችን በማገናኘት የኢትዮጵያን የምግብ አቅርቦት ሰንሰለት በቴክኖሎጂ የታገዘ መድረክ ይለውጡ።',
+      joinNow: 'አሁን ይቀላቀሉ',
       explore: 'ገበያውን ያስሱ',
       demo: 'ማሳያ ይመልከቱ',
       slides: [
