@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Package, ShoppingCart, MessageSquare, TrendingUp, Calendar } from 'lucide-react';
+import { Users, Package, ShoppingCart, MessageSquare, TrendingUp, Calendar, Download } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../utils/apiConfig';
@@ -33,6 +33,7 @@ const Dashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [recentActivity, setRecentActivity] = useState([]);
+  const [allTransactions, setAllTransactions] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -118,6 +119,7 @@ const Dashboard = () => {
             .sort((a, b) => b.rawDate - a.rawDate)
             .slice(0, 5)
         );
+        setAllTransactions(transactions);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         setError(error.response?.data?.error || 'Failed to fetch dashboard data');
@@ -128,6 +130,52 @@ const Dashboard = () => {
 
     if (token) fetchDashboardData();
   }, [token]);
+
+  const downloadReport = () => {
+    if (allTransactions.length === 0) return;
+
+    // Take last 50 as requested, or more if available
+    const reportData = allTransactions.slice(0, 50);
+
+    const headers = [
+      'Transaction ID',
+      'Date',
+      'Product ID',
+      'Quantity',
+      'Total Price (ETB)',
+      'Buyer Fee',
+      'Seller Fee',
+      'Net Seller Amount',
+      'Status',
+      'Delivery Address'
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      ...reportData.map(t => [
+        t._id,
+        new Date(t.date).toISOString(),
+        t.productId,
+        t.quantity,
+        t.totalPrice,
+        t.platformFeeBuyer || (t.totalPrice * 0.05).toFixed(2),
+        t.platformFeeSeller || (t.totalPrice * 0.05).toFixed(2),
+        t.netSellerAmount || (t.totalPrice * 0.95).toFixed(2),
+        t.status,
+        `"${(t.deliveryAddress || '').replace(/"/g, '""')}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `AgroChain_Financial_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const ProgressBar = ({ label, value, total, color = 'cyan' }) => (
     <div className="flex flex-col mb-4">
@@ -180,18 +228,27 @@ const Dashboard = () => {
       )}
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-          <div className="text-gray-500 dark:text-gray-400 text-sm">
-            Last updated:{' '}
-            {new Date().toLocaleString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+            <div className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+              Last updated:{' '}
+              {new Date().toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </div>
           </div>
+          <button
+            onClick={downloadReport}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-600 transition-all duration-300 shadow-lg hover:shadow-emerald-500/20"
+          >
+            <Download className="h-5 w-5" />
+            Download Financial Report
+          </button>
         </div>
 
         {/* Stats Overview */}
