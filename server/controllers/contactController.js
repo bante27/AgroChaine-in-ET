@@ -14,17 +14,12 @@ export const handleContactForm = async (req, res) => {
       return res.status(400).json({ success: false, error: "All fields are required" });
     }
 
-    console.log("--- CONTACT FORM DEBUG ---");
-    console.log("Body:", { name, email, subject });
-    console.log("Raw req.files:", req.files);
+    const maskedEmail = email.replace(/^(..)(.*)(@.*)$/, "$1***$3");
+    console.log(`[ContactForm] Submission received from ${maskedEmail} | Subject: ${subject}`);
 
     if (req.files) {
-      Object.keys(req.files).forEach(key => {
-        console.log(`Field [${key}]: ${req.files[key].length} files`);
-        req.files[key].forEach((f, i) => {
-          console.log(`  File ${i}: ${f.originalname}, path: ${f.path || 'MISSING'}, mimetype: ${f.mimetype}`);
-        });
-      });
+      const fileSummary = Object.keys(req.files).map(key => `${key}: ${req.files[key].length}`).join(', ');
+      console.log(`[ContactForm] Attachments received: ${fileSummary}`);
     }
 
     const attachments = [];
@@ -35,13 +30,7 @@ export const handleContactForm = async (req, res) => {
       console.log(`Processing ${req.files.files.length} document files...`);
       req.files.files.forEach((file, index) => {
         let url = file.path || file.location || file.secure_url || file.url; // Cloudinary URL
-        console.log(`  File ${index} raw data:`, {
-          originalname: file.originalname,
-          mimetype: file.mimetype,
-          path: file.path ? 'exists' : 'null',
-          secure_url: file.secure_url ? 'exists' : 'null',
-          url: file.url ? 'exists' : 'null'
-        });
+        // Processing file... (details hidden)
 
         if (url) {
           // Force HTTPS
@@ -73,12 +62,7 @@ export const handleContactForm = async (req, res) => {
       console.log(`Processing ${req.files.voice.length} voice files...`);
       req.files.voice.forEach((file, index) => {
         let url = file.path || file.location || file.secure_url || file.url; // Cloudinary URL
-        console.log(`  Voice ${index} raw data:`, {
-          originalname: file.originalname,
-          mimetype: file.mimetype,
-          path: file.path ? 'exists' : 'null',
-          secure_url: file.secure_url ? 'exists' : 'null'
-        });
+        // Processing voice... (details hidden)
 
         if (url) {
           // Force HTTPS
@@ -114,8 +98,7 @@ export const handleContactForm = async (req, res) => {
       attachments: attachmentLinks, // store URLs
     });
     const savedMsg = await newContact.save();
-    console.log("Contact saved to DB with ID:", savedMsg._id);
-    console.log("Saved Attachments count:", savedMsg.attachments?.length || 0);
+    console.log(`[ContactForm] Saved to DB. ID: ${savedMsg._id.toString().slice(-6)}`);
 
     // 🚀 FAST RESPONSE: Send success immediately to client
     res.status(200).json({ success: true, message: "Message sent successfully" });
@@ -179,10 +162,8 @@ export const handleContactForm = async (req, res) => {
           </div>
         `;
 
-        console.log("📨 Background worker: Preparing to send emails for", name);
-
-        // Final check on attachments for logging
-        console.log("📎 Attachment count for email:", attachments.length);
+        const maskedUserEmail = email.replace(/^(..)(.*)(@.*)$/, "$1***$3");
+        console.log(`[ContactForm] Background worker: Sending emails for submission from ${maskedUserEmail}`);
 
         const adminEmailOptions = {
           to: process.env.EMAIL_USER, // Primary admin email
@@ -197,7 +178,7 @@ export const handleContactForm = async (req, res) => {
         }
 
         await transporter.sendMail(adminEmailOptions);
-        console.log("✅ Admin notification sent to:", adminEmailOptions.to);
+        console.log("✅ Admin notification sent");
 
         // ===== Auto-reply to User =====
         await transporter.sendMail({
@@ -222,13 +203,13 @@ export const handleContactForm = async (req, res) => {
         console.log("✅ User auto-reply sent");
 
       } catch (bgError) {
-        console.error("❌ Background email worker failed:", bgError);
+        console.error("[ContactForm] Background email worker failed:", bgError.message);
       }
     })();
   } catch (error) {
-    console.error("Contact form error:", error);
+    console.error(`[ContactForm] Error: ${error.message}`);
     return res
       .status(500)
-      .json({ success: false, error: error.message || "Server error. Please try again later." });
+      .json({ success: false, error: "Server error handling contact form. Please try again later." });
   }
 };

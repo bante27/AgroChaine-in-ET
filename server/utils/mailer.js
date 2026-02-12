@@ -43,7 +43,7 @@ const mailer = {
       console.log('✅ Email sent successfully via Gmail:', info.messageId);
       return info;
     } catch (error) {
-      console.error('❌ Mailer error (Gmail):', error);
+      console.error('❌ Mailer error (Gmail):', error.message);
       throw error;
     }
   },
@@ -52,7 +52,7 @@ const mailer = {
     if (transporter) {
       transporter.verify((error, success) => {
         if (error) {
-          console.error('❌ SMTP Connection Error:', error);
+          console.error('❌ SMTP Connection Error:', error.message);
           callback(error, false);
         } else {
           console.log('✅ SMTP Connection Verified');

@@ -25,7 +25,7 @@ const restrictUnverifiedUsers = async (req, res, next) => {
     }
     next();
   } catch (err) {
-    console.error('Error checking verification status:', err);
+    console.error('[Products] Error checking verification status:', err.message);
     res.status(500).json({ success: false, error: 'Server error checking verification status' });
   }
 };
@@ -65,7 +65,7 @@ router.post("/", auth, restrictUnverifiedUsers, isNotRestricted, productImageUpl
 
     res.status(201).json({ success: true, product: newProduct });
   } catch (error) {
-    console.error(error);
+    console.error('[Products] Error adding product:', error.message);
     res.status(500).json({ success: false, error: "Server error adding product" });
   }
 });
@@ -94,7 +94,7 @@ router.get("/", async (req, res) => {
       products,
     });
   } catch (error) {
-    console.error(error);
+    console.error('[Products] Error fetching products:', error.message);
     res.status(500).json({ success: false, error: "Server error fetching products" });
   }
 });
@@ -107,7 +107,7 @@ router.get("/my-products", auth, async (req, res) => {
 
     res.json({ success: true, products: user.postedProducts || [] });
   } catch (error) {
-    console.error(error);
+    console.error('[Products] Error fetching user products:', error.message);
     res.status(500).json({ success: false, error: "Server error fetching user products" });
   }
 });
@@ -128,7 +128,7 @@ router.get("/:id", async (req, res) => {
 
     res.json({ success: true, product });
   } catch (error) {
-    console.error("Error fetching product:", error);
+    console.error("[Products] Error fetching product:", error.message);
     res.status(500).json({ success: false, error: "Server error fetching product" });
   }
 });
@@ -158,7 +158,7 @@ router.post("/:productId/review", auth, async (req, res) => {
 
     res.status(201).json({ success: true, message: "Review added", product });
   } catch (error) {
-    console.error(error);
+    console.error('[Products] Error adding review:', error.message);
     res.status(500).json({ success: false, error: "Server error adding review" });
   }
 });
@@ -183,7 +183,7 @@ router.post("/:productId/like", auth, async (req, res) => {
 
     res.json({ success: true, message: "Product liked", likesCount: product.likesCount });
   } catch (error) {
-    console.error(error);
+    console.error('[Products] Error liking product:', error.message);
     res.status(500).json({ success: false, error: "Server error liking product" });
   }
 });
@@ -210,7 +210,7 @@ router.post("/:productId/unlike", auth, async (req, res) => {
 
     res.json({ success: true, message: "Product unliked", likesCount: product.likesCount });
   } catch (error) {
-    console.error(error);
+    console.error('[Products] Error unliking product:', error.message);
     res.status(500).json({ success: false, error: "Server error unliking product" });
   }
 });
@@ -271,7 +271,7 @@ router.post("/:productId/purchase", auth, async (req, res) => {
       newQuantity: product.quantityAvailable
     });
   } catch (error) {
-    console.error("Error processing purchase:", error);
+    console.error("[Products] Error processing purchase:", error.message);
     res.status(500).json({ success: false, error: "Server error processing purchase" });
   }
 });

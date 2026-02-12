@@ -40,10 +40,8 @@ const sendEmail = async (to, subject, htmlBody) => {
       html,
     });
   } catch (err) {
-    console.error(`❌ Email failed to ${to}:`, err.message);
-    if (err.statusCode === 403) {
-      console.error("💡 TIP: Verify your domain at Resend.com to send to this address.");
-    }
+    const maskedTo = to ? to.replace(/^(..)(.*)(@.*)$/, "$1***$3") : 'Unknown';
+    console.error(`❌ Email failed to ${maskedTo}:`, err.message);
   }
 };
 
@@ -63,7 +61,7 @@ const restrictUnverifiedUsers = async (req, res, next) => {
     }
     next();
   } catch (err) {
-    console.error("Error checking verification status:", err);
+    console.error("[Transaction] Error checking verification status:", err.message);
     res
       .status(500)
       .json({ success: false, error: "Server error checking verification" });
@@ -313,13 +311,14 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
             );
           }
         } catch (err) {
-          console.error(`Email failed for ${emailData.type}:`, err.message);
+          const maskedEmail = emailData.to ? emailData.to.replace(/^(..)(.*)(@.*)$/, "$1***$3") : 'Unknown';
+          console.error(`[Transaction] Email failed for ${emailData.type} (${maskedEmail}):`, err.message);
         }
       });
     });
 
   } catch (error) {
-    console.error("Transaction error:", error);
+    console.error("[Transaction] Buy Error:", error.message);
     res.status(500).json({ success: false, error: "Server error during transaction" });
   }
 });
@@ -421,7 +420,7 @@ router.post(
           <p>Track your order using Order ID: <strong>${transaction._id}</strong>.</p>
         `
       ).catch(err => {
-        console.error("Buyer shipped email failed:", err);
+        console.error("[Transaction] Buyer shipped email failed:", err.message);
       });
 
       res.json({
@@ -430,7 +429,7 @@ router.post(
         transaction,
       });
     } catch (error) {
-      console.error("Mark shipped error:", error);
+      console.error("[Transaction] Mark shipped error:", error.message);
       res
         .status(500)
         .json({ success: false, error: "Server error during update" });
@@ -548,7 +547,7 @@ router.post(
           <p style="margin-top:12px;">Funds have been released to your account. Thank you for selling with Agrochain Ethiopia.</p>
         `
       ).catch(err => {
-        console.error("Seller delivery-confirm email failed:", err);
+        console.error("[Transaction] Seller delivery-confirm email failed:", err.message);
       });
 
       // Notify buyer
@@ -572,7 +571,7 @@ router.post(
           <p style="margin-top:12px;">We hope you enjoyed your purchase. We look forward to serving you again!</p>
         `
       ).catch(err => {
-        console.error("Buyer delivery-confirm email failed:", err);
+        console.error("[Transaction] Buyer delivery-confirm email failed:", err.message);
       });
 
       res.json({
@@ -581,7 +580,7 @@ router.post(
         transaction,
       });
     } catch (error) {
-      console.error("Confirm delivery error:", error);
+      console.error("[Transaction] Confirm delivery error:", error.message);
       res
         .status(500)
         .json({ success: false, error: "Server error confirming delivery" });
@@ -598,7 +597,7 @@ router.get("/my", auth, async (req, res) => {
     }).sort({ createdAt: -1 });
     res.json({ success: true, transactions });
   } catch (error) {
-    console.error("Get user transactions error:", error);
+    console.error("[Transaction] Get user transactions error:", error.message);
     res
       .status(500)
       .json({ success: false, error: "Server error fetching transactions" });
@@ -628,7 +627,7 @@ router.get("/:transactionId", auth, async (req, res) => {
 
     res.json({ success: true, transaction });
   } catch (error) {
-    console.error("Get transaction detail error:", error);
+    console.error("[Transaction] Get transaction detail error:", error.message);
     res
       .status(500)
       .json({ success: false, error: "Server error fetching details" });

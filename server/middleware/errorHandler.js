@@ -2,7 +2,7 @@
 
 // Centralized error handler
 const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
+  console.error('[CentralError]', err.message);
   res.status(500).json({ success: false, error: 'Server Error' });
 };
 

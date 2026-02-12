@@ -23,7 +23,7 @@ router.get('/messages', auth, admin, async (req, res) => {
       .select('name email subject message attachments status createdAt');
     res.json({ success: true, messages });
   } catch (err) {
-    console.error('Error fetching messages:', err);
+    console.error('[Admin] Error fetching messages:', err.message);
     res.status(500).json({ success: false, error: 'Server error fetching messages' });
   }
 });
@@ -93,9 +93,7 @@ router.post(
         await transporter.sendMail(mailOptions);
         console.log(`✅ Reply sent to ${message.email ? message.email.slice(0, 3) + '***@' + message.email.split('@')[1] : 'Unknown'}`);
       } catch (emailErr) {
-        console.error('❌ Error sending reply email:', emailErr);
-        // Don't fail the request, but log it.
-        // If needed, we could return a warning, but UI usually expects success.
+        console.error('[Admin] Error sending reply email:', emailErr.message);
       }
 
       // Update message status
@@ -137,7 +135,7 @@ router.delete('/messages/:messageId', auth, admin, async (req, res) => {
     }
     res.json({ success: true, message: 'Message deleted successfully' });
   } catch (err) {
-    console.error('Error deleting message:', err);
+    console.error('[Admin] Error deleting message:', err.message);
     res.status(500).json({ success: false, error: 'Server error' });
   }
 });
@@ -158,7 +156,7 @@ router.patch('/messages/:messageId/read', auth, admin, async (req, res) => {
 
     res.json({ success: true, message: 'Message marked as read' });
   } catch (err) {
-    console.error('Error marking message as read:', err);
+    console.error('[Admin] Error marking message as read:', err.message);
     res.status(500).json({ success: false, error: 'Server error' });
   }
 });
@@ -196,7 +194,7 @@ router.delete(
           `,
         });
       } catch (emailErr) {
-        console.error('Error sending deletion email:', emailErr);
+        console.error('[Admin] Error sending deletion email:', emailErr.message);
       }
 
       // Delete the message
@@ -208,7 +206,7 @@ router.delete(
         messageId: req.params.messageId,
       });
     } catch (err) {
-      console.error('Error deleting message:', err);
+      console.error('[Admin] Error deleting message:', err.message);
       res.status(500).json({ success: false, error: 'Server error deleting message' });
     }
   }
@@ -222,7 +220,7 @@ router.get('/verifications/pending', auth, admin, async (req, res) => {
       .select('userId fullName email govIdFront govIdBack govIdStatus');
     res.json({ success: true, pending });
   } catch (err) {
-    console.error('Error fetching pending verifications:', err);
+    console.error('[Admin] Error fetching pending verifications:', err.message);
     res.status(500).json({ success: false, error: 'Server error fetching pending verifications' });
   }
 });
@@ -262,10 +260,7 @@ router.patch('/verify/:userId', auth, admin, async (req, res) => {
         `,
       });
     } catch (emailErr) {
-      console.error('❌ Error sending verification email:', emailErr.message);
-      if (emailErr.statusCode === 403) {
-        console.error("💡 TIP: Verify your domain at Resend.com to send to this address.");
-      }
+      console.error('[Admin] Error sending verification email:', emailErr.message);
     }
 
     res.json({
@@ -280,7 +275,7 @@ router.patch('/verify/:userId', auth, admin, async (req, res) => {
       },
     });
   } catch (err) {
-    console.error('Error processing verification:', err);
+    console.error('[Admin] Error processing verification:', err.message);
     res.status(500).json({ success: false, error: 'Server error processing ID verification' });
   }
 });
@@ -291,7 +286,7 @@ router.get('/users', auth, admin, async (req, res) => {
     const users = await User.find({}, '-password -otp -otpExpires -govIdFront -govIdBack');
     res.json({ success: true, users });
   } catch (err) {
-    console.error('Error fetching users:', err);
+    console.error('[Admin] Error fetching users:', err.message);
     res.status(500).json({ success: false, error: 'Server error fetching users' });
   }
 });
@@ -430,7 +425,7 @@ router.delete(
         productId: req.params.productId,
       });
     } catch (err) {
-      console.error('Error deleting product:', err);
+      console.error('[Admin] Error deleting product:', err.message);
       res.status(500).json({ success: false, error: 'Server error deleting product' });
     }
   }

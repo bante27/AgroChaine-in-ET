@@ -110,6 +110,6 @@ connectDB().then(() => {
     console.log(`📡 WebSocket server ready`);
   });
 }).catch(err => {
-  console.error("❌ Failed to connect to MongoDB. Server not started.", err);
+  console.error("❌ Failed to connect to MongoDB. Server not started.", err.message);
   process.exit(1);
 });

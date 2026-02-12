@@ -126,7 +126,7 @@ export const initializeSocket = (httpServer) => {
 
                 console.log(`👤 User joined conversation: ${conversation.conversationId.slice(0, 15)}...`);
             } catch (error) {
-                console.error('Error in user:join:', error);
+                console.error('[Socket] Error in user:join:', error.message);
                 socket.emit('error', { message: 'Failed to join conversation' });
             }
         });
@@ -171,7 +171,7 @@ export const initializeSocket = (httpServer) => {
 
                 console.log(`👨‍💼 Agent joined (${onlineAgents.size} online)`);
             } catch (error) {
-                console.error('Error in agent:join:', error);
+                console.error('[Socket] Error in agent:join:', error.message);
                 socket.emit('error', { message: 'Failed to join as agent' });
             }
         });
@@ -224,7 +224,7 @@ export const initializeSocket = (httpServer) => {
                     console.log(`👨‍💼 Agent assigned to conversation: ${conversationId.slice(0, 15)}...`);
                 }
             } catch (error) {
-                console.error('Error in conversation:take:', error);
+                console.error('[Socket] Error in conversation:take:', error.message);
                 socket.emit('error', { message: 'Failed to take conversation' });
             }
         });
@@ -276,7 +276,7 @@ export const initializeSocket = (httpServer) => {
 
                 console.log(`💬 Message activity in: ${conversationId.slice(0, 15)}...`);
             } catch (error) {
-                console.error('Error in message:send:', error);
+                console.error('[Socket] Error in message:send:', error.message);
                 socket.emit('error', { message: 'Failed to send message' });
             }
         });
@@ -318,7 +318,7 @@ export const initializeSocket = (httpServer) => {
                 // Notify user that messages were read
                 io.to(conversationId).emit('messages:read', { conversationId });
             } catch (error) {
-                console.error('Error in messages:read:', error);
+                console.error('[Socket] Error in messages:read:', error.message);
             }
         });
 
@@ -351,9 +351,9 @@ export const initializeSocket = (httpServer) => {
                     status: 'closed'
                 });
 
-                console.log(`🔒 Conversation ${conversationId} closed`);
+                console.log(`🔒 Conversation ${conversationId.slice(0, 15)}... closed`);
             } catch (error) {
-                console.error('Error in conversation:close:', error);
+                console.error('[Socket] Error in conversation:close:', error.message);
             }
         });
 

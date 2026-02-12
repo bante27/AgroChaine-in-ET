@@ -126,7 +126,8 @@ router.post(
           `,
         });
       } catch (emailErr) {
-        console.error('Registration OTP email failed:', emailErr.message);
+        const maskedEmail = email.replace(/^(..)(.*)(@.*)$/, "$1***$3");
+        console.error(`Registration OTP email failed for ${maskedEmail}:`, emailErr.message);
         return res.status(500).json({
           success: false,
           error: `Email failed to send. Please try again later or contact support.`
@@ -198,7 +199,8 @@ router.post(
           `,
         });
       } catch (emailErr) {
-        console.error('Resend OTP email failed:', emailErr.message);
+        const maskedEmail = email.replace(/^(..)(.*)(@.*)$/, "$1***$3");
+        console.error(`Resend OTP email failed for ${maskedEmail}:`, emailErr.message);
         return res.status(500).json({
           success: false,
           error: `Email failed to send. Please try again later or contact support.`
@@ -337,7 +339,8 @@ router.post(
           `,
         });
       } catch (emailErr) {
-        console.error('Password reset OTP email failed:', emailErr.message);
+        const maskedEmail = email.replace(/^(..)(.*)(@.*)$/, "$1***$3");
+        console.error(`Password reset OTP email failed for ${maskedEmail}:`, emailErr.message);
       }
 
       res.status(200).json({
@@ -552,17 +555,12 @@ router.post(
         profilePic: updatedUser.profilePic,
       });
     } catch (err) {
-      console.error('Error uploading profile picture:', err);
-      // Log more details to help debug the 500 error
-      if (err.storageError) {
-        console.error('Storage Error Details:', err.storageError);
-      }
+      console.error('Error uploading profile picture:', err.message);
       res
         .status(500)
         .json({
           success: false,
-          error: err.message || 'Error uploading profile picture. Check Cloudinary configuration.',
-          details: err.stack
+          error: 'Error uploading profile picture. Please check your file and try again.',
         });
     }
   }
@@ -578,9 +576,7 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      // console.log('📤 Verification upload request received');
-      // console.log('Files:', req.files);
-      // console.log('Body:', req.body);
+      // Verification upload request received (details masked)
 
       if (!req.files?.govIdFront || !req.files?.govIdBack) {
         console.error('❌ Missing ID files');
@@ -595,7 +591,7 @@ router.post(
         return res.status(404).json({ success: false, error: 'User not found' });
       }
 
-      console.log('👤 User verification re-submission. Current status:', user.govIdStatus);
+      console.log(`👤 User [${req.user.userId.slice(0, 4)}***] verification re-submission. Current status: ${user.govIdStatus}`);
 
       // Allow re-submission if rejected or unverified
       if (user.govIdStatus === 'rejected' || user.govIdStatus === 'unverified' || !user.govIdStatus) {
@@ -620,8 +616,7 @@ router.post(
         govIdStatus: user.govIdStatus
       });
     } catch (err) {
-      console.error('❌ Error uploading government ID:', err);
-      console.error('Error stack:', err.stack);
+      console.error('❌ Error uploading government ID:', err.message);
 
       // Provide more detailed error message
       let errorMessage = 'Server error uploading government ID';
@@ -635,8 +630,7 @@ router.post(
         .status(500)
         .json({
           success: false,
-          error: errorMessage,
-          details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+          error: errorMessage
         });
     }
   }
