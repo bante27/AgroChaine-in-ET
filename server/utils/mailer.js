@@ -37,8 +37,9 @@ const mailer = {
       }
 
       // Merge defaults with options
+      const emailUser = (process.env.EMAIL_USER || process.env.NODEMAILER_EMAIL || '').trim();
       const mailOptions = {
-        from: `"AgroChain Ethiopia" <${process.env.EMAIL_USER}>`,
+        from: `"AgroChain Ethiopia" <${emailUser}>`,
         ...options
       };
 

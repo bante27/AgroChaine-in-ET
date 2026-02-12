@@ -42,6 +42,8 @@ const contactStorage = new CloudinaryStorage({
   params: {
     folder: "uploads/contact",
     resource_type: "auto",
+    type: "upload", // Ensure it's stored as a standard upload
+    access_mode: "public", // Force public access for links to work
   }
 });
 
