@@ -40,14 +40,9 @@ export const govIdUpload = multer({
 // ===================== CONTACT UPLOADS (FIXED) =====================
 const contactStorage = new CloudinaryStorage({
   cloudinary,
-  params: async (req, file) => {
-    // Dynamic params function ensures correct signature generation for each file
-    return {
-      folder: "uploads/contact",
-      resource_type: "auto",
-      // Clean up filename to be used as public_id
-      public_id: `contact-${Date.now()}-${file.originalname.split('.')[0].replace(/[^a-z0-9]/gi, '_').toLowerCase()}`
-    };
+  params: {
+    folder: "uploads/contact",
+    resource_type: "auto",
   }
 });
 

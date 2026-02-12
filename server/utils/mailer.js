@@ -12,13 +12,15 @@ if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
 }
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, // Use STARTTLS
   auth: {
     user: process.env.EMAIL_USER || process.env.NODEMAILER_EMAIL,
     pass: process.env.EMAIL_PASS || process.env.NODEMAILER_PASS,
   },
   tls: {
-    rejectUnauthorized: false // Helps avoid certificate issues in some network environments
+    rejectUnauthorized: false
   }
 });
 
