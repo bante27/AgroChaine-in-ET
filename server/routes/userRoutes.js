@@ -578,9 +578,9 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      console.log('📤 Verification upload request received');
-      console.log('Files:', req.files);
-      console.log('Body:', req.body);
+      // console.log('📤 Verification upload request received');
+      // console.log('Files:', req.files);
+      // console.log('Body:', req.body);
 
       if (!req.files?.govIdFront || !req.files?.govIdBack) {
         console.error('❌ Missing ID files');
@@ -595,7 +595,7 @@ router.post(
         return res.status(404).json({ success: false, error: 'User not found' });
       }
 
-      console.log('👤 User found:', user.email, 'Current status:', user.govIdStatus);
+      console.log('👤 User verification re-submission. Current status:', user.govIdStatus);
 
       // Allow re-submission if rejected or unverified
       if (user.govIdStatus === 'rejected' || user.govIdStatus === 'unverified' || !user.govIdStatus) {

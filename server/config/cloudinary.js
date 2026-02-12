@@ -4,15 +4,15 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
+    cloud_name: (process.env.CLOUDINARY_CLOUD_NAME || '').trim(),
+    api_key: (process.env.CLOUDINARY_API_KEY || '').trim(),
+    api_secret: (process.env.CLOUDINARY_API_SECRET || '').trim(),
 });
 
 // Verify configuration (without exposing secret)
-console.log('☁️ Cloudinary Configuration Loaded:', {
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY ? 'Present (***' + process.env.CLOUDINARY_API_KEY.slice(-4) + ')' : 'MISSING',
+console.log('☁️ Cloudinary Config Status:', {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'OK (Configured)' : 'MISSING',
+    api_key: process.env.CLOUDINARY_API_KEY ? 'Present (***' + process.env.CLOUDINARY_API_KEY.trim().slice(-4) + ')' : 'MISSING',
     has_secret: !!process.env.CLOUDINARY_API_SECRET
 });
 

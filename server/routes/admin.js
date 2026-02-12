@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import { body, validationResult, param } from 'express-validator';
 import auth from '../middleware/auth.js';
 import admin from '../middleware/adminMiddleware.js';
@@ -90,7 +91,7 @@ router.post(
 
       try {
         await transporter.sendMail(mailOptions);
-        console.log(`✅ Reply sent to ${message.email}`);
+        console.log(`✅ Reply sent to ${message.email ? message.email.slice(0, 3) + '***@' + message.email.split('@')[1] : 'Unknown'}`);
       } catch (emailErr) {
         console.error('❌ Error sending reply email:', emailErr);
         // Don't fail the request, but log it.
@@ -126,6 +127,20 @@ router.post(
     }
   }
 );
+
+// Delete a message
+router.delete('/messages/:messageId', auth, admin, async (req, res) => {
+  try {
+    const message = await Contact.findByIdAndDelete(req.params.messageId);
+    if (!message) {
+      return res.status(404).json({ success: false, error: 'Message not found' });
+    }
+    res.json({ success: true, message: 'Message deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting message:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
 
 // Mark a message as read
 router.patch('/messages/:messageId/read', auth, admin, async (req, res) => {
@@ -322,6 +337,27 @@ router.post('/users/:userId/restrict', auth, admin, async (req, res) => {
   }
 });
 
+// Delete a user
+router.delete('/users/:userId', auth, admin, async (req, res) => {
+  try {
+    const user = await User.findOne({ userId: req.params.userId });
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
+    // Remove user's products first? Optional but safer.
+    await Product.deleteMany({ ownerUserId: user.userId });
+
+    await user.deleteOne();
+
+    res.json({
+      success: true,
+      message: 'User and their products deleted successfully',
+    });
+  } catch (err) {
+    console.error('Error deleting user:', err);
+    res.status(500).json({ success: false, error: 'Server error deleting user' });
+  }
+});
+
 // Get all products
 router.get('/products', auth, admin, async (req, res) => {
   try {
@@ -348,7 +384,13 @@ router.delete(
         return res.status(400).json({ success: false, errors: errors.array() });
       }
 
-      const product = await Product.findOne({ productId: req.params.productId });
+      let product = await Product.findOne({ productId: req.params.productId });
+
+      // Fallback to searching by _id if not found by custom productId
+      if (!product && mongoose.Types.ObjectId.isValid(req.params.productId)) {
+        product = await Product.findById(req.params.productId);
+      }
+
       if (!product) {
         return res.status(404).json({ success: false, error: 'Product not found' });
       }

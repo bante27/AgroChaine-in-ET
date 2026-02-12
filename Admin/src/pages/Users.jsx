@@ -13,6 +13,7 @@ import {
   Clock,
   XCircle,
   UserPlus,
+  Trash2,
 } from "lucide-react";
 import axios from "axios";
 import { API_URL } from "../utils/apiConfig";
@@ -134,6 +135,24 @@ const Users = () => {
     } catch (err) {
       console.error("Error making/removing admin:", err);
       setError(err.response?.data?.error || "Failed to make/remove admin");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm("Are you sure you want to PERMANENTLY delete this user and all their products?")) return;
+    setActionLoading(true);
+    try {
+      setError(null);
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_URL}/api/admin/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchUsers();
+    } catch (err) {
+      console.error("Error deleting user:", err);
+      setError(err.response?.data?.error || "Failed to delete user");
     } finally {
       setActionLoading(false);
     }
@@ -290,6 +309,14 @@ const Users = () => {
                         disabled={actionLoading}
                       >
                         <ShieldAlert className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(user.userId)}
+                        className="p-2 rounded-lg bg-red-600/10 text-red-700 dark:text-red-400 hover:bg-red-600/20 transition-colors duration-200"
+                        title="Delete User"
+                        disabled={actionLoading}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() =>

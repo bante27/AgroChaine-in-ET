@@ -2,7 +2,7 @@ import express from "express";
 import auth from "../middleware/auth.js";
 import Product from "../models/Product.js";
 import User from "../models/User.js";
-import { productImageUpload } from "../middleware/cloudinaryUpload.js";
+import { productImageUpload } from "../middleware/upload.js";
 import mongoose from "mongoose";
 import isNotRestricted from "../middleware/isNotRestricted.js";
 

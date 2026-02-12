@@ -65,7 +65,7 @@ export const initializeSocket = (httpServer) => {
     });
 
     io.on('connection', (socket) => {
-        console.log(`✅ Socket connected: ${socket.id}`);
+        console.log(`✅ Socket connected: ${socket.id.slice(0, 5)}...`);
 
         /**
          * USER JOINS CONVERSATION
@@ -124,7 +124,7 @@ export const initializeSocket = (httpServer) => {
                     messages
                 });
 
-                console.log(`👤 User ${userName} joined conversation ${conversation.conversationId}`);
+                console.log(`👤 User joined conversation: ${conversation.conversationId.slice(0, 15)}...`);
             } catch (error) {
                 console.error('Error in user:join:', error);
                 socket.emit('error', { message: 'Failed to join conversation' });
@@ -169,7 +169,7 @@ export const initializeSocket = (httpServer) => {
                     agentName
                 });
 
-                console.log(`👨‍💼 Agent ${agentName} joined (${onlineAgents.size} agents online)`);
+                console.log(`👨‍💼 Agent joined (${onlineAgents.size} online)`);
             } catch (error) {
                 console.error('Error in agent:join:', error);
                 socket.emit('error', { message: 'Failed to join as agent' });
@@ -221,7 +221,7 @@ export const initializeSocket = (httpServer) => {
                     // Notify other agents
                     io.to('agents').emit('conversation:updated', conversation);
 
-                    console.log(`👨‍💼 Agent ${agentName} took conversation ${conversationId}`);
+                    console.log(`👨‍💼 Agent assigned to conversation: ${conversationId.slice(0, 15)}...`);
                 }
             } catch (error) {
                 console.error('Error in conversation:take:', error);
@@ -274,7 +274,7 @@ export const initializeSocket = (httpServer) => {
                     });
                 }
 
-                console.log(`💬 Message sent in ${conversationId} by ${senderName}`);
+                console.log(`💬 Message activity in: ${conversationId.slice(0, 15)}...`);
             } catch (error) {
                 console.error('Error in message:send:', error);
                 socket.emit('error', { message: 'Failed to send message' });

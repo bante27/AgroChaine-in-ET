@@ -22,7 +22,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-console.log('📬 Mailer initialized with user:', process.env.EMAIL_USER);
+console.log('📬 Mailer initialized with user:', process.env.EMAIL_USER ? process.env.EMAIL_USER.slice(0, 3) + '***@' + process.env.EMAIL_USER.split('@')[1] : 'MISSING');
 
 const mailer = {
   sendMail: async (options) => {
