@@ -752,7 +752,10 @@ const translations = {
       },
       team: {
         title: 'Meet Our Team',
-        subtitle: 'Combining agricultural expertise with cutting-edge technology.'
+        subtitle: 'Combining agricultural expertise with cutting-edge technology.',
+        tilahun: { role: 'CEO & Founder', bio: 'Agricultural expert with a deep passion for Ethiopia’s farming ecosystem.' },
+        bantalem: { role: 'Chief Technology Officer', bio: 'Expert in securing agricultural supply chain solutions with advanced technology.' },
+        tegene: { role: 'Head of Operations', bio: 'Former agricultural extension officer with profound on-the-ground knowledge.' }
       },
       services: {
         title: 'Our Core Services',
@@ -800,24 +803,48 @@ const translations = {
           security: { title: 'Security', desc: 'Enterprise-grade security protecting all user data and transactions.' }
         }
       },
-      weather: {
-        title: 'Real-Time Weather',
-        subtitle: 'Auto-detected from your location or select from Ethiopian places for accurate planning.',
-        detecting: 'Fetching real-time weather...',
-        retry: 'Retry',
-        useLocation: 'Use Current Location'
+      testimonials: {
+        title: 'What Our Customers Say',
+        subtitle: 'Hear from the farmers and businesses who trust AgroChain Ethiopia.',
+        t1: {
+          quote: 'AgroChain has transformed the way we sell our crops, connecting us directly with buyers and ensuring fair pricing.',
+          author: 'Abebe Kebede',
+          role: 'Farmer, Amhara Region'
+        },
+        t2: {
+          quote: 'The traceability feature gives our customers confidence in the authenticity of our produce.',
+          author: 'Selamawit Tadesse',
+          role: 'Agricultural Coop Manager'
+        },
+        t3: {
+          quote: 'The logistics solutions have streamlined our supply chain, saving us time and reducing costs.',
+          author: 'Yonas Alemayehu',
+          role: 'Market Distributor'
+        }
       },
-      payment: {
-        title: 'Add Balance',
-        amount: 'Amount (ETB)',
-        enterAmount: 'Enter amount',
-        method: 'Payment Method',
-        payNow: 'Add to Wallet',
-        processing: 'Processing...',
-        cancel: 'Cancel'
-      },
-
+      cta: {
+        title: 'Transform Your Agricultural Business Today',
+        subtitle: 'Join thousands of farmers and businesses revolutionizing agriculture with transparency and innovation.',
+        contactSales: 'Contact Sales'
+      }
     },
+    weather: {
+      title: 'Real-Time Weather',
+      subtitle: 'Auto-detected from your location or select from Ethiopian places for accurate planning.',
+      detecting: 'Fetching real-time weather...',
+      retry: 'Retry',
+      useLocation: 'Use Current Location'
+    },
+    payment: {
+      title: 'Add Balance',
+      amount: 'Amount (ETB)',
+      enterAmount: 'Enter amount',
+      method: 'Payment Method',
+      payNow: 'Add to Wallet',
+      processing: 'Processing...',
+      cancel: 'Cancel'
+    },
+
   },
   am: {
     nav: {
