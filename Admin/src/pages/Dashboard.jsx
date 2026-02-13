@@ -134,14 +134,12 @@ const Dashboard = () => {
   const downloadReport = () => {
     if (allTransactions.length === 0) return;
 
-    // Filter for COMPLETED transactions only and limit to last 50
-    const reportData = allTransactions
-      .filter(t => t.status === 'completed')
-      .slice(0, 50);
+    // Show ALL completed transactions for a full financial audit
+    const reportData = allTransactions.filter(t => t.status === 'completed');
 
     const headers = [
       'Transaction ID',
-      'Date',
+      'Transaction Date',
       'Product ID',
       'Quantity',
       'Total Price (ETB)',
@@ -156,7 +154,7 @@ const Dashboard = () => {
       headers.join(','),
       ...reportData.map(t => [
         t._id,
-        new Date(t.date).toISOString().replace('T', ' ').split('.')[0],
+        new Date(t.date).toISOString().replace('T', ' ').split('.')[0], // Clearly formatted date/time
         t.productId,
         t.quantity,
         t.totalPrice,
@@ -172,7 +170,7 @@ const Dashboard = () => {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `AgroChain_Completed_Report_Last50_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `AgroChain_Full_Revenue_Report_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
