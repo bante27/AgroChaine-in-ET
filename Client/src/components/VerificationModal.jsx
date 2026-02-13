@@ -188,9 +188,9 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 30 }}
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 sm:p-8 w-full max-w-lg shadow-2xl relative my-auto"
+        className="bg-white dark:bg-gray-900 rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-2xl relative my-auto"
       >
         <button
           onClick={onClose}
@@ -200,18 +200,18 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
         </button>
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 mb-4 shadow-inner">
-            {step === 1 && <ShieldCheck size={32} />}
-            {step === 2 && <Camera size={32} />}
-            {step === 3 && <Smartphone size={32} />}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 mb-3">
+            {step === 1 && <ShieldCheck size={24} />}
+            {step === 2 && <Camera size={24} />}
+            {step === 3 && <Smartphone size={24} />}
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
             {step === 1 && t('dashboard.verification.title')}
             {step === 2 && t('dashboard.verification.selfieTitle')}
             {step === 3 && t('dashboard.verification.enterOtp')}
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 font-medium">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             {step === 1 && "Step 1: Document Upload"}
             {step === 2 && t('dashboard.verification.selfieDesc')}
             {step === 3 && t('dashboard.verification.emailOtpSent')}

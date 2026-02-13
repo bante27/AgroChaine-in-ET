@@ -649,35 +649,23 @@ router.post(
       // --- Security Logic 3: Face Match (AI Simulation) ---
       const isFaceMatch = true; // Simulating successful AI Face Match
 
-      let autoVerified = false;
-      if (isIdValid && isOtpValid && isFaceMatch) {
-        console.log(`🔍 [Fayda AI] National ID Validated, OTP Confirmed, and Face Match Successful for ${nationalIdNumber}`);
-        autoVerified = true;
-      }
-
       // Save files to User record
       user.govIdFront = req.files.govIdFront[0].path;
       user.govIdBack = req.files.govIdBack[0].path;
       user.govIdSelfie = req.files.govIdSelfie[0].path;
       user.nationalIdNumber = nationalIdNumber;
 
-      if (autoVerified) {
-        user.govIdStatus = 'verified';
-        user.verified = true;
-        console.log('✅ Multi-level automated verification SUCCESS');
-      } else {
-        user.govIdStatus = 'pending';
-        user.verified = false;
-        console.log('⏳ Verification details saved; pending manual admin audit');
-      }
+      // ALL VERIFICATIONS NOW REQUIRE ADMIN APPROVAL
+      // Even if OTP is correct, we send to admin for manual review
+      user.govIdStatus = 'pending';
+      user.verified = false;
+      console.log(`⏳ Verification submitted for admin review - User: ${user.fullName}, ID: ${nationalIdNumber}`);
 
       await user.save();
 
       res.json({
         success: true,
-        message: autoVerified
-          ? 'Identity Verified! Face match & OTP confirmed via National ID.'
-          : 'Identity details saved. OTP check failed (or expired) - pending manual security audit.',
+        message: 'Verification documents submitted successfully. Our team will review your identity within 24 hours.',
         govIdStatus: user.govIdStatus,
         verified: user.verified
       });

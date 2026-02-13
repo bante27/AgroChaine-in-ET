@@ -464,48 +464,71 @@ const Users = () => {
                       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-cyan-500"></div>
                     </div>
                   ) : verificationData ? (
-                    <div className="mt-6">
-                      <h4 className="text-lg font-semibold mb-3">
-                        Government ID
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="mt-6 space-y-4">
+                      <h4 className="text-lg font-semibold">Verification Documents</h4>
+
+                      {/* National ID Number */}
+                      {verificationData.nationalIdNumber && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <label className="block text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">
+                            National ID / Fayda Number
+                          </label>
+                          <p className="text-lg font-mono font-bold text-blue-900 dark:text-blue-100 tracking-wider">
+                            {verificationData.nationalIdNumber}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Images Grid - Compact */}
+                      <div className="grid grid-cols-3 gap-3">
+                        {/* ID Front */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
                             ID Front
                           </label>
-                          <img
-                            src={verificationData.govIdFront}
-                            alt="Government ID Front"
-                            className="w-full h-auto rounded-lg border border-gray-200 dark:border-gray-700"
-                          />
-                          <a
-                            href={verificationData.govIdFront}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-cyan-500 hover:underline mt-2 block"
-                          >
-                            View Full Size
+                          <a href={verificationData.govIdFront} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={verificationData.govIdFront}
+                              alt="ID Front"
+                              className="w-full h-24 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-cyan-500 transition-all cursor-pointer"
+                            />
                           </a>
                         </div>
+
+                        {/* ID Back */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
                             ID Back
                           </label>
-                          <img
-                            src={verificationData.govIdBack}
-                            alt="Government ID Back"
-                            className="w-full h-auto rounded-lg border border-gray-200 dark:border-gray-700"
-                          />
-                          <a
-                            href={verificationData.govIdBack}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-cyan-500 hover:underline mt-2 block"
-                          >
-                            View Full Size
+                          <a href={verificationData.govIdBack} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={verificationData.govIdBack}
+                              alt="ID Back"
+                              className="w-full h-24 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-cyan-500 transition-all cursor-pointer"
+                            />
                           </a>
                         </div>
+
+                        {/* Selfie */}
+                        {verificationData.govIdSelfie && (
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                              Selfie
+                            </label>
+                            <a href={verificationData.govIdSelfie} target="_blank" rel="noopener noreferrer">
+                              <img
+                                src={verificationData.govIdSelfie}
+                                alt="Selfie"
+                                className="w-full h-24 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-cyan-500 transition-all cursor-pointer"
+                              />
+                            </a>
+                          </div>
+                        )}
                       </div>
+
+                      <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                        Click on any image to view full size
+                      </p>
                     </div>
                   ) : (
                     <div className="mt-6 text-gray-500 dark:text-gray-400">
