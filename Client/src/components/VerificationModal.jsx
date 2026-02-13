@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import Button from './Button';
-import { Camera, CheckCircle, ShieldCheck, Smartphone } from 'lucide-react';
+import { Camera, CheckCircle, ShieldCheck, Smartphone, RefreshCw, Upload, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) => {
@@ -16,10 +16,12 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
   const [otpCode, setOtpCode] = useState('');
 
   const [isCameraActive, setIsCameraActive] = useState(false);
-  const [cameraType, setCameraType] = useState('front'); // front, back, selfie
+  const [cameraType, setCameraType] = useState('id_front'); // id_front, id_back, selfie
+  const [facingMode, setFacingMode] = useState('environment'); // user or environment
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const { t } = useLanguage();
 
@@ -31,6 +33,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
       setGovIdBack(null);
       setGovIdSelfie(null);
       setOtpCode('');
+      setFacingMode('environment');
     }
   }, [isOpen]);
 
@@ -38,18 +41,25 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
   useEffect(() => {
     let stream;
     if (isCameraActive) {
-      navigator.mediaDevices.getUserMedia({ video: true })
+      const constraints = {
+        video: {
+          facingMode: cameraType === 'selfie' ? 'user' : facingMode
+        }
+      };
+
+      navigator.mediaDevices.getUserMedia(constraints)
         .then((s) => {
           stream = s;
           if (videoRef.current) videoRef.current.srcObject = stream;
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error("Camera error:", err);
           toast.error(t('dashboard.verification.cameraAccessFailed'));
           setIsCameraActive(false);
         });
     }
     return () => stream && stream.getTracks().forEach((tk) => tk.stop());
-  }, [isCameraActive, t]);
+  }, [isCameraActive, cameraType, facingMode, t]);
 
   const dataURLtoFile = (dataUrl, filename) => {
     const arr = dataUrl.split(',');
@@ -64,23 +74,41 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
   const captureImage = () => {
     if (videoRef.current && canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
-      ctx.drawImage(videoRef.current, 0, 0, 300, 200);
-      const imageData = canvasRef.current.toDataURL('image/jpeg');
+      // Set canvas size to video size for full resolution
+      canvasRef.current.width = videoRef.current.videoWidth;
+      canvasRef.current.height = videoRef.current.videoHeight;
+      ctx.drawImage(videoRef.current, 0, 0);
+
+      const imageData = canvasRef.current.toDataURL('image/jpeg', 0.8);
       const file = dataURLtoFile(imageData, `${cameraType}.jpg`);
 
-      if (cameraType === 'id_front') {
-        setGovIdFront(file);
-        toast.success(t('dashboard.verification.frontIdCaptured'));
-      } else if (cameraType === 'id_back') {
-        setGovIdBack(file);
-        toast.success(t('dashboard.verification.backIdCaptured'));
-      } else if (cameraType === 'selfie') {
-        setGovIdSelfie(file);
-        toast.success(t('dashboard.verification.selfieCaptured'));
-      }
-
+      handleFileSelection(file);
       setIsCameraActive(false);
     }
+  };
+
+  const handleFileSelection = (file) => {
+    if (cameraType === 'id_front') {
+      setGovIdFront(file);
+      toast.success(t('dashboard.verification.frontIdCaptured'));
+    } else if (cameraType === 'id_back') {
+      setGovIdBack(file);
+      toast.success(t('dashboard.verification.backIdCaptured'));
+    } else if (cameraType === 'selfie') {
+      setGovIdSelfie(file);
+      toast.success(t('dashboard.verification.selfieCaptured'));
+    }
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      handleFileSelection(file);
+    }
+  };
+
+  const toggleCamera = () => {
+    setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
   };
 
   const nextStep = () => {
@@ -96,7 +124,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
         return;
       }
       setStep(3);
-      toast.success(t('dashboard.verification.otpSent'));
+      toast.success(t('dashboard.verification.emailOtpSent'));
     }
   };
 
@@ -128,49 +156,101 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        initial={{ opacity: 0, scale: 0.9, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-white dark:bg-gray-900 rounded-3xl p-6 w-full max-w-md shadow-2xl border border-gray-100 dark:border-gray-800"
+        className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 sm:p-8 w-full max-w-lg shadow-2xl relative my-auto"
       >
+        <button
+          onClick={onClose}
+          className="absolute top-6 right-6 p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"
+        >
+          <X size={20} />
+        </button>
+
         {/* Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 mb-4">
-            {step === 1 && <ShieldCheck size={24} />}
-            {step === 2 && <Camera size={24} />}
-            {step === 3 && <Smartphone size={24} />}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 mb-4 shadow-inner">
+            {step === 1 && <ShieldCheck size={32} />}
+            {step === 2 && <Camera size={32} />}
+            {step === 3 && <Smartphone size={32} />}
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
             {step === 1 && t('dashboard.verification.title')}
             {step === 2 && t('dashboard.verification.selfieTitle')}
             {step === 3 && t('dashboard.verification.enterOtp')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 font-medium">
             {step === 1 && "Step 1: Document Upload"}
             {step === 2 && t('dashboard.verification.selfieDesc')}
-            {step === 3 && t('dashboard.verification.otpSent')}
+            {step === 3 && t('dashboard.verification.emailOtpSent')}
           </p>
         </div>
+
+        {/* Hidden File Input */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleFileUpload}
+        />
 
         {/* Camera Overlay */}
         <AnimatePresence>
           {isCameraActive && (
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center p-4"
+              className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4"
             >
-              <div className="relative w-full max-w-sm aspect-[4/3] bg-gray-800 rounded-3xl overflow-hidden border-2 border-blue-500">
+              <div className="relative w-full max-w-md aspect-[4/3] bg-black rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.3)]">
                 <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                <canvas ref={canvasRef} width="640" height="480" className="hidden" />
-                {cameraType === 'selfie' && (
-                  <div className="absolute inset-0 border-[40px] border-black/40 rounded-full scale-75 pointer-events-none border-dashed" />
+                <canvas ref={canvasRef} className="hidden" />
+
+                {/* Viewfinder Scopes */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {cameraType === 'selfie' ? (
+                    <div className="absolute inset-[15%] border-[3px] border-white/40 rounded-full border-dashed animate-pulse" />
+                  ) : (
+                    <div className="absolute inset-[10%] border-[2px] border-white/30 rounded-2xl">
+                      <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-blue-500 rounded-tl-lg" />
+                      <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-blue-500 rounded-tr-lg" />
+                      <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-blue-500 rounded-bl-lg" />
+                      <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-blue-500 rounded-br-lg" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Floating Switch Camera Button */}
+                {cameraType !== 'selfie' && (
+                  <button
+                    onClick={toggleCamera}
+                    className="absolute top-4 right-4 p-3 rounded-full bg-black/50 text-white backdrop-blur-md hover:bg-black/70 transition-all active:scale-90"
+                  >
+                    <RefreshCw size={24} />
+                  </button>
                 )}
               </div>
-              <div className="mt-8 flex gap-4">
-                <Button variant="danger" onClick={() => setIsCameraActive(false)}>Cancel</Button>
-                <Button onClick={captureImage} className="px-10">Capture</Button>
+
+              <div className="mt-12 flex items-center gap-6">
+                <button
+                  onClick={() => setIsCameraActive(false)}
+                  className="w-14 h-14 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all"
+                >
+                  <X size={24} />
+                </button>
+                <button
+                  onClick={captureImage}
+                  className="w-20 h-20 rounded-full bg-white border-8 border-blue-500/30 flex items-center justify-center hover:scale-105 transition-all shadow-xl active:scale-95"
+                >
+                  <div className="w-12 h-12 rounded-full bg-blue-600" />
+                </button>
+                <div className="w-14" /> {/* Spacer */}
               </div>
+              <p className="text-white/60 text-xs mt-6 font-medium uppercase tracking-widest">
+                {cameraType === 'selfie' ? "Position your face in the circle" : "Align document within the frame"}
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -178,99 +258,165 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
         {/* Multi-Step Forms */}
         <div className="space-y-6">
           {step === 1 && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">Full Name</label>
+            <div className="space-y-5">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">{t('dashboard.verification.fullName')}</label>
                 <input
                   type="text" value={name} onChange={e => setName(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-gray-800 border-0 rounded-2xl p-4 text-gray-900 dark:text-white"
+                  className="w-full bg-gray-50 dark:bg-gray-800/50 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-500/50 rounded-2xl p-4 text-gray-900 dark:text-white transition-all outline-none"
                   placeholder="Enter your legal name"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">{t('dashboard.verification.nationalIdNumber')}</label>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">{t('dashboard.verification.nationalIdNumber')}</label>
                 <input
                   type="text" value={nationalIdNumber} onChange={e => setNationalIdNumber(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-gray-800 border-0 rounded-2xl p-4 text-gray-900 dark:text-white"
+                  className="w-full bg-gray-50 dark:bg-gray-800/50 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-500/50 rounded-2xl p-4 text-gray-900 dark:text-white transition-all outline-none"
                   placeholder="12-digit Fayda Number"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Front ID Card */}
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => { setCameraType('id_front'); setIsCameraActive(true); }}
+                    className={`group relative w-full h-36 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all overflow-hidden ${govIdFront ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-500/50'}`}
+                  >
+                    {govIdFront ? (
+                      <>
+                        <img src={URL.createObjectURL(govIdFront)} alt="Front" className="absolute inset-0 w-full h-full object-cover opacity-60" />
+                        <CheckCircle className="text-green-600 relative z-10 drop-shadow-md" size={32} />
+                        <span className="relative z-10 text-[10px] font-bold text-green-700 uppercase mt-1">Front Captured</span>
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="text-gray-400 group-hover:text-blue-500 transition-colors mb-2" size={28} />
+                        <span className="text-xs font-bold text-gray-500 uppercase">Capture Front</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => { setCameraType('id_front'); fileInputRef.current.click(); }}
+                    className="w-full text-[10px] font-bold text-blue-600 dark:text-blue-400 flex items-center justify-center gap-1 hover:underline"
+                  >
+                    <Upload size={10} /> {t('dashboard.verification.uploadFile')}
+                  </button>
+                </div>
+
+                {/* Back ID Card */}
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => { setCameraType('id_back'); setIsCameraActive(true); }}
+                    className={`group relative w-full h-36 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all overflow-hidden ${govIdBack ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-500/50'}`}
+                  >
+                    {govIdBack ? (
+                      <>
+                        <img src={URL.createObjectURL(govIdBack)} alt="Back" className="absolute inset-0 w-full h-full object-cover opacity-60" />
+                        <CheckCircle className="text-green-600 relative z-10 drop-shadow-md" size={32} />
+                        <span className="relative z-10 text-[10px] font-bold text-green-700 uppercase mt-1">Back Captured</span>
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="text-gray-400 group-hover:text-blue-500 transition-colors mb-2" size={28} />
+                        <span className="text-xs font-bold text-gray-500 uppercase">Capture Back</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => { setCameraType('id_back'); fileInputRef.current.click(); }}
+                    className="w-full text-[10px] font-bold text-blue-600 dark:text-blue-400 flex items-center justify-center gap-1 hover:underline"
+                  >
+                    <Upload size={10} /> {t('dashboard.verification.uploadFile')}
+                  </button>
+                </div>
+              </div>
+              <Button onClick={nextStep} className="w-full py-5 rounded-[1.25rem] text-lg font-black shadow-lg shadow-blue-500/20 active:scale-[0.98]">
+                {t('common.next')}
+              </Button>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-8 py-4">
+              <div className="relative group w-52 h-52 mx-auto">
+                <div className="absolute inset-0 rounded-full border-4 border-blue-500/20 border-dashed animate-[spin_10s_linear_infinite]" />
+                <div className="absolute inset-2 rounded-full border-4 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)] overflow-hidden bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+                  {govIdSelfie ? (
+                    <img src={URL.createObjectURL(govIdSelfie)} alt="Selfie" className="w-full h-full object-cover scale-110" />
+                  ) : (
+                    <Camera size={64} className="text-gray-200 dark:text-gray-700" />
+                  )}
+                </div>
+                {govIdSelfie && (
+                  <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white border-4 border-white dark:border-gray-900 shadow-lg">
+                    <CheckCircle size={24} />
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
-                  onClick={() => { setCameraType('id_front'); setIsCameraActive(true); }}
-                  className={`h-32 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${govIdFront ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-gray-200 dark:border-gray-700 hover:border-blue-400'}`}
+                  onClick={() => { setCameraType('selfie'); setIsCameraActive(true); }}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-all font-bold"
                 >
-                  {govIdFront ? <CheckCircle className="text-green-500 mb-2" /> : <Camera className="text-gray-400 mb-2" />}
-                  <span className="text-xs font-medium">{govIdFront ? "Front OK" : "ID Front"}</span>
+                  <Camera size={24} className="mb-1" />
+                  <span className="text-xs">{govIdSelfie ? "Retake" : "Open Camera"}</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setCameraType('id_back'); setIsCameraActive(true); }}
-                  className={`h-32 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${govIdBack ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-gray-200 dark:border-gray-700 hover:border-blue-400'}`}
+                  onClick={() => { setCameraType('selfie'); fileInputRef.current.click(); }}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 text-gray-500 hover:bg-gray-100 transition-all font-bold"
                 >
-                  {govIdBack ? <CheckCircle className="text-green-500 mb-2" /> : <Camera className="text-gray-400 mb-2" />}
-                  <span className="text-xs font-medium">{govIdBack ? "Back OK" : "ID Back"}</span>
+                  <Upload size={24} className="mb-1" />
+                  <span className="text-xs">Gallery</span>
                 </button>
               </div>
-              <Button onClick={nextStep} className="w-full py-4 rounded-2xl text-lg font-bold">Next Step</Button>
-            </div>
-          )}
 
-          {step === 2 && (
-            <div className="space-y-6 text-center">
-              <div className="relative w-48 h-48 mx-auto rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center border-4 border-blue-500 p-1">
-                {govIdSelfie ? (
-                  <img src={URL.createObjectURL(govIdSelfie)} alt="Selfie" className="w-full h-full object-cover rounded-full" />
-                ) : (
-                  <Camera size={48} className="text-gray-300" />
-                )}
-              </div>
-              <Button
-                onClick={() => { setCameraType('selfie'); setIsCameraActive(true); }}
-                variant="outline" className="w-full py-4 rounded-2xl border-2"
-              >
-                {govIdSelfie ? "Retake Selfie" : t('dashboard.verification.captureSelfie')}
-              </Button>
-              <div className="flex gap-4">
-                <Button variant="ghost" onClick={() => setStep(1)} className="flex-1">Back</Button>
-                <Button onClick={nextStep} className="flex-1 font-bold">Verify & Continue</Button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button variant="ghost" onClick={() => setStep(1)} className="flex-1 py-4 text-gray-500 font-bold">{t('common.back')}</Button>
+                <Button onClick={nextStep} className="flex-[2] py-4 rounded-2xl font-black shadow-lg shadow-blue-500/20 transition-all">Verify & Continue</Button>
               </div>
             </div>
           )}
 
           {step === 3 && (
-            <div className="space-y-6">
-              <div className="flex justify-center gap-2">
-                <input
-                  type="text" maxLength="6" value={otpCode} onChange={e => setOtpCode(e.target.value)}
-                  className="w-full max-w-xs text-center text-3xl font-black tracking-[1em] bg-gray-50 dark:bg-gray-800 border-0 rounded-2xl py-6"
-                  placeholder="000000"
-                />
+            <div className="space-y-8 py-4">
+              <div className="text-center group">
+                <div className="relative inline-block w-full max-w-[300px]">
+                  <input
+                    type="text" maxLength="6" value={otpCode} onChange={e => setOtpCode(e.target.value)}
+                    className="w-full text-center text-4xl sm:text-5xl font-black tracking-[0.6em] bg-gray-50 dark:bg-gray-800/50 border-0 rounded-3xl py-8 text-gray-900 dark:text-white outline-none caret-blue-500 transition-all"
+                    placeholder="000000"
+                  />
+                  <div className="absolute bottom-0 left-0 h-1.5 bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${(otpCode.length / 6) * 100}%` }} />
+                </div>
               </div>
-              <p className="text-center text-xs text-gray-500">
-                We sent a code to your phone +251 •••• ••88
-              </p>
+
+              <div className="bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-2xl border border-yellow-100 dark:border-yellow-900/20">
+                <p className="text-center text-xs text-yellow-700 dark:text-yellow-400 font-medium leading-relaxed">
+                  {t('dashboard.verification.emailOtpSent')}
+                  <br />
+                  <span className="font-black text-gray-900 dark:text-white mt-1 block">y*******@gmail.com</span>
+                </p>
+              </div>
+
               <Button
                 onClick={handleSubmit}
                 disabled={isLoading}
-                className="w-full py-4 rounded-2xl text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600"
+                className="w-full py-5 rounded-[1.5rem] text-xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-xl shadow-blue-600/30 transition-all active:scale-95"
               >
                 {isLoading ? "Verifying..." : t('dashboard.verification.confirmOtp')}
               </Button>
-              <Button variant="ghost" onClick={() => setStep(2)} className="w-full text-xs">Correction? Back to Selfie</Button>
+              <button onClick={() => setStep(2)} className="w-full text-xs font-bold text-gray-400 hover:text-blue-500 transition-colors uppercase tracking-widest">
+                {t('common.back')} to selfie
+              </button>
             </div>
           )}
         </div>
-
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="mt-8 w-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-sm font-medium transition-colors"
-        >
-          Cancel Verification
-        </button>
       </motion.div>
     </div>
   );

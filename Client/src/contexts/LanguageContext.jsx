@@ -654,7 +654,11 @@ const translations = {
         otpSent: 'A verification code has been sent to your registered phone number.',
         confirmOtp: 'Confirm OTP',
         invalidOtp: 'Invalid or expired OTP',
-        selfieCaptured: 'Selfie captured successfully'
+        selfieCaptured: 'Selfie captured successfully',
+        switchCamera: 'Switch Camera',
+        uploadFile: 'Upload File',
+        or: 'OR',
+        emailOtpSent: 'A verification code has been sent to your email address.'
       }
     },
     contact: {
@@ -1512,7 +1516,11 @@ const translations = {
         otpSent: 'የማረጋገጫ ኮድ ወደ ተመዘገበው ስልክ ቁጥርዎ ተልኳል።',
         confirmOtp: 'ኮዱን አረጋግጥ',
         invalidOtp: 'የተሳሳተ ወይም ጊዜው ያለፈበት ኮድ',
-        selfieCaptured: 'የፊት ፎቶ በተሳካ ሁኔታ ተነስቷል'
+        selfieCaptured: 'የፊት ፎቶ በተሳካ ሁኔታ ተነስቷል',
+        switchCamera: 'ካሜራ ይቀይሩ',
+        uploadFile: 'ፋይል ይጫኑ',
+        or: 'ወይም',
+        emailOtpSent: 'የማረጋገጫ ኮድ ወደ ኢሜል አድራሻዎ ተልኳል።'
       }
     },
     contact: {
