@@ -134,8 +134,10 @@ const Dashboard = () => {
   const downloadReport = () => {
     if (allTransactions.length === 0) return;
 
-    // Include ALL transactions for a full financial audit
-    const reportData = allTransactions;
+    // Filter for COMPLETED transactions only and limit to last 50
+    const reportData = allTransactions
+      .filter(t => t.status === 'completed')
+      .slice(0, 50);
 
     const headers = [
       'Transaction ID',
@@ -147,37 +149,30 @@ const Dashboard = () => {
       'Platform Fee (Seller)',
       'Net to Seller',
       'Status',
-      'Revenue Type', // Professional categorization
       'Delivery Address'
     ];
 
     const csvContent = [
       headers.join(','),
-      ...reportData.map(t => {
-        // Business logic: Completed transactions are "Realized", everything else is "Expected"
-        const revenueType = t.status === 'completed' ? 'Realized Revenue' : 'Pending (In Escrow)';
-
-        return [
-          t._id,
-          new Date(t.date).toISOString().replace('T', ' ').split('.')[0], // Cleaner date format
-          t.productId,
-          t.quantity,
-          t.totalPrice,
-          t.platformFeeBuyer || (t.totalPrice * 0.05).toFixed(2),
-          t.platformFeeSeller || (t.totalPrice * 0.05).toFixed(2),
-          t.netSellerAmount || (t.totalPrice * 0.95).toFixed(2),
-          t.status.toUpperCase(),
-          revenueType,
-          `"${(t.deliveryAddress || '').replace(/"/g, '""')}"`
-        ].join(',');
-      })
+      ...reportData.map(t => [
+        t._id,
+        new Date(t.date).toISOString().replace('T', ' ').split('.')[0],
+        t.productId,
+        t.quantity,
+        t.totalPrice,
+        t.platformFeeBuyer || (t.totalPrice * 0.05).toFixed(2),
+        t.platformFeeSeller || (t.totalPrice * 0.05).toFixed(2),
+        t.netSellerAmount || (t.totalPrice * 0.95).toFixed(2),
+        t.status.toUpperCase(),
+        `"${(t.deliveryAddress || '').replace(/"/g, '""')}"`
+      ].join(','))
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `AgroChain_FULL_Financial_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `AgroChain_Completed_Report_Last50_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
