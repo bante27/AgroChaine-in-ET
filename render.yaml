@@ -10,6 +10,8 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 22
+      - key: PORT
+        value: 5000
       - key: MONGODB_URI
         sync: false
       - key: MONGO_URI
@@ -25,6 +27,10 @@ services:
       - key: EMAIL_USER
         sync: false
       - key: EMAIL_PASS
+        sync: false
+      - key: NODEMAILER_EMAIL
+        sync: false
+      - key: NODEMAILER_PASS
         sync: false
       - key: RESEND_API_KEY
         sync: false
@@ -52,6 +58,46 @@ services:
   # 3. Admin Static Site
   - type: web
     name: agrochain-admin
+    runtime: static
+    buildCommand: npm install && npm run build && cp public/_redirects dist/_redirects
+    staticPublishPath: dist
+    rootDir: Admin
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: agrochain-server
+          property: host
+      - key: NODE_VERSION
+        value: 22
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # 4. Ethiopia Main Domain (Optional mirror of client)
+  - type: web
+    name: agrochain-ethiopia.com
+    runtime: static
+    buildCommand: npm install && npm run build && cp public/_redirects dist/_redirects
+    staticPublishPath: dist
+    rootDir: Client
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: agrochain-server
+          property: host
+      - key: NODE_VERSION
+        value: 22
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # 5. Ethiopia Management (Optional mirror of admin)
+  - type: web
+    name: agrochain-ethiopia-manegmnet
     runtime: static
     buildCommand: npm install && npm run build && cp public/_redirects dist/_redirects
     staticPublishPath: dist

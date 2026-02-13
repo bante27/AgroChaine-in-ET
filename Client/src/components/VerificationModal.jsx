@@ -79,8 +79,8 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
           if (videoRef.current) videoRef.current.srcObject = stream;
         })
         .catch((err) => {
-          console.error("Camera error:", err);
-          toast.error(t('dashboard.verification.cameraAccessFailed'));
+          console.error('Camera access error:', err);
+          toast.error(t('dashboard.verification.cameraDeniedToast'));
           setIsCameraActive(false);
         });
     }
@@ -144,7 +144,11 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
         return;
       }
       if (nationalIdNumber.length !== 12) {
-        toast.error(t('dashboard.verification.invalidIdLength'));
+        toast.error(t('dashboard.verification.invalidIdToast'));
+        return;
+      }
+      if (!govIdFront || !govIdBack) {
+        toast.error(t('dashboard.verification.provideIdToast'));
         return;
       }
       setStep(2);
@@ -175,6 +179,8 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
         nationalIdNumber,
         otpCode
       });
+      // Show immediate success message
+      toast.success(t('dashboard.verification.verificationSuccess'), { duration: 6000 });
       onClose();
     } catch (error) {
       toast.error(error.response?.data?.error || t('dashboard.verification.verificationFailed'));
@@ -212,9 +218,9 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
             {step === 3 && t('dashboard.verification.enterOtp')}
           </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {step === 1 && "Step 1: Document Upload"}
-            {step === 2 && t('dashboard.verification.selfieDesc')}
-            {step === 3 && t('dashboard.verification.emailOtpSent')}
+            {step === 1 && t('dashboard.verification.step1Description')}
+            {step === 2 && t('dashboard.verification.step2Description')}
+            {step === 3 && t('dashboard.verification.step3Description')}
           </p>
         </div>
 
@@ -279,7 +285,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
                 <div className="w-14" /> {/* Spacer */}
               </div>
               <p className="text-white/60 text-xs mt-6 font-medium uppercase tracking-widest">
-                {cameraType === 'selfie' ? "Position your face in the circle" : "Align document within the frame"}
+                {cameraType === 'selfie' ? t('dashboard.verification.selfieInstruction') : t('dashboard.verification.idInstruction')}
               </p>
             </motion.div>
           )}
@@ -294,7 +300,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
                 <input
                   type="text" value={name} onChange={e => setName(e.target.value)}
                   className="w-full bg-gray-50 dark:bg-gray-800/50 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-500/50 rounded-2xl p-4 text-gray-900 dark:text-white transition-all outline-none"
-                  placeholder="Enter your legal name"
+                  placeholder={t('dashboard.verification.legalNamePlaceholder')}
                 />
               </div>
               <div className="space-y-1">
@@ -325,10 +331,10 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
                   </div>
                 </div>
                 {nationalIdNumber.length > 0 && nationalIdNumber.length < 12 && (
-                  <p className="text-xs text-yellow-600 ml-1">⚠️ Must be exactly 12 digits</p>
+                  <p className="text-xs text-yellow-600 ml-1">{t('dashboard.verification.mustBe12DigitsTag')}</p>
                 )}
                 {nationalIdNumber.length === 12 && (
-                  <p className="text-xs text-green-600 ml-1">✓ Valid format</p>
+                  <p className="text-xs text-green-600 ml-1">{t('dashboard.verification.validFormatTag')}</p>
                 )}
               </div>
 
@@ -343,13 +349,13 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
                     {govIdFront ? (
                       <>
                         <img src={URL.createObjectURL(govIdFront)} alt="Front" className="absolute inset-0 w-full h-full object-cover opacity-60" />
-                        <CheckCircle className="text-green-600 relative z-10 drop-shadow-md" size={32} />
-                        <span className="relative z-10 text-[10px] font-bold text-green-700 uppercase mt-1">Front Captured</span>
+                        <CheckCircle className="text-green-600 dark:text-green-400 relative z-10 drop-shadow-md" size={32} />
+                        <span className="relative z-10 text-[10px] font-bold text-green-700 dark:text-green-300 uppercase mt-1">{t('dashboard.verification.frontIdCaptured')}</span>
                       </>
                     ) : (
                       <>
                         <Camera className="text-gray-400 group-hover:text-blue-500 transition-colors mb-2" size={28} />
-                        <span className="text-xs font-bold text-gray-500 uppercase">Capture Front</span>
+                        <span className="text-xs font-bold text-gray-500 uppercase">{t('dashboard.verification.captureFront')}</span>
                       </>
                     )}
                   </button>
@@ -371,13 +377,13 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
                     {govIdBack ? (
                       <>
                         <img src={URL.createObjectURL(govIdBack)} alt="Back" className="absolute inset-0 w-full h-full object-cover opacity-60" />
-                        <CheckCircle className="text-green-600 relative z-10 drop-shadow-md" size={32} />
-                        <span className="relative z-10 text-[10px] font-bold text-green-700 uppercase mt-1">Back Captured</span>
+                        <CheckCircle className="text-green-600 dark:text-green-400 relative z-10 drop-shadow-md" size={32} />
+                        <span className="relative z-10 text-[10px] font-bold text-green-700 dark:text-green-300 uppercase mt-1">{t('dashboard.verification.backIdCaptured')}</span>
                       </>
                     ) : (
                       <>
                         <Camera className="text-gray-400 group-hover:text-blue-500 transition-colors mb-2" size={28} />
-                        <span className="text-xs font-bold text-gray-500 uppercase">Capture Back</span>
+                        <span className="text-xs font-bold text-gray-500 uppercase">{t('dashboard.verification.captureBack')}</span>
                       </>
                     )}
                   </button>
@@ -390,7 +396,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
                 </div>
               </div>
               <Button onClick={nextStep} className="w-full py-5 rounded-[1.25rem] text-lg font-black shadow-lg shadow-blue-500/20 active:scale-[0.98]">
-                {t('common.next')}
+                {t('next')}
               </Button>
             </div>
           )}
@@ -420,7 +426,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
                   className="flex flex-col items-center justify-center p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-all font-bold"
                 >
                   <Camera size={24} className="mb-1" />
-                  <span className="text-xs">{govIdSelfie ? "Retake" : "Open Camera"}</span>
+                  <span className="text-xs">{govIdSelfie ? t('dashboard.verification.retake') : t('dashboard.verification.openCamera')}</span>
                 </button>
                 <button
                   type="button"
@@ -428,13 +434,13 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
                   className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 text-gray-500 hover:bg-gray-100 transition-all font-bold"
                 >
                   <Upload size={24} className="mb-1" />
-                  <span className="text-xs">Gallery</span>
+                  <span className="text-xs">{t('dashboard.verification.gallery')}</span>
                 </button>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button variant="ghost" onClick={() => setStep(1)} className="flex-1 py-4 text-gray-500 font-bold">{t('common.back')}</Button>
-                <Button onClick={nextStep} className="flex-[2] py-4 rounded-2xl font-black shadow-lg shadow-blue-500/20 transition-all">Verify & Continue</Button>
+                <Button variant="ghost" onClick={() => setStep(1)} className="flex-1 py-4 text-gray-500 font-bold">{t('back')}</Button>
+                <Button onClick={nextStep} className="flex-[2] py-4 rounded-2xl font-black shadow-lg shadow-blue-500/20 transition-all">{t('dashboard.verification.verifyAndContinue')}</Button>
               </div>
             </div>
           )}
@@ -473,12 +479,12 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
                   disabled={isSendingCode}
                   className="text-[11px] font-bold text-gray-400 hover:text-blue-500 flex items-center justify-center gap-1 uppercase tracking-widest disabled:opacity-50"
                 >
-                  <Send size={12} /> {isSendingCode ? "Sending..." : "Resend Code"}
+                  <Send size={12} /> {isSendingCode ? t('dashboard.verification.sending') : t('dashboard.verification.resendCode')}
                 </button>
               </div>
 
               <button onClick={() => setStep(2)} className="w-full text-[10px] font-bold text-gray-400 hover:text-blue-500 transition-colors uppercase tracking-widest">
-                {t('common.back')} to selfie
+                {t('back')} {t('dashboard.verification.backToSelfie')}
               </button>
             </div>
           )}

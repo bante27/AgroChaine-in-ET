@@ -217,7 +217,7 @@ router.delete(
 router.get('/verifications/pending', auth, admin, async (req, res) => {
   try {
     const pending = await User.find({ govIdStatus: 'pending' })
-      .select('userId fullName email govIdFront govIdBack govIdStatus');
+      .select('userId fullName email govIdFront govIdBack govIdSelfie nationalIdNumber govIdStatus');
     res.json({ success: true, pending });
   } catch (err) {
     console.error('[Admin] Error fetching pending verifications:', err.message);

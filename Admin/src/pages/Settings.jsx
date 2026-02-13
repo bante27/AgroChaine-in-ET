@@ -91,7 +91,7 @@ const Verifications = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 text-gray-800">
+    <div className="max-w-6xl mx-auto space-y-8 text-gray-800 dark:text-gray-200">
       <Table
         title="Pending Verifications"
         icon={UserCheck}
@@ -129,14 +129,14 @@ const Verifications = () => {
                     <UserCheck className="h-6 w-6 text-white" aria-hidden="true" />
                   </div>
                   <div>
-                    <h3 className="text-gray-900 font-semibold">{verification.fullName}</h3>
-                    <p className="text-gray-600 text-sm">{verification.email}</p>
-                    <p className="text-gray-600 text-sm">User ID: {verification.userId}</p>
+                    <h3 className="text-gray-900 dark:text-white font-semibold">{verification.fullName}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">{verification.email}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">User ID: {verification.userId}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span
-                    className="px-3 py-1 rounded-full text-xs font-medium border bg-yellow-100 text-yellow-700 border-yellow-300"
+                    className="px-3 py-1 rounded-full text-xs font-medium border bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-300 dark:border-yellow-700/50"
                     aria-label={`Verification status: ${verification.govIdStatus}`}
                   >
                     {verification.govIdStatus}
@@ -153,7 +153,7 @@ const Verifications = () => {
                   }}
                   variant="primary"
                   size="sm"
-                  className="flex items-center gap-2 flex-1"
+                  className="flex items-center gap-2 flex-1 font-semibold"
                   aria-label={`View details of ${verification.fullName}`}
                 >
                   <Eye className="h-4 w-4" aria-hidden="true" />
@@ -168,7 +168,7 @@ const Verifications = () => {
                   }}
                   variant="success"
                   size="sm"
-                  className="flex items-center gap-2 flex-1"
+                  className="flex items-center gap-2 flex-1 font-semibold"
                   aria-label={`Approve verification for ${verification.fullName}`}
                 >
                   <CheckCircle className="h-4 w-4" aria-hidden="true" />
@@ -183,7 +183,7 @@ const Verifications = () => {
                   }}
                   variant="danger"
                   size="sm"
-                  className="flex items-center gap-2 flex-1"
+                  className="flex items-center gap-2 flex-1 font-semibold"
                   aria-label={`Reject verification for ${verification.fullName}`}
                 >
                   <XCircle className="h-4 w-4" aria-hidden="true" />
@@ -203,62 +203,93 @@ const Verifications = () => {
         size="lg"
       >
         {selectedVerification && (
-          <div className="space-y-6 text-gray-800">
+          <div className="space-y-6 text-gray-800 dark:text-gray-200">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-xl font-bold text-gray-900">{selectedVerification.fullName}</h3>
-                <p className="text-gray-600">Email: {selectedVerification.email}</p>
-                <p className="text-gray-600">User ID: {selectedVerification.userId}</p>
-                <p className="text-gray-600">Status: {selectedVerification.govIdStatus}</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{selectedVerification.fullName}</h3>
+                <p className="text-gray-600 dark:text-gray-400">Email: {selectedVerification.email}</p>
+                <p className="text-gray-600 dark:text-gray-400">User ID: {selectedVerification.userId}</p>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Status: <span className="text-yellow-600 dark:text-yellow-500 font-medium">{selectedVerification.govIdStatus}</span>
+                </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* National ID Number */}
+            {selectedVerification.nationalIdNumber && (
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg border border-emerald-200 dark:border-emerald-700/50 shadow-sm">
+                <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-1">
+                  National ID / Fayda Number
+                </label>
+                <p className="text-2xl font-mono font-bold text-emerald-900 dark:text-emerald-100 tracking-wider">
+                  {selectedVerification.nationalIdNumber}
+                </p>
+              </div>
+            )}
+
+            {/* Images Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* ID Front */}
               <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Government ID (Front)</h4>
-                <img
-                  src={selectedVerification.govIdFront}
-                  alt="Government ID Front"
-                  className="w-full h-auto rounded-lg border border-gray-300"
-                />
-                <a
-                  href={selectedVerification.govIdFront}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-emerald-600 hover:underline mt-2 block"
-                >
-                  View Full Size
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-2">ID Front</h4>
+                <a href={selectedVerification.govIdFront} target="_blank" rel="noopener noreferrer" className="block relative group">
+                  <img
+                    src={selectedVerification.govIdFront}
+                    alt="Government ID Front"
+                    className="w-full h-40 object-cover rounded-xl border-2 border-gray-200 dark:border-gray-700 group-hover:border-emerald-500 transition-all duration-300 shadow-sm cursor-pointer"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded-xl flex items-center justify-center">
+                    <Eye className="text-white opacity-0 group-hover:opacity-100 h-8 w-8" />
+                  </div>
                 </a>
               </div>
+
+              {/* ID Back */}
               <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Government ID (Back)</h4>
-                <img
-                  src={selectedVerification.govIdBack}
-                  alt="Government ID Back"
-                  className="w-full h-auto rounded-lg border border-gray-300"
-                />
-                <a
-                  href={selectedVerification.govIdBack}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-emerald-600 hover:underline mt-2 block"
-                >
-                  View Full Size
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-2">ID Back</h4>
+                <a href={selectedVerification.govIdBack} target="_blank" rel="noopener noreferrer" className="block relative group">
+                  <img
+                    src={selectedVerification.govIdBack}
+                    alt="Government ID Back"
+                    className="w-full h-40 object-cover rounded-xl border-2 border-gray-200 dark:border-gray-700 group-hover:border-emerald-500 transition-all duration-300 shadow-sm cursor-pointer"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded-xl flex items-center justify-center">
+                    <Eye className="text-white opacity-0 group-hover:opacity-100 h-8 w-8" />
+                  </div>
                 </a>
               </div>
+
+              {/* Selfie */}
+              {selectedVerification.govIdSelfie && (
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-2">Selfie</h4>
+                  <a href={selectedVerification.govIdSelfie} target="_blank" rel="noopener noreferrer" className="block relative group">
+                    <img
+                      src={selectedVerification.govIdSelfie}
+                      alt="Selfie"
+                      className="w-full h-40 object-cover rounded-xl border-2 border-gray-200 dark:border-gray-700 group-hover:border-emerald-500 transition-all duration-300 shadow-sm cursor-pointer"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded-xl flex items-center justify-center">
+                      <Eye className="text-white opacity-0 group-hover:opacity-100 h-8 w-8" />
+                    </div>
+                  </a>
+                </div>
+              )}
             </div>
 
-            <div className="flex gap-2">
+            <p className="text-sm text-gray-500 dark:text-gray-400 italic text-center">Click on images to enlarge</p>
+
+            <div className="flex gap-4 pt-2">
               <Button
                 onClick={() => {
                   setActionType('approve');
                   setShowActionModal(true);
                 }}
                 variant="success"
-                className="flex-1 flex items-center gap-2"
-                size="sm"
+                className="flex-1 flex items-center justify-center gap-2 py-3 text-lg font-bold uppercase tracking-wide"
+                size="lg"
               >
-                <Check className="h-4 w-4" />
+                <Check className="h-6 w-6" />
                 Verify
               </Button>
               <Button
@@ -267,9 +298,10 @@ const Verifications = () => {
                   setShowActionModal(true);
                 }}
                 variant="danger"
-                className="flex-1"
+                className="flex-1 py-3 text-lg font-bold uppercase tracking-wide"
+                size="lg"
               >
-                Reject Verification
+                Reject
               </Button>
             </div>
           </div>

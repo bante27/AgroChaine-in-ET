@@ -8,8 +8,10 @@ import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { API_URL } from '../utils/apiConfig';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Orders = () => {
+  const { t } = useLanguage();
   const { user: authUser } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,13 +24,13 @@ const Orders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       if (!authUser) {
-        setError('User not authenticated. Please log in.');
+        setError(t('dashboard.verification.cameraDeniedToast'));
         setLoading(false);
         return;
       }
       const token = localStorage.getItem('token');
       if (!token) {
-        setError('No authentication token found. Please log in.');
+        setError(t('dashboard.verification.cameraDeniedToast'));
         setLoading(false);
         return;
       }
@@ -44,16 +46,16 @@ const Orders = () => {
             try {
               const isBuyer = txn.buyerUserId === authUser.userId;
               const firstItem = txn.items && txn.items[0] ? txn.items[0] : { quantity: 1, product: {} };
-              let productName = 'Unknown Product';
-              let buyerName = 'Unknown Buyer';
-              let sellerName = 'Unknown Seller';
+              let productName = t('dashboard.orders.unknownProduct');
+              let buyerName = t('dashboard.status.unknown');
+              let sellerName = t('dashboard.status.unknown');
 
               // Fetch product
               try {
                 const productResponse = await axios.get(`${API_URL}/api/products/${txn.productId || firstItem.product?._id}`, {
                   headers: { Authorization: `Bearer ${token}` },
                 });
-                productName = productResponse.data.name || productResponse.data.title || 'Unknown Product';
+                productName = productResponse.data.name || productResponse.data.title || t('dashboard.orders.unknownProduct');
               } catch (productError) {
                 console.error(`Error fetching product ${txn.productId || firstItem.product?._id}:`, productError.response?.data || productError.message);
               }
@@ -63,7 +65,7 @@ const Orders = () => {
                 const buyerResponse = await axios.get(`${API_URL}/api/users/${txn.buyerUserId}`, {
                   headers: { Authorization: `Bearer ${token}` },
                 });
-                buyerName = buyerResponse.data.fullName || 'Unknown Buyer';
+                buyerName = buyerResponse.data.user.fullName || t('dashboard.status.unknown');
               } catch (buyerError) {
                 console.error(`Error fetching buyer ${txn.buyerUserId}:`, buyerError.response?.data || buyerError.message);
               }
@@ -73,7 +75,7 @@ const Orders = () => {
                 const sellerResponse = await axios.get(`${API_URL}/api/users/${txn.sellerUserId}`, {
                   headers: { Authorization: `Bearer ${token}` },
                 });
-                sellerName = sellerResponse.data.fullName || 'Unknown Seller';
+                sellerName = sellerResponse.data.user.fullName || t('dashboard.status.unknown');
               } catch (sellerError) {
                 console.error(`Error fetching seller ${txn.sellerUserId}:`, sellerError.response?.data || sellerError.message);
               }
@@ -95,7 +97,7 @@ const Orders = () => {
                 deliveryAddress: txn.deliveryAddress || '-',
                 paymentHeld: txn.paymentHeld || false,
                 type: isBuyer ? 'purchase' : 'sale',
-                description: `${isBuyer ? 'Purchased' : 'Sold'} ${firstItem.quantity || 1} × ${productName} (ID: ${txn.productId || firstItem.product?._id || 'unknown'})`,
+                description: `${isBuyer ? t('dashboard.activity.youPurchased') : t('dashboard.activity.youSold')} ${firstItem.quantity || 1} × ${productName}`,
               };
             } catch (err) {
               console.error(`Error processing transaction ${txn._id || 'unknown'}:`, err);
@@ -106,20 +108,13 @@ const Orders = () => {
 
         const validOrders = mapped.filter(order => order);
         if (validOrders.length === 0 && txns.length > 0) {
-          setError('No valid orders could be processed. Please check transaction data.');
+          setError(t('dashboard.orders.errorProcess'));
         } else if (txns.length === 0) {
-          setError('No orders found.');
+          setError(t('dashboard.orders.noOrders'));
         }
         setOrders(validOrders);
       } catch (err) {
-        console.error('Error fetching orders:', {
-          message: err.message,
-          response: err.response ? {
-            status: err.response.status,
-            data: err.response.data,
-          } : null,
-        });
-        setError(`Failed to load orders: ${err.response?.data?.error || err.message}`);
+        setError(`${t('dashboard.orders.errorLoad')}: ${err.response?.data?.error || err.message}`);
       } finally {
         setLoading(false);
       }
@@ -172,13 +167,13 @@ const Orders = () => {
           throw new Error('Invalid status update');
       }
       if (response.data.success) {
-        toast.success(`${status.charAt(0).toUpperCase() + status.slice(1)} updated successfully`);
+        toast.success(t(`dashboard.toast.${status === 'shipped' ? 'markShippedSuccess' : 'confirmDeliverySuccess'}`));
         setOrders(orders.map(order =>
           order._id === orderId ? { ...order, status } : order
         ));
       }
     } catch (error) {
-      toast.error(error.response?.data?.error || `Failed to update status to ${status}`);
+      toast.error(error.response?.data?.error || t(`dashboard.toast.${status === 'shipped' ? 'markShippedError' : 'confirmDeliveryError'}`));
     }
   };
 
@@ -199,7 +194,7 @@ const Orders = () => {
     return (
       <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${config.color}`}>
         <Icon className="w-3 h-3 mr-1" />
-        {status?.charAt(0).toUpperCase() + status?.slice(1)}
+        {t(`dashboard.status.${status}`)}
       </span>
     );
   };
@@ -232,13 +227,13 @@ const Orders = () => {
         transition={{ duration: 0.8, type: 'spring' }}
         className="mb-6"
       >
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Orders</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('dashboard.orders.title')}</h1>
       </motion.div>
 
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
         <Input
           type="text"
-          placeholder="Search by ID, buyer, seller, or product..."
+          placeholder={t('dashboard.orders.searchPlaceholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full sm:w-1/3"
@@ -249,16 +244,16 @@ const Orders = () => {
           onChange={(e) => setFilterStatus(e.target.value)}
           className="w-full sm:w-1/3 p-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
         >
-          <option value="all">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="shipped">Shipped</option>
-          <option value="completed">Completed</option>
-          <option value="canceled">Canceled</option>
+          <option value="all">{t('dashboard.status.all')}</option>
+          <option value="pending">{t('dashboard.status.pending')}</option>
+          <option value="shipped">{t('dashboard.status.shipped')}</option>
+          <option value="completed">{t('dashboard.status.completed')}</option>
+          <option value="canceled">{t('dashboard.status.cancelled')}</option>
         </select>
       </div>
 
       {filteredOrders.length === 0 ? (
-        <div className="text-center text-gray-500">No orders found.</div>
+        <div className="text-center text-gray-500">{t('dashboard.orders.noOrders')}</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredOrders.map((order) => (
@@ -273,24 +268,23 @@ const Orders = () => {
                 <h3 className="font-semibold text-gray-900 dark:text-white">{order.productName}</h3>
                 <span>{getStatusBadge(order.status)}</span>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">ID: {order._id}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Type: {order.type}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Price: {order.totalPrice} ETB</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Date: {new Date(order.date).toLocaleDateString()}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard.orders.type')}: {order.type === 'purchase' ? t('dashboard.activity.youPurchased') : t('dashboard.activity.youSold')}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard.orders.price')}: {order.totalPrice} ETB</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard.orders.date')}: {new Date(order.date).toLocaleDateString()}</p>
               <div className="mt-4 flex gap-2">
                 <Button
                   onClick={() => handleViewOrder(order)}
                   variant="outline"
                   className="flex-1"
                 >
-                  <Eye className="h-4 w-4 mr-1" /> View
+                  <Eye className="h-4 w-4 mr-1" /> {t('common.view')}
                 </Button>
                 {order.status === 'pending' && order.type === 'sale' && (
                   <Button
                     onClick={() => handleUpdateOrderStatus(order._id, 'shipped')}
                     className="flex-1 bg-blue-500 text-white"
                   >
-                    <Truck className="h-4 w-4 mr-1" /> Ship
+                    <Truck className="h-4 w-4 mr-1" /> {t('dashboard.actions.markShipped')}
                   </Button>
                 )}
                 {order.status === 'shipped' && order.type === 'purchase' && (
@@ -298,7 +292,7 @@ const Orders = () => {
                     onClick={() => handleUpdateOrderStatus(order._id, 'delivered')}
                     className="flex-1 bg-green-500 text-white"
                   >
-                    <CheckCircle className="h-4 w-4 mr-1" /> Confirm
+                    <CheckCircle className="h-4 w-4 mr-1" /> {t('dashboard.actions.confirmDelivery')}
                   </Button>
                 )}
                 {order.status === 'pending' && (
@@ -306,7 +300,7 @@ const Orders = () => {
                     onClick={() => handleUpdateOrderStatus(order._id, 'canceled')}
                     className="flex-1 bg-red-500 text-white"
                   >
-                    <XCircle className="h-4 w-4 mr-1" /> Cancel
+                    <XCircle className="h-4 w-4 mr-1" /> {t('common.cancel')}
                   </Button>
                 )}
               </div>
@@ -320,22 +314,22 @@ const Orders = () => {
           <Modal
             isOpen={showOrderModal}
             onClose={() => setShowOrderModal(false)}
-            title="Order Details"
+            title={t('dashboard.orders.details')}
           >
             <div className="p-4">
-              <p><strong>Product:</strong> {selectedOrder.productName}</p>
-              <p><strong>Buyer:</strong> {selectedOrder.buyerName}</p>
-              <p><strong>Seller:</strong> {selectedOrder.sellerName}</p>
-              <p><strong>Quantity:</strong> {selectedOrder.quantity}</p>
-              <p><strong>Total Price:</strong> {selectedOrder.totalPrice} ETB</p>
-              <p><strong>Status:</strong> {getStatusBadge(selectedOrder.status)}</p>
-              <p><strong>Date:</strong> {new Date(selectedOrder.date).toLocaleString()}</p>
-              <p><strong>Delivery Address:</strong> {selectedOrder.deliveryAddress}</p>
+              <p><strong>{t('dashboard.productUpload.productTitle')}:</strong> {selectedOrder.productName}</p>
+              <p><strong>{t('dashboard.orders.buyer')}:</strong> {selectedOrder.buyerName}</p>
+              <p><strong>{t('dashboard.orders.seller')}:</strong> {selectedOrder.sellerName}</p>
+              <p><strong>{t('dashboard.orders.quantity')}:</strong> {selectedOrder.quantity}</p>
+              <p><strong>{t('dashboard.orders.price')}:</strong> {selectedOrder.totalPrice} ETB</p>
+              <p><strong>{t('dashboard.status.all')}:</strong> {getStatusBadge(selectedOrder.status)}</p>
+              <p><strong>{t('dashboard.orders.date')}:</strong> {new Date(selectedOrder.date).toLocaleString()}</p>
+              <p><strong>{t('dashboard.orders.deliveryAddress')}:</strong> {selectedOrder.deliveryAddress}</p>
               <Button
                 onClick={() => setShowOrderModal(false)}
                 className="mt-4 w-full bg-blue-500 text-white"
               >
-                Close
+                {t('common.close')}
               </Button>
             </div>
           </Modal>

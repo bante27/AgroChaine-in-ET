@@ -12,6 +12,16 @@ export const useLanguage = () => {
 
 const translations = {
   en: {
+    next: 'Next',
+    back: 'Back',
+    common: {
+      confirm: 'Confirm',
+      cancel: 'Cancel',
+      retry: 'Retry',
+      close: 'Close',
+      view: 'View',
+      save: 'Save',
+    },
     nav: {
       brand: 'AgroChain',
       country: 'Ethiopia',
@@ -611,6 +621,7 @@ const translations = {
         you: 'You'
       },
       status: {
+        all: 'All Statuses',
         completed: 'Completed',
         shipped: 'Shipped',
         pending: 'Pending',
@@ -622,6 +633,39 @@ const translations = {
       actions: {
         markShipped: 'Mark Shipped',
         confirmDelivery: 'Confirm Delivery'
+      },
+      orders: {
+        title: 'My Orders',
+        allOrders: 'All Orders',
+        deliveryAddress: 'Delivery Address',
+        noOrders: 'No orders found.',
+        unknownProduct: 'Unknown Product',
+        removedProduct: 'Removed Product',
+        searchPlaceholder: 'Search by ID, buyer, seller, or product...',
+        details: 'Order Details',
+        type: 'Type',
+        buyer: 'Buyer',
+        seller: 'Seller',
+        quantity: 'Quantity',
+        price: 'Price',
+        date: 'Date',
+        errorProcess: 'No valid orders could be processed. Please check transaction data.',
+        errorLoad: 'Failed to load orders',
+      },
+      customers: {
+        title: 'Customers',
+        list: 'Customer List',
+        rank: 'Rank',
+        rating: 'Rating',
+        noCustomers: 'No customers found.',
+      },
+      toast: {
+        noDeliveryAddress: 'No delivery address available',
+        markShippedSuccess: 'Product marked as shipped successfully!',
+        markShippedError: 'Failed to mark product as shipped',
+        confirmDeliverySuccess: 'Delivery confirmed successfully!',
+        confirmDeliveryError: 'Failed to confirm delivery',
+        transactionNotFound: 'Transaction not found',
       },
       verification: {
         title: 'Verify Your Account',
@@ -660,7 +704,30 @@ const translations = {
         or: 'OR',
         emailOtpSent: 'A verification code has been sent to your email address.',
         resendCode: 'Resend Code',
-        invalidIdLength: 'National ID must be exactly 12 digits'
+        invalidIdLength: 'National ID must be exactly 12 digits',
+        step1Description: 'Step 1: Document Upload',
+        step2Description: 'Step 2: Face Verification',
+        step3Description: 'Step 3: Email Confirmation',
+        nextStep: 'Next Step',
+        submitForReview: 'Submit for Review',
+        verificationSuccess: 'Verification documents submitted successfully. Our team will review your identity within 24 hours.',
+        takeSelfie: 'Take Selfie',
+        retakeSelfie: 'Retake Selfie',
+        legalNamePlaceholder: 'Enter your legal name',
+        mustBe12DigitsTag: '⚠️ Must be exactly 12 digits',
+        validFormatTag: '✓ Valid format',
+        openCamera: 'Open Camera',
+        retake: 'Retake',
+        gallery: 'Gallery',
+        verifyAndContinue: 'Verify & Continue',
+        backToSelfie: 'to selfie',
+        sending: 'Sending...',
+        selfieInstruction: 'Position your face in the circle',
+        idInstruction: 'Align document within the frame',
+        cameraDeniedToast: 'Camera access denied. Please allow camera permissions.',
+        invalidIdToast: 'National ID must be 12 digits',
+        provideIdToast: 'Please upload front and back of your ID',
+        provideSelfieToast: 'Please take a selfie for live match',
       }
     },
     contact: {
@@ -878,6 +945,16 @@ const translations = {
     },
   },
   am: {
+    next: 'ቀጣይ',
+    back: 'ተመለስ',
+    common: {
+      confirm: 'አረጋግጥ',
+      cancel: 'ሰርዝ',
+      retry: 'እንደገና ሞክር',
+      close: 'ዝጋ',
+      view: 'ተመልከት',
+      save: 'አስቀምጥ',
+    },
     nav: {
       brand: 'አግሮቼይን',
       country: 'ኢትዮጵያ',
@@ -1473,6 +1550,7 @@ const translations = {
         you: 'እርስዎ'
       },
       status: {
+        all: 'ሁሉም ሁኔታዎች',
         pending: 'በጥበቃ ላይ',
         shipped: 'ተልኳል',
         delivered: 'ደርሷል',
@@ -1486,6 +1564,39 @@ const translations = {
       actions: {
         markShipped: 'ተልኳል በል',
         confirmDelivery: 'መድረሱን አረጋግጥ'
+      },
+      orders: {
+        title: 'የእኔ ትዕዛዞች',
+        allOrders: 'ሁሉም ትዕዛዞች',
+        deliveryAddress: 'የመላኪያ አድራሻ',
+        noOrders: 'ምንም ትዕዛዞች አልተገኙም።',
+        unknownProduct: 'ያልታወቀ ምርት',
+        removedProduct: 'የተወገደ ምርት',
+        searchPlaceholder: 'በመታወቂያ፣ በገዢ፣ በሻጭ ወይም በምርት ይፈልጉ...',
+        details: 'የትዕዛዝ ዝርዝሮች',
+        type: 'ዓይነት',
+        buyer: 'ገዢ',
+        seller: 'ሻጭ',
+        quantity: 'ብዛት',
+        price: 'ዋጋ',
+        date: 'ቀን',
+        errorProcess: 'ምንም ትክክለኛ ትዕዛዞች ሊካሄዱ አልቻሉም። እባክዎ የልውውጥ ውሂቡን ያረጋግጡ።',
+        errorLoad: 'ትዕዛዞችን መጫን አልተቻለም',
+      },
+      customers: {
+        title: 'ደንበኞች',
+        list: 'የደንበኞች ዝርዝር',
+        rank: 'ደረጃ',
+        rating: 'ደረጃ አሰጣጥ',
+        noCustomers: 'ምንም ደንበኞች አልተገኙም።',
+      },
+      toast: {
+        noDeliveryAddress: 'ምንም የመላኪያ አድራሻ የለም',
+        markShippedSuccess: 'ምርቱ በተሳካ ሁኔታ ተልኳል ተብሎ ተመዝግቧል!',
+        markShippedError: 'ምርቱን ተልኳል ብሎ ለመመዝገብ አልተቻለም',
+        confirmDeliverySuccess: 'ርክክብ በተሳካ ሁኔታ ተረጋግጧል!',
+        confirmDeliveryError: 'ርክክብ ማረጋገጥ አልተቻለም',
+        transactionNotFound: 'ልውውጡ አልተገኘም',
       },
       verification: {
         title: 'መለያዎን ያረጋግጡ',
@@ -1524,7 +1635,30 @@ const translations = {
         or: 'ወይም',
         emailOtpSent: 'የማረጋገጫ ኮድ ወደ ኢሜል አድራሻዎ ተልኳል።',
         resendCode: 'ድጋሚ ላክ',
-        invalidIdLength: 'ብሔራዊ መታወቂያ በትክክል 12 አሃዝ መሆን አለበት'
+        invalidIdLength: 'ብሔራዊ መታወቂያ በትክክል 12 አሃዝ መሆን አለበት',
+        step1Description: 'ደረጃ 1፡ ሰነዶችን ይጫኑ',
+        step2Description: 'ደረጃ 2፡ የፊት ማረጋገጫ',
+        step3Description: 'ደረጃ 3፡ የኢሜል ማረጋገጫ',
+        nextStep: 'ቀጣይ ደረጃ',
+        submitForReview: 'ለግምገማ ላክ',
+        verificationSuccess: 'የማረጋገጫ ሰነዶች በተሳካ ሁኔታ ተልከዋል። ቡድናችን የእርስዎን መታወቂያ በ24 ሰዓት ውስጥ ይገመግማል።',
+        takeSelfie: 'የፊት ፎቶ አንሳ',
+        retakeSelfie: 'እንደገና አንሳ',
+        legalNamePlaceholder: 'ህጋዊ ስምዎን ያስገቡ',
+        mustBe12DigitsTag: '⚠️ በትክክል 12 አሃዝ መሆን አለበት',
+        validFormatTag: '✓ ትክክለኛ ቅርጸት',
+        openCamera: 'ካሜራ ክፈት',
+        retake: 'እንደገና አንሳ',
+        gallery: 'ከጋለሪ',
+        verifyAndContinue: 'አረጋግጥ እና ቀጥል',
+        backToSelfie: 'ወደ ፊት ፎቶ',
+        sending: 'በመላክ ላይ...',
+        selfieInstruction: 'ፊትዎን በክበቡ ውስጥ ያስቀምጡ',
+        idInstruction: 'ሰነዱን በክፈፉ ውስጥ ያስተካክሉ',
+        cameraDeniedToast: 'ካሜራ መጠቀም አልተቻለም። እባክዎ ለካሜራ ፈቃድ ይስጡ።',
+        invalidIdToast: 'ብሐራዊ መታወቂያ 12 አሃዝ መሆን አለበት',
+        provideIdToast: 'እባክዎ የመታወቂያዎን የፊት እና የጀርባ ፎቶ ይስቀሉ',
+        provideSelfieToast: 'እባክዎ ለቀጥታ ማረጋገጫ የፊት ፎቶ አንሱ',
       }
     },
     contact: {

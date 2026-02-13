@@ -136,7 +136,7 @@ const Dashboard = () => {
   // Google Maps function
   const openGoogleMaps = (address) => {
     if (!address || address === 'Not specified') {
-      toast.error('No delivery address available');
+      toast.error(t('dashboard.toast.noDeliveryAddress'));
       return;
     }
 
@@ -309,45 +309,45 @@ const Dashboard = () => {
             if (!tx.productId || !tx.buyerUserId || !tx.sellerUserId) {
               return {
                 ...tx,
-                productName: 'Unknown Product',
-                buyerName: 'Unknown Buyer',
-                sellerName: 'Unknown Seller',
+                productName: t('dashboard.orders.unknownProduct'),
+                buyerName: t('dashboard.status.unknown'),
+                sellerName: t('dashboard.status.unknown'),
                 totalPrice: tx.totalPrice || 0,
-                deliveryAddress: tx.deliveryAddress || 'Not specified',
+                deliveryAddress: tx.deliveryAddress || t('dashboard.profile.notSet'),
               };
             }
 
-            let productName = 'Removed Product';
+            let productName = t('dashboard.orders.removedProduct');
             let productImage = '';
             try {
               const productResponse = await axios.get(`${API_URL}/api/products/${tx.productId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
-              productName = productResponse.data.product.title || 'Unknown Product';
+              productName = productResponse.data.product.title || t('dashboard.orders.unknownProduct');
               productImage = productResponse.data.product.images?.[0] || '';
             } catch (productError) {
               console.warn(`Product ${tx.productId} not found or deleted.`);
             }
 
-            let buyerName = 'Unknown User';
+            let buyerName = t('dashboard.status.unknown');
             let buyerEmail = '';
             try {
               const buyerResponse = await axios.get(`${API_URL}/api/users/${tx.buyerUserId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
-              buyerName = buyerResponse.data.user.fullName || 'Unknown';
+              buyerName = buyerResponse.data.user.fullName || t('dashboard.status.unknown');
               buyerEmail = buyerResponse.data.user.email || '';
             } catch (buyerError) {
               console.warn(`Buyer ${tx.buyerUserId} not found.`);
             }
 
-            let sellerName = 'Unknown User';
+            let sellerName = t('dashboard.status.unknown');
             let sellerEmail = '';
             try {
               const sellerResponse = await axios.get(`${API_URL}/api/users/${tx.sellerUserId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
-              sellerName = sellerResponse.data.user.fullName || 'Unknown';
+              sellerName = sellerResponse.data.user.fullName || t('dashboard.status.unknown');
               sellerEmail = sellerResponse.data.user.email || '';
             } catch (sellerError) {
               console.warn(`Seller ${tx.sellerUserId} not found.`);
@@ -362,17 +362,17 @@ const Dashboard = () => {
               sellerName,
               sellerEmail,
               totalPrice: tx.totalPrice || 0,
-              deliveryAddress: tx.deliveryAddress || 'Not specified',
+              deliveryAddress: tx.deliveryAddress || t('dashboard.profile.notSet'),
             };
           } catch (err) {
             console.error(`Error processing transaction ${tx._id || 'unknown'}:`, err);
             return {
               ...tx,
-              productName: 'Unknown Product',
-              buyerName: 'Unknown Buyer',
-              sellerName: 'Unknown Seller',
+              productName: t('dashboard.orders.unknownProduct'),
+              buyerName: t('dashboard.status.unknown'),
+              sellerName: t('dashboard.status.unknown'),
               totalPrice: tx.totalPrice || 0,
-              deliveryAddress: 'Not specified',
+              deliveryAddress: t('dashboard.profile.notSet'),
             };
           }
         })
@@ -401,18 +401,18 @@ const Dashboard = () => {
       const transaction = orders.find((order) => order._id === transactionId);
       if (!transaction) {
         console.error("Transaction not found for ID:", transactionId);
-        toast.error("Transaction not found");
+        toast.error(t('dashboard.toast.transactionNotFound'));
         return;
       }
 
       console.log("Transaction found for shipping:", transaction);
 
-      toast.success(" Product marked as shipped successfully!");
+      toast.success(t('dashboard.toast.markShippedSuccess'));
       fetchUserProfileLocal();
 
     } catch (error) {
       console.error("❌ Error in handleDeliver:", error);
-      toast.error(error.response?.data?.error || error.message || "Failed to mark product as shipped");
+      toast.error(error.response?.data?.error || error.message || t('dashboard.toast.markShippedError'));
     }
   };
 
@@ -434,18 +434,18 @@ const Dashboard = () => {
       const transaction = orders.find((order) => order._id === transactionId);
       if (!transaction) {
         console.error("Transaction not found for ID:", transactionId);
-        toast.error("Transaction not found");
+        toast.error(t('dashboard.toast.transactionNotFound'));
         return;
       }
 
       console.log("Transaction found for delivery confirmation:", transaction);
 
-      toast.success(" Delivery confirmed successfully!");
+      toast.success(t('dashboard.toast.confirmDeliverySuccess'));
       fetchUserProfileLocal();
 
     } catch (error) {
       console.error("❌ Error in handleDelivered:", error);
-      toast.error(error.response?.data?.error || error.message || "Failed to confirm delivery");
+      toast.error(error.response?.data?.error || error.message || t('dashboard.toast.confirmDeliveryError'));
     }
   };
 
@@ -789,7 +789,7 @@ const Dashboard = () => {
             }}
             className="mt-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1.5 px-3 sm:px-4 text-xs sm:text-sm shadow-md hover:shadow-lg transition-all"
           >
-            Retry
+            {t('common.retry')}
           </Button>
         </div>
       </div>
@@ -1210,11 +1210,11 @@ const Dashboard = () => {
               className="bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden"
             >
               <div className="p-4 flex justify-between items-center border-b border-blue-200/20 dark:border-blue-700/20">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">All Orders</h2>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t('dashboard.orders.allOrders')}</h2>
                 <Button
                   onClick={() => setShowAllOrdersModal(false)}
                   className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-2 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
-                  aria-label="Close orders popup"
+                  aria-label={t('common.close')}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -1234,11 +1234,11 @@ const Dashboard = () => {
                           <p className="font-medium text-gray-900 dark:text-white text-sm">
                             {order.sellerUserId === user?.userId ? (
                               <>
-                                You sold <span className="font-bold">{order.productName}</span> to {order.buyerUserId === user?.userId ? 'You' : order.buyerName}
+                                {t('dashboard.activity.youSold')} <span className="font-bold">{order.productName}</span> {t('dashboard.activity.to')} {order.buyerUserId === user?.userId ? t('dashboard.activity.you') : order.buyerName}
                               </>
                             ) : (
                               <>
-                                You purchased <span className="font-bold">{order.productName}</span> from {order.sellerUserId === user?.userId ? 'You' : order.sellerName}
+                                {t('dashboard.activity.youPurchased')} <span className="font-bold">{order.productName}</span> {t('dashboard.activity.from')} {order.sellerUserId === user?.userId ? t('dashboard.activity.you') : order.sellerName}
                               </>
                             )}
                           </p>
@@ -1246,11 +1246,11 @@ const Dashboard = () => {
                           {/* UPDATED: Google Maps integration for delivery address */}
                           <div className="flex items-center space-x-1 mt-1">
                             <MapPin className="h-3 w-3 text-blue-500" />
-                            <span className="text-xs text-gray-500 dark:text-gray-400">Delivery Address:</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.orders.deliveryAddress')}:</span>
                             <button
                               onClick={() => openGoogleMaps(order.deliveryAddress)}
                               className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline cursor-pointer transition-colors ml-1"
-                              title="Open in Google Maps"
+                              title={t('dashboard.orders.deliveryAddress')}
                             >
                               {order.deliveryAddress}
                             </button>
@@ -1264,25 +1264,25 @@ const Dashboard = () => {
                           <Button
                             onClick={() => handleDeliver(order._id)}
                             className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            aria-label="Mark as shipped"
+                            aria-label={t('dashboard.actions.markShipped')}
                           >
-                            Mark Shipped
+                            {t('dashboard.actions.markShipped')}
                           </Button>
                         )}
                         {order.status === 'shipped' && order.buyerUserId === user?.userId && (
                           <Button
                             onClick={() => handleDelivered(order._id)}
                             className="bg-green-600 hover:bg-green-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-green-500"
-                            aria-label="Confirm delivery"
+                            aria-label={t('dashboard.actions.confirmDelivery')}
                           >
-                            Confirm Delivery
+                            {t('dashboard.actions.confirmDelivery')}
                           </Button>
                         )}
                       </div>
                     </div>
                   ))}
                   {orders.length === 0 && (
-                    <p className="text-gray-600 dark:text-gray-300 text-sm">No orders found.</p>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm">{t('dashboard.orders.noOrders')}</p>
                   )}
                 </div>
               </div>
@@ -1294,17 +1294,17 @@ const Dashboard = () => {
       <Modal
         isOpen={showCustomersModal}
         onClose={() => setShowCustomersModal(false)}
-        title="Customers"
+        title={t('dashboard.customers.title')}
         size="lg"
       >
         <div className="bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-md">
           <div className="p-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Customer List</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">{t('dashboard.customers.list')}</h2>
               <Button
                 onClick={() => setShowCustomersModal(false)}
                 className="bg-red-600 hover:bg-red-700 text-white rounded-lg py-1 px-3 text-xs shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
-                aria-label="Close customers modal"
+                aria-label={t('common.close')}
               >
                 <X className="h-3 w-3" />
               </Button>
@@ -1321,14 +1321,14 @@ const Dashboard = () => {
                     </div>
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white text-sm">{customer.fullName}</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-300">Rank: {customer.rank || 'N/A'}</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-300">Rating: {customer.customerRating}/5</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-300">{t('dashboard.customers.rank')}: {customer.rank || t('dashboard.status.unknown')}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-300">{t('dashboard.customers.rating')}: {customer.customerRating}/5</p>
                     </div>
                   </div>
                 </div>
               ))}
               {customers.length === 0 && (
-                <p className="text-gray-600 dark:text-gray-300 text-sm italic text-center py-4">No customers found.</p>
+                <p className="text-gray-600 dark:text-gray-300 text-sm italic text-center py-4">{t('dashboard.customers.noCustomers')}</p>
               )}
             </div>
           </div>
@@ -1336,9 +1336,9 @@ const Dashboard = () => {
             <Button
               onClick={() => setShowCustomersModal(false)}
               className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-1.5 px-4 text-sm shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
-              aria-label="Close customers modal"
+              aria-label={t('common.close')}
             >
-              Close
+              {t('common.cancel')}
             </Button>
           </div>
         </div>
