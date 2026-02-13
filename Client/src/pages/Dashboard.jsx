@@ -616,11 +616,17 @@ const Dashboard = () => {
       formData.append('name', data.name);
       formData.append('govIdFront', data.govIdFront);
       formData.append('govIdBack', data.govIdBack);
+      formData.append('govIdSelfie', data.govIdSelfie);
+      formData.append('nationalIdNumber', data.nationalIdNumber);
+      formData.append('otpCode', data.otpCode);
 
       console.log('📋 FormData prepared:', {
         name: data.name,
         govIdFront: data.govIdFront?.name,
-        govIdBack: data.govIdBack?.name
+        govIdBack: data.govIdBack?.name,
+        govIdSelfie: data.govIdSelfie?.name,
+        nationalIdNumber: data.nationalIdNumber,
+        otpCode: data.otpCode
       });
 
       console.log('🚀 Sending verification request...');
@@ -630,7 +636,8 @@ const Dashboard = () => {
 
       console.log('✅ Verification response:', response.data);
 
-      setVerificationStatus('pending');
+      const isInstant = response.data.verified === true;
+      setVerificationStatus(isInstant ? 'verified' : 'pending');
       setShowVerificationModal(false);
 
       // Update user's full name if provided
@@ -644,7 +651,12 @@ const Dashboard = () => {
       }
 
       fetchUserProfileLocal();
-      toast.success(t('dashboard.verification.verificationSubmitted'));
+
+      if (isInstant) {
+        toast.success(t('dashboard.verification.verifiedViaIdSuccess'));
+      } else {
+        toast.success(t('dashboard.verification.verificationSubmitted'));
+      }
     } catch (error) {
       console.error('❌ Verification error:', error);
       console.error('Error response:', error.response?.data);

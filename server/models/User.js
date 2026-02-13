@@ -10,9 +10,11 @@ const UserSchema = new mongoose.Schema({
   username: { type: String, unique: true, sparse: true }, // optional, unique if set
   location: { type: String },
   profilePic: { type: String }, // Cloudinary URL for profile picture
+  nationalIdNumber: { type: String, unique: true, sparse: true }, // Fayda (National ID) number
   govIdFront: { type: String }, // Cloudinary URL for front government ID
   govIdBack: { type: String }, // Cloudinary URL for back government ID
-  govIdStatus: { type: String, default: 'unverified' }, // 'not_uploaded', 'pending', 'approved', 'rejected'
+  govIdSelfie: { type: String }, // Cloudinary URL for live selfie match
+  govIdStatus: { type: String, default: 'unverified' }, // 'not_uploaded', 'pending', 'approved', 'verified', 'rejected'
   verified: { type: Boolean, default: false }, // gov id verified
   registrationDate: { type: Date, default: Date.now },
   rank: { type: Number, default: 0 }, // can be used for reputation

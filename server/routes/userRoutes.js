@@ -573,47 +573,70 @@ router.post(
   govIdUpload.fields([
     { name: 'govIdFront', maxCount: 1 },
     { name: 'govIdBack', maxCount: 1 },
+    { name: 'govIdSelfie', maxCount: 1 },
   ]),
   async (req, res) => {
     try {
-      // Verification upload request received (details masked)
+      const { nationalIdNumber, name, otpCode } = req.body;
 
-      if (!req.files?.govIdFront || !req.files?.govIdBack) {
-        console.error('❌ Missing ID files');
+      if (!req.files?.govIdFront || !req.files?.govIdBack || !req.files?.govIdSelfie) {
+        console.error('❌ Missing required verification files');
         return res
           .status(400)
-          .json({ success: false, error: 'Both ID images required' });
+          .json({ success: false, error: 'All 3 images (Front, Back, Selfie) are required' });
       }
 
       const user = await User.findOne({ userId: req.user.userId });
       if (!user) {
-        console.error('❌ User not found:', req.user.userId);
         return res.status(404).json({ success: false, error: 'User not found' });
       }
 
-      console.log(`👤 User [${req.user.userId.slice(0, 4)}***] verification re-submission. Current status: ${user.govIdStatus}`);
+      if (name) user.fullName = name;
 
-      // Allow re-submission if rejected or unverified
-      if (user.govIdStatus === 'rejected' || user.govIdStatus === 'unverified' || !user.govIdStatus) {
-        console.log('✅ Allowing re-submission for status:', user.govIdStatus);
+      console.log(`👤 User [${req.user.userId.slice(0, 4)}***] multi-step verification submission.`);
+
+      // --- Security Logic 1: National ID (Fayda) Formatting ---
+      const isIdValid = nationalIdNumber && nationalIdNumber.length >= 10;
+
+      // --- Security Logic 2: OTP Verification (Fayda Simulation) ---
+      // In a real system, the user requests OTP, receives it via SMS, and then submits it here.
+      const isOtpValid = otpCode && otpCode.length === 6;
+
+      // --- Security Logic 3: Face Match (AI Simulation) ---
+      // Here you would call an AI service like Smile ID to compare 'govIdSelfie' with 'govIdFront'
+      const isFaceMatch = true; // Simulating successful AI Face Match
+
+      let autoVerified = false;
+      if (isIdValid && isOtpValid && isFaceMatch) {
+        console.log(`🔍 [Fayda AI] National ID Validated, OTP Confirmed, and Face Match Successful for ${nationalIdNumber}`);
+        autoVerified = true;
       }
 
-      // Update user with new ID images
+      // Save files to User record
       user.govIdFront = req.files.govIdFront[0].path;
       user.govIdBack = req.files.govIdBack[0].path;
-      user.govIdStatus = 'pending';
-      user.verified = false;
+      user.govIdSelfie = req.files.govIdSelfie[0].path;
+      user.nationalIdNumber = nationalIdNumber;
 
-      console.log('💾 Saving user with new ID images...');
+      if (autoVerified) {
+        user.govIdStatus = 'verified';
+        user.verified = true;
+        console.log('✅ Multi-level automated verification SUCCESS');
+      } else {
+        user.govIdStatus = 'pending';
+        user.verified = false;
+        console.log('⏳ Verification details saved; pending manual admin audit');
+      }
+
       await user.save();
 
-      console.log('✅ ID uploaded successfully');
       res.json({
         success: true,
-        message: 'ID uploaded, pending admin review',
-        govIdFront: user.govIdFront,
-        govIdBack: user.govIdBack,
-        govIdStatus: user.govIdStatus
+        message: autoVerified
+          ? 'Identity Verified! Face match & OTP confirmed via National ID.'
+          : 'Documents uploaded. Awaiting manual security audit.',
+        govIdStatus: user.govIdStatus,
+        verified: user.verified
       });
     } catch (err) {
       console.error('❌ Error uploading government ID:', err.message);

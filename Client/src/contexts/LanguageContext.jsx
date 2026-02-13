@@ -642,7 +642,19 @@ const translations = {
         verificationFailed: 'Verification failed',
         frontIdCaptured: 'Front ID captured',
         backIdCaptured: 'Back ID captured',
-        cameraAccessFailed: 'Failed to access camera'
+        cameraAccessFailed: 'Failed to access camera',
+        nationalIdNumber: 'National ID / Fayda Number',
+        nationalIdPlaceholder: 'Enter 12-digit National ID',
+        verifyViaNationalId: 'Verify via National ID',
+        verifiedViaIdSuccess: 'Account verified instantly via National ID!',
+        captureSelfie: 'Capture Selfie',
+        selfieTitle: 'Live Face Match',
+        selfieDesc: 'Take a clear photo of your face to match with your ID',
+        enterOtp: 'Enter Verification OTP',
+        otpSent: 'A verification code has been sent to your registered phone number.',
+        confirmOtp: 'Confirm OTP',
+        invalidOtp: 'Invalid or expired OTP',
+        selfieCaptured: 'Selfie captured successfully'
       }
     },
     contact: {
@@ -1488,7 +1500,19 @@ const translations = {
         verificationFailed: 'ማረጋገጫ አልተሳካም',
         frontIdCaptured: 'ቀዳሚ መታወቂያ ተአክላል',
         backIdCaptured: 'አመታዲ መታወቂያ ተአክላል',
-        cameraAccessFailed: 'ካሜራን መጠቀም አልተቻለም'
+        cameraAccessFailed: 'ካሜራን መጠቀም አልተቻለም',
+        nationalIdNumber: 'ብሔራዊ መታወቂያ / የፋይዳ ቁጥር',
+        nationalIdPlaceholder: 'የ 12 አሃዝ ብሔራዊ መታወቂያ ያስገቡ',
+        verifyViaNationalId: 'በብሔራዊ መታወቂያ አረጋግጥ',
+        verifiedViaIdSuccess: 'መለያዎ በብሔራዊ መታወቂያ ወዲያውኑ ተረጋግጧል!',
+        captureSelfie: 'የፊት ፎቶ አንሳ',
+        selfieTitle: 'የፊት ማረጋገጫ',
+        selfieDesc: 'ከመታወቂያዎ ጋር ለማዛመድ የፊትዎን ግልጽ ፎቶ ያንሱ',
+        enterOtp: 'የማረጋገጫ ኮድ ያስገቡ',
+        otpSent: 'የማረጋገጫ ኮድ ወደ ተመዘገበው ስልክ ቁጥርዎ ተልኳል።',
+        confirmOtp: 'ኮዱን አረጋግጥ',
+        invalidOtp: 'የተሳሳተ ወይም ጊዜው ያለፈበት ኮድ',
+        selfieCaptured: 'የፊት ፎቶ በተሳካ ሁኔታ ተነስቷል'
       }
     },
     contact: {
