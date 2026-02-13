@@ -634,7 +634,8 @@ router.post(
       console.log(`👤 User [${req.user.userId.slice(0, 4)}***] multi-step verification submission.`);
 
       // --- Security Logic 1: National ID (Fayda) Formatting ---
-      const isIdValid = nationalIdNumber && nationalIdNumber.length >= 10;
+      // Ethiopian Fayda ID is exactly 12 digits
+      const isIdValid = nationalIdNumber && /^\d{12}$/.test(nationalIdNumber);
 
       // --- Security Logic 2: OTP Verification (DB Check) ---
       let isOtpValid = false;

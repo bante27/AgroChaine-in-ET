@@ -143,6 +143,10 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
         toast.error(t('dashboard.verification.provideBothIds'));
         return;
       }
+      if (nationalIdNumber.length !== 12) {
+        toast.error(t('dashboard.verification.invalidIdLength'));
+        return;
+      }
       setStep(2);
     } else if (step === 2) {
       if (!govIdSelfie) {
@@ -295,11 +299,37 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">{t('dashboard.verification.nationalIdNumber')}</label>
-                <input
-                  type="text" value={nationalIdNumber} onChange={e => setNationalIdNumber(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-gray-800/50 border-2 border-transparent focus:border-blue-500 dark:focus:border-blue-500/50 rounded-2xl p-4 text-gray-900 dark:text-white transition-all outline-none"
-                  placeholder="12-digit Fayda Number"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={nationalIdNumber}
+                    onChange={e => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      if (value.length <= 12) {
+                        setNationalIdNumber(value);
+                      }
+                    }}
+                    maxLength="12"
+                    className={`w-full bg-gray-50 dark:bg-gray-800/50 border-2 ${nationalIdNumber.length === 12
+                      ? 'border-green-500'
+                      : nationalIdNumber.length > 0
+                        ? 'border-yellow-500'
+                        : 'border-transparent'
+                      } focus:border-blue-500 rounded-2xl p-4 pr-12 text-gray-900 dark:text-white transition-all outline-none font-mono tracking-wider`}
+                    placeholder="123456789012"
+                  />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold">
+                    <span className={nationalIdNumber.length === 12 ? 'text-green-600' : 'text-gray-400'}>
+                      {nationalIdNumber.length}/12
+                    </span>
+                  </div>
+                </div>
+                {nationalIdNumber.length > 0 && nationalIdNumber.length < 12 && (
+                  <p className="text-xs text-yellow-600 ml-1">⚠️ Must be exactly 12 digits</p>
+                )}
+                {nationalIdNumber.length === 12 && (
+                  <p className="text-xs text-green-600 ml-1">✓ Valid format</p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

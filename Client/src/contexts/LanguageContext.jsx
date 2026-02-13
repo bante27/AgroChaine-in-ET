@@ -659,7 +659,8 @@ const translations = {
         uploadFile: 'Upload File',
         or: 'OR',
         emailOtpSent: 'A verification code has been sent to your email address.',
-        resendCode: 'Resend Code'
+        resendCode: 'Resend Code',
+        invalidIdLength: 'National ID must be exactly 12 digits'
       }
     },
     contact: {
@@ -1522,7 +1523,8 @@ const translations = {
         uploadFile: 'ፋይል ይጫኑ',
         or: 'ወይም',
         emailOtpSent: 'የማረጋገጫ ኮድ ወደ ኢሜል አድራሻዎ ተልኳል።',
-        resendCode: 'ድጋሚ ላክ'
+        resendCode: 'ድጋሚ ላክ',
+        invalidIdLength: 'ብሔራዊ መታወቂያ በትክክል 12 አሃዝ መሆን አለበት'
       }
     },
     contact: {
