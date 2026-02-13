@@ -567,6 +567,44 @@ router.post(
 );
 
 // -------------------- Upload Government ID --------------------
+// Request OTP for Government ID Verification
+router.post('/request-verification-otp', auth, checkEmailCredentials, async (req, res) => {
+  try {
+    const user = await User.findOne({ userId: req.user.userId });
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    const otp = generateOtp();
+    user.otp = otp;
+    user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save();
+
+    await transporter.sendMail({
+      to: user.email,
+      subject: 'AgroChain - National ID Verification Code',
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <h2 style="color: #4B6BFB; text-align: center;">Identity Verification</h2>
+          <p>Hello <strong>${user.fullName}</strong>,</p>
+          <p>You are requesting to verify your National ID for your AgroChain Ethiopia account. Use the following 6-digit code to complete the process:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; background: #f4f7ff; padding: 10px 20px; border-radius: 5px; color: #1e293b; border: 1px dashed #4B6BFB;">${otp}</span>
+          </div>
+          <p style="color: #666; font-size: 14px;">This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+          <p style="text-align: center; color: #999; font-size: 12px;">© 2026 AgroChain Ethiopia. All rights reserved.</p>
+        </div>
+      `,
+    });
+
+    res.json({ success: true, message: 'Verification code sent to your email' });
+  } catch (err) {
+    console.error('Error requesting verification OTP:', err);
+    res.status(500).json({ success: false, error: 'Failed to send verification code' });
+  }
+});
+
 router.post(
   '/verify-id',
   auth,
@@ -598,12 +636,16 @@ router.post(
       // --- Security Logic 1: National ID (Fayda) Formatting ---
       const isIdValid = nationalIdNumber && nationalIdNumber.length >= 10;
 
-      // --- Security Logic 2: OTP Verification (Fayda Simulation) ---
-      // In a real system, the user requests OTP, receives it via SMS, and then submits it here.
-      const isOtpValid = otpCode && otpCode.length === 6;
+      // --- Security Logic 2: OTP Verification (DB Check) ---
+      let isOtpValid = false;
+      if (user.otp === otpCode && user.otpExpires && user.otpExpires > Date.now()) {
+        isOtpValid = true;
+        // Clear OTP after use
+        user.otp = null;
+        user.otpExpires = null;
+      }
 
       // --- Security Logic 3: Face Match (AI Simulation) ---
-      // Here you would call an AI service like Smile ID to compare 'govIdSelfie' with 'govIdFront'
       const isFaceMatch = true; // Simulating successful AI Face Match
 
       let autoVerified = false;
@@ -634,7 +676,7 @@ router.post(
         success: true,
         message: autoVerified
           ? 'Identity Verified! Face match & OTP confirmed via National ID.'
-          : 'Documents uploaded. Awaiting manual security audit.',
+          : 'Identity details saved. OTP check failed (or expired) - pending manual security audit.',
         govIdStatus: user.govIdStatus,
         verified: user.verified
       });

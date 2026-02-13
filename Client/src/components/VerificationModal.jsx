@@ -3,8 +3,10 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import Button from './Button';
-import { Camera, CheckCircle, ShieldCheck, Smartphone, RefreshCw, Upload, X } from 'lucide-react';
+import { Camera, CheckCircle, ShieldCheck, Smartphone, RefreshCw, Upload, X, Send } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import axios from 'axios';
+import { API_URL } from '../utils/apiConfig';
 
 const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, userEmail }) => {
   const [step, setStep] = useState(1);
@@ -23,7 +25,23 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
   const { t } = useLanguage();
+
+  const handleRequestOTP = async () => {
+    setIsSendingCode(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/users/request-verification-otp`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(t('dashboard.verification.emailOtpSent'));
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Failed to send code");
+    } finally {
+      setIsSendingCode(false);
+    }
+  };
 
   // Mask Email function
   const maskEmail = (email) => {
@@ -132,7 +150,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
         return;
       }
       setStep(3);
-      toast.success(t('dashboard.verification.emailOtpSent'));
+      handleRequestOTP();
     }
   };
 
@@ -392,34 +410,44 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
           )}
 
           {step === 3 && (
-            <div className="space-y-8 py-4">
+            <div className="space-y-6 py-2">
               <div className="text-center group">
-                <div className="relative inline-block w-full max-w-[300px]">
+                <div className="relative inline-block w-full max-w-[240px]">
                   <input
                     type="text" maxLength="6" value={otpCode} onChange={e => setOtpCode(e.target.value)}
-                    className="w-full text-center text-4xl sm:text-5xl font-black tracking-[0.6em] bg-gray-50 dark:bg-gray-800/50 border-0 rounded-3xl py-8 text-gray-900 dark:text-white outline-none caret-blue-500 transition-all"
+                    className="w-full text-center text-3xl sm:text-4xl font-black tracking-[0.5em] bg-gray-50 dark:bg-gray-800/50 border-2 border-transparent focus:border-blue-500 rounded-2xl py-5 text-gray-900 dark:text-white outline-none transition-all"
                     placeholder="000000"
                   />
-                  <div className="absolute bottom-0 left-0 h-1.5 bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${(otpCode.length / 6) * 100}%` }} />
                 </div>
               </div>
 
-              <div className="bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-2xl border border-yellow-100 dark:border-yellow-900/20">
-                <p className="text-center text-xs text-yellow-700 dark:text-yellow-400 font-medium leading-relaxed">
+              <div className="bg-blue-50/50 dark:bg-blue-900/10 p-3 rounded-xl border border-blue-100 dark:border-blue-900/20">
+                <p className="text-center text-[11px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
                   {t('dashboard.verification.emailOtpSent')}
                   <br />
-                  <span className="font-black text-gray-900 dark:text-white mt-1 block tracking-widest">{maskEmail(userEmail)}</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400 mt-0.5 block tracking-wider">{maskEmail(userEmail)}</span>
                 </p>
               </div>
 
-              <Button
-                onClick={handleSubmit}
-                disabled={isLoading}
-                className="w-full py-5 rounded-[1.5rem] text-xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-xl shadow-blue-600/30 transition-all active:scale-95"
-              >
-                {isLoading ? "Verifying..." : t('dashboard.verification.confirmOtp')}
-              </Button>
-              <button onClick={() => setStep(2)} className="w-full text-xs font-bold text-gray-400 hover:text-blue-500 transition-colors uppercase tracking-widest">
+              <div className="flex flex-col gap-3">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isLoading || otpCode.length < 6}
+                  className="w-full py-4 rounded-2xl text-lg font-black bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {isLoading ? "..." : t('dashboard.verification.confirmOtp')}
+                </Button>
+
+                <button
+                  onClick={handleRequestOTP}
+                  disabled={isSendingCode}
+                  className="text-[11px] font-bold text-gray-400 hover:text-blue-500 flex items-center justify-center gap-1 uppercase tracking-widest disabled:opacity-50"
+                >
+                  <Send size={12} /> {isSendingCode ? "Sending..." : "Resend Code"}
+                </button>
+              </div>
+
+              <button onClick={() => setStep(2)} className="w-full text-[10px] font-bold text-gray-400 hover:text-blue-500 transition-colors uppercase tracking-widest">
                 {t('common.back')} to selfie
               </button>
             </div>

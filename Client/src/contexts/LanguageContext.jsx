@@ -658,7 +658,8 @@ const translations = {
         switchCamera: 'Switch Camera',
         uploadFile: 'Upload File',
         or: 'OR',
-        emailOtpSent: 'A verification code has been sent to your email address.'
+        emailOtpSent: 'A verification code has been sent to your email address.',
+        resendCode: 'Resend Code'
       }
     },
     contact: {
@@ -1520,7 +1521,8 @@ const translations = {
         switchCamera: 'ካሜራ ይቀይሩ',
         uploadFile: 'ፋይል ይጫኑ',
         or: 'ወይም',
-        emailOtpSent: 'የማረጋገጫ ኮድ ወደ ኢሜል አድራሻዎ ተልኳል።'
+        emailOtpSent: 'የማረጋገጫ ኮድ ወደ ኢሜል አድራሻዎ ተልኳል።',
+        resendCode: 'ድጋሚ ላክ'
       }
     },
     contact: {
