@@ -6,7 +6,7 @@ import Button from './Button';
 import { Camera, CheckCircle, ShieldCheck, Smartphone, RefreshCw, Upload, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) => {
+const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, userEmail }) => {
   const [step, setStep] = useState(1);
   const [govIdFront, setGovIdFront] = useState(null);
   const [govIdBack, setGovIdBack] = useState(null);
@@ -24,6 +24,14 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
   const fileInputRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const { t } = useLanguage();
+
+  // Mask Email function
+  const maskEmail = (email) => {
+    if (!email) return "••••@••••.com";
+    const [userPart, domain] = email.split('@');
+    if (userPart.length <= 2) return `${userPart.charAt(0)}•••@${domain}`;
+    return `${userPart.substring(0, 2)}••••@${domain}`;
+  };
 
   // Reset state when modal opens
   useEffect(() => {
@@ -400,7 +408,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus }) =>
                 <p className="text-center text-xs text-yellow-700 dark:text-yellow-400 font-medium leading-relaxed">
                   {t('dashboard.verification.emailOtpSent')}
                   <br />
-                  <span className="font-black text-gray-900 dark:text-white mt-1 block">y*******@gmail.com</span>
+                  <span className="font-black text-gray-900 dark:text-white mt-1 block tracking-widest">{maskEmail(userEmail)}</span>
                 </p>
               </div>
 

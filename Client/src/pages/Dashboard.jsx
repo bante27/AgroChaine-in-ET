@@ -1176,6 +1176,7 @@ const Dashboard = () => {
         onClose={() => setShowVerificationModal(false)}
         onVerify={handleVerify}
         verificationStatus={verificationStatus}
+        userEmail={user?.email}
       />
       <ProductUploadModal
         isOpen={showProductModal}
