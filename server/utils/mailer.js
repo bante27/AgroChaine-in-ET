@@ -24,14 +24,17 @@ let transporter = null;
 if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
   transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    port: 587, // STARTTLS is more reliable on Render than port 465
+    secure: false, // Must be false for port 587
     auth: {
       user: process.env.EMAIL_USER.trim(),
       pass: process.env.EMAIL_PASS.trim(),
     },
-    tls: { rejectUnauthorized: false },
-    family: 4
+    tls: {
+      rejectUnauthorized: false,
+      ciphers: 'SSLv3'
+    },
+    family: 4 // Force IPv4 to prevent 'ENETUNREACH' errors on Render
   });
 }
 
