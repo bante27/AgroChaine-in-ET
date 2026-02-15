@@ -1,75 +1,97 @@
 import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import dotenv from 'dotenv';
 dotenv.config();
 
 /**
- * Email service using Nodemailer (Gmail SMTP).
- * Switched from Resend due to domain verification limits.
+ * Email service unified handler.
+ * Supports Resend (recommended for production/Render) and Nodemailer (Gmail fallback).
  */
 
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-  console.warn('⚠️  EMAIL_USER or EMAIL_PASS not set - email sending will fail!');
+const MAIL_SERVICE = (process.env.MAIL_SERVICE || '').toLowerCase();
+const emailUser = (process.env.EMAIL_USER || process.env.NODEMAILER_EMAIL || 'onboarding@resend.dev').trim();
+
+// 1. Initialize Resend if key is available
+let resend = null;
+if (process.env.RESEND_API_KEY) {
+  resend = new Resend(process.env.RESEND_API_KEY.trim());
+  console.log('📬 Resend initialized for email delivery');
 }
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465, // Using port 465 (SSL) for better reliability on cloud hosts
-  secure: true,
-  auth: {
-    user: (process.env.EMAIL_USER || process.env.NODEMAILER_EMAIL || '').trim(),
-    pass: (process.env.EMAIL_PASS || process.env.NODEMAILER_PASS || '').trim(),
-  },
-  tls: {
-    rejectUnauthorized: false
-  },
-  // Force IPv4 to avoid ENETUNREACH on IPv6 addresses in cloud environments like Render
-  family: 4
-});
-
-console.log('📬 Mailer initialized with user:', process.env.EMAIL_USER ? process.env.EMAIL_USER.slice(0, 3) + '***@' + process.env.EMAIL_USER.split('@')[1] : 'MISSING');
+// 2. Initialize Nodemailer (Gmail)
+let transporter = null;
+if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+  transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.EMAIL_USER.trim(),
+      pass: process.env.EMAIL_PASS.trim(),
+    },
+    tls: { rejectUnauthorized: false },
+    family: 4
+  });
+  console.log('📬 Gmail Mailer initialized');
+}
 
 const mailer = {
   sendMail: async (options) => {
-    try {
-      if (!transporter) {
-        console.error('❌ Nodemailer transporter not initialized');
-        return;
+    // Try Resend first if explicitly requested or if no Gmail config
+    if (MAIL_SERVICE === 'resend' || (!transporter && resend)) {
+      try {
+        if (!resend) throw new Error('Resend API Key missing');
+
+        const data = await resend.emails.send({
+          from: options.from || `AgroChain Ethiopia <onboarding@resend.dev>`,
+          to: options.to,
+          subject: options.subject,
+          html: options.html,
+          attachments: options.attachments
+        });
+
+        console.log('✅ Email sent via Resend:', data.id);
+        return data;
+      } catch (error) {
+        console.error('❌ Resend Error:', error.message);
+        // Fallback to Gmail if Resend fails and Gmail is configured
+        if (!transporter) throw error;
       }
-
-      // Merge defaults with options
-      const emailUser = (process.env.EMAIL_USER || process.env.NODEMAILER_EMAIL || 'agrochainethiopia@gmail.com').trim();
-      const mailOptions = {
-        from: `"AgroChain Ethiopia" <${emailUser}>`,
-        ...options
-      };
-
-      const info = await transporter.sendMail(mailOptions);
-
-      console.log('✅ Email sent successfully via Gmail:', info.messageId);
-      return info;
-    } catch (error) {
-      console.error('❌ Mailer error (Gmail):', error.message);
-      throw error;
     }
+
+    // Default to Gmail/Nodemailer
+    if (transporter) {
+      try {
+        const mailOptions = {
+          from: `"AgroChain Ethiopia" <${emailUser}>`,
+          ...options
+        };
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent via Gmail:', info.messageId);
+        return info;
+      } catch (error) {
+        console.error('❌ Gmail Error:', error.message);
+        throw error;
+      }
+    }
+
+    throw new Error('No email service configured (Resend or Gmail)');
   },
 
   verify: (callback) => {
+    if (MAIL_SERVICE === 'resend') {
+      callback(null, true); // Resend doesn't need SMTP verification
+      return;
+    }
     if (transporter) {
-      transporter.verify((error, success) => {
-        if (error) {
-          console.error('❌ SMTP Connection Error:', error.message);
-          callback(error, false);
-        } else {
-          console.log('✅ SMTP Connection Verified');
-          callback(null, true);
-        }
-      });
+      transporter.verify(callback);
     } else {
-      callback(new Error('Transporter not initialized'), false);
+      callback(new Error('No transporter available'), false);
     }
   },
 
-  isResend: false
+  isResend: MAIL_SERVICE === 'resend' || (!transporter && !!resend)
 };
 
 export default mailer;
+
