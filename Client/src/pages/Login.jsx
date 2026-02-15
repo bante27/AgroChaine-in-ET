@@ -19,6 +19,7 @@ const OTPInput = ({ email, onVerify, onResend }) => {
   const { t } = useLanguage();
   const [inputOtp, setInputOtp] = useState('');
   const [timer, setTimer] = useState(300);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // Countdown timer
   useEffect(() => {
@@ -26,9 +27,15 @@ const OTPInput = ({ email, onVerify, onResend }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
+    if (isVerifying) return;
     if (!inputOtp || inputOtp.length !== 6) return toast.error(t('auth.enterValidOtp'));
-    onVerify(inputOtp);
+    setIsVerifying(true);
+    try {
+      await onVerify(inputOtp);
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   const handleResend = async () => {
@@ -88,6 +95,7 @@ const OTPInput = ({ email, onVerify, onResend }) => {
             </div>
             <Button
               type="submit"
+              loading={isVerifying}
               className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
             >
               {t('auth.verifyButton')}

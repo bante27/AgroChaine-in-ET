@@ -43,6 +43,11 @@ import MakingEffort from '../assets/images/Digital trac.png';
 import AgriculturalReforms from '../assets/images/image.png';
 import IvecoGenlyonTruckImage from '../assets/images/Iveco-Genlyon-Truck.jfif';
 
+// Team Images
+import TilahunImage from '../assets/images/M.S Tilahun Sitotaw.jpg';
+import BantalemImage from '../assets/images/M.S Bantalem Mitiku.jpg';
+import TegeneImage from '../assets/images/M.S Tegene.jpg';
+
 
 const About = () => {
   const { t } = useLanguage();
@@ -73,7 +78,7 @@ const About = () => {
     {
       name: 'M.S Tilahun Sitotaw',
       role: t('about.team.tilahun.role'),
-      image: '../../src/assets/images/freee.jpg',
+      image: TilahunImage,
       bio: t('about.team.tilahun.bio'),
       twitter: 'https://x.com/sitotaw_ti83761',
       instagram: 'https://www.instagram.com/tile1673/',
@@ -82,16 +87,16 @@ const About = () => {
     {
       name: 'M.S Bantalem Mitiku',
       role: t('about.team.bantalem.role'),
-      image: 'https://images.pexels.com/photos/9946445/pexels-photo-9946445.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop',
+      image: BantalemImage,
       bio: t('about.team.bantalem.bio'),
-      twitter: 'https://twitter.com/example2',
+      twitter: 'https://x.com/sitotaw_ti83761',
       instagram: 'https://instagram.com/example2',
       telegram: 'https://t.me/Wubbante',
     },
     {
       name: 'M.S Tegene',
       role: t('about.team.tegene.role'),
-      image: 'https://images.pexels.com/photos/11099197/pexels-photo-11099197.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop',
+      image: TegeneImage,
       bio: t('about.team.tegene.bio'),
       twitter: 'https://twitter.com/example3',
       instagram: 'https://instagram.com/example3',

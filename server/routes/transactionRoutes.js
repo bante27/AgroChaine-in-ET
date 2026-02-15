@@ -11,7 +11,7 @@ const router = express.Router();
 const SERVICE_FEE_PERCENT = 5; // 5% from buyer and seller
 
 // Website URL
-const WEBSITE_URL = "https://agrochain-ethiopia-2025.netlify.app";
+const WEBSITE_URL = "https://agrochain-client-orz8.onrender.com";
 
 // Reusable modern email sender
 // -----------------------------
@@ -167,6 +167,9 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
       buyer.closeCustomers.addToSet(seller._id);
       buyer.transactionHistory.addToSet(transaction._id);
       buyer.rank += 0.5;
+
+      // Ensure recentActivity exists before pushing
+      if (!buyer.recentActivity) buyer.recentActivity = [];
       buyer.recentActivity.push({ type: "purchase", message: `You purchased ${quantity}x ${product.title}`, date: new Date() });
 
       // Queue seller updates

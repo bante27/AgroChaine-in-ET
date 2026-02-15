@@ -31,6 +31,13 @@ const UserSchema = new mongoose.Schema({
   pendingBalance: { type: Number, default: 0 }, // amount on hold during transactions
   otp: { type: String, default: null }, // one-time password
   otpExpires: { type: Date, default: null }, // OTP expiration
+  recentActivity: [
+    {
+      type: { type: String },
+      message: { type: String },
+      date: { type: Date, default: Date.now },
+    }
+  ],
 });
 
 export default mongoose.model("User", UserSchema);
