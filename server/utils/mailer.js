@@ -54,21 +54,44 @@ const mailer = {
       try {
         if (!resend) throw new Error('Resend API Key missing');
 
-        // Use onboarding address if domain is not yet verified
-        const fromAddress = MAIL_SERVICE === 'resend' ? `AgroChain Ethiopia <onboarding@resend.dev>` : `"AgroChain Ethiopia" <${emailUser}>`;
+        // logic for 'from' address:
+        // By default, if domain is not verified, Resend requires 'onboarding@resend.dev'
+        // Once verified, we should use a domain-specific address.
+        let fromAddress = `AgroChain Ethiopia <onboarding@resend.dev>`;
 
-        const data = await resend.emails.send({
+        // If you have verified your domain, change this to your domain email
+        // example: noreply@agrochainethiopia.com
+        if (process.env.RESEND_FROM_EMAIL) {
+          fromAddress = process.env.RESEND_FROM_EMAIL;
+        }
+
+        console.log(`📨 Attempting to send email to ${options.to} via Resend...`);
+
+        const { data, error } = await resend.emails.send({
           from: options.from || fromAddress,
           to: options.to,
           subject: options.subject,
           html: options.html
         });
 
-        console.log('✅ Email sent via Resend:', data.id || 'Success');
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        console.log('✅ Email sent via Resend:', data.id);
         return data;
       } catch (error) {
         console.error('❌ Resend Error:', error.message);
-        if (!transporter) throw error;
+
+        if (error.message.includes('not authorized') || error.message.includes('unverified')) {
+          console.warn('⚠️ PRO TIP: Your Resend domain is likely still PENDING verification. Email was NOT sent to secondary recipients.');
+        }
+
+        if (transporter) {
+          console.log('🔄 Falling back to Gmail...');
+        } else {
+          throw error;
+        }
       }
     }
 
