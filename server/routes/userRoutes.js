@@ -108,31 +108,30 @@ router.post(
         otpExpires,
       });
 
-      try {
-        await transporter.sendMail({
-          to: email,
-          subject: 'Your OTP Code - Agrochain Ethiopia',
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-              <h2 style="color: #10b981;">Welcome to AgroChain Ethiopia</h2>
-              <p>Dear <strong>${fullName}</strong>,</p>
-              <p>Thank you for registering. Please use the following OTP to verify your account:</p>
-              <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
-                ${otp}
+      // 📧 BACKGROUND PROCESS: Send email asynchronously
+      (async () => {
+        try {
+          await transporter.sendMail({
+            to: email,
+            subject: 'Your OTP Code - Agrochain Ethiopia',
+            html: `
+              <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                <h2 style="color: #10b981;">Welcome to AgroChain Ethiopia</h2>
+                <p>Dear <strong>${fullName}</strong>,</p>
+                <p>Thank you for registering. Please use the following OTP to verify your account:</p>
+                <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
+                  ${otp}
+                </div>
+                <p style="color: #666; font-size: 14px; margin-top: 20px;">This OTP will expire in 5 minutes.</p>
+                <p>Best regards,<br/><strong>Agrochain Ethiopia Team</strong></p>
               </div>
-              <p style="color: #666; font-size: 14px; margin-top: 20px;">This OTP will expire in 5 minutes.</p>
-              <p>Best regards,<br/><strong>Agrochain Ethiopia Team</strong></p>
-            </div>
-          `,
-        });
-      } catch (emailErr) {
-        const maskedEmail = email.replace(/^(..)(.*)(@.*)$/, "$1***$3");
-        console.error(`Registration OTP email failed for ${maskedEmail}:`, emailErr.message);
-        return res.status(500).json({
-          success: false,
-          error: `Email failed to send. Please try again later or contact support.`
-        });
-      }
+            `,
+          });
+        } catch (emailErr) {
+          const maskedEmail = email.replace(/^(..)(.*)(@.*)$/, "$1***$3");
+          console.error(`Registration OTP email failed for ${maskedEmail}:`, emailErr.message);
+        }
+      })();
 
       res.status(200).json({
         success: true,
@@ -181,31 +180,30 @@ router.post(
       pending.otpExpires = otpExpires;
       pendingUsers.set(email, pending);
 
-      try {
-        await transporter.sendMail({
-          to: email,
-          subject: 'Your New OTP Code - Agrochain Ethiopia',
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-              <h2 style="color: #10b981;">New OTP Requested</h2>
-              <p>Dear <strong>${pending.fullName}</strong>,</p>
-              <p>You requested a new OTP code for your AgroChain Ethiopia registration. Please use the code below:</p>
-              <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
-                ${otp}
+      // 📧 BACKGROUND PROCESS: Send email asynchronously
+      (async () => {
+        try {
+          await transporter.sendMail({
+            to: email,
+            subject: 'Your New OTP Code - Agrochain Ethiopia',
+            html: `
+              <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                <h2 style="color: #10b981;">New OTP Requested</h2>
+                <p>Dear <strong>${pending.fullName}</strong>,</p>
+                <p>You requested a new OTP code for your AgroChain Ethiopia registration. Please use the code below:</p>
+                <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
+                  ${otp}
+                </div>
+                <p style="color: #666; font-size: 14px; margin-top: 20px;">This OTP will expire in 5 minutes.</p>
+                <p>Best regards,<br/><strong>Agrochain Ethiopia Team</strong></p>
               </div>
-              <p style="color: #666; font-size: 14px; margin-top: 20px;">This OTP will expire in 5 minutes.</p>
-              <p>Best regards,<br/><strong>Agrochain Ethiopia Team</strong></p>
-            </div>
-          `,
-        });
-      } catch (emailErr) {
-        const maskedEmail = email.replace(/^(..)(.*)(@.*)$/, "$1***$3");
-        console.error(`Resend OTP email failed for ${maskedEmail}:`, emailErr.message);
-        return res.status(500).json({
-          success: false,
-          error: `Email failed to send. Please try again later or contact support.`
-        });
-      }
+            `,
+          });
+        } catch (emailErr) {
+          const maskedEmail = email.replace(/^(..)(.*)(@.*)$/, "$1***$3");
+          console.error(`Resend OTP email failed for ${maskedEmail}:`, emailErr.message);
+        }
+      })();
 
       res.status(200).json({
         success: true,
@@ -321,27 +319,30 @@ router.post(
       user.otpExpires = otpExpires;
       await user.save();
 
-      try {
-        await transporter.sendMail({
-          to: email,
-          subject: 'Password Reset OTP - Agrochain Ethiopia',
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-              <h2 style="color: #10b981;">Password Reset Request</h2>
-              <p>Dear <strong>${user.fullName}</strong>,</p>
-              <p>We received a request to reset your password. Use the following OTP to proceed:</p>
-              <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
-                ${otp}
+      // 📧 BACKGROUND PROCESS
+      (async () => {
+        try {
+          await transporter.sendMail({
+            to: email,
+            subject: 'Password Reset OTP - Agrochain Ethiopia',
+            html: `
+              <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                <h2 style="color: #10b981;">Password Reset Request</h2>
+                <p>Dear <strong>${user.fullName}</strong>,</p>
+                <p>We received a request to reset your password. Use the following OTP to proceed:</p>
+                <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
+                  ${otp}
+                </div>
+                <p style="color: #666; font-size: 14px; margin-top: 20px;">This OTP will expire in 5 minutes. If you did not request this, please ignore this email.</p>
+                <p>Best regards,<br/><strong>Agrochain Ethiopia Team</strong></p>
               </div>
-              <p style="color: #666; font-size: 14px; margin-top: 20px;">This OTP will expire in 5 minutes. If you did not request this, please ignore this email.</p>
-              <p>Best regards,<br/><strong>Agrochain Ethiopia Team</strong></p>
-            </div>
-          `,
-        });
-      } catch (emailErr) {
-        const maskedEmail = email.replace(/^(..)(.*)(@.*)$/, "$1***$3");
-        console.error(`Password reset OTP email failed for ${maskedEmail}:`, emailErr.message);
-      }
+            `,
+          });
+        } catch (emailErr) {
+          const maskedEmail = email.replace(/^(..)(.*)(@.*)$/, "$1***$3");
+          console.error(`Password reset OTP email failed for ${maskedEmail}:`, emailErr.message);
+        }
+      })();
 
       res.status(200).json({
         success: true,
@@ -580,23 +581,30 @@ router.post('/request-verification-otp', auth, checkEmailCredentials, async (req
     user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save();
 
-    await transporter.sendMail({
-      to: user.email,
-      subject: 'AgroChain - National ID Verification Code',
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h2 style="color: #4B6BFB; text-align: center;">Identity Verification</h2>
-          <p>Hello <strong>${user.fullName}</strong>,</p>
-          <p>You are requesting to verify your National ID for your AgroChain Ethiopia account. Use the following 6-digit code to complete the process:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; background: #f4f7ff; padding: 10px 20px; border-radius: 5px; color: #1e293b; border: 1px dashed #4B6BFB;">${otp}</span>
-          </div>
-          <p style="color: #666; font-size: 14px;">This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
-          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
-          <p style="text-align: center; color: #999; font-size: 12px;">© 2026 AgroChain Ethiopia. All rights reserved.</p>
-        </div>
-      `,
-    });
+    // 📧 BACKGROUND PROCESS
+    (async () => {
+      try {
+        await transporter.sendMail({
+          to: user.email,
+          subject: 'AgroChain - National ID Verification Code',
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+              <h2 style="color: #4B6BFB; text-align: center;">Identity Verification</h2>
+              <p>Hello <strong>${user.fullName}</strong>,</p>
+              <p>You are requesting to verify your National ID for your AgroChain Ethiopia account. Use the following 6-digit code to complete the process:</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; background: #f4f7ff; padding: 10px 20px; border-radius: 5px; color: #1e293b; border: 1px dashed #4B6BFB;">${otp}</span>
+              </div>
+              <p style="color: #666; font-size: 14px;">This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+              <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+              <p style="text-align: center; color: #999; font-size: 12px;">© 2026 AgroChain Ethiopia. All rights reserved.</p>
+            </div>
+          `,
+        });
+      } catch (emailErr) {
+        console.error('Error sending verification OTP email:', emailErr.message);
+      }
+    })();
 
     res.json({ success: true, message: 'Verification code sent to your email' });
   } catch (err) {

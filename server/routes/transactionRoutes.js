@@ -96,6 +96,9 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
     const transactionList = [];
     const emailQueue = []; // Store email data for async sending
 
+    // Track updates to be done outside the loop
+    const sellerUpdates = new Map(); // userId -> { update object }
+
     for (const order of orders) {
       const { productId, quantity } = order;
 
@@ -127,10 +130,9 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
           error: "Insufficient balance (includes 5% fee)",
         });
 
-      // Deduct buyer funds
+      // Update buyer fields (locally for now)
       buyer.balance -= totalPrice + buyerFee;
       buyer.pendingBalance += totalPrice + buyerFee;
-      await buyer.save();
 
       // Update product stock
       product.quantityAvailable -= quantity;
@@ -160,30 +162,21 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
       await transaction.save();
       transactionList.push(transaction);
 
-      // Update buyer & seller relations
-      await User.updateOne(
-        { userId: buyerUserId },
-        {
-          $addToSet: { boughtProducts: product._id, closeCustomers: seller._id, transactionHistory: transaction._id },
-          $inc: { rank: 0.5 },
-        }
-      );
+      // Accumulate buyer relations locally
+      buyer.boughtProducts.addToSet(product._id);
+      buyer.closeCustomers.addToSet(seller._id);
+      buyer.transactionHistory.addToSet(transaction._id);
+      buyer.rank += 0.5;
+      buyer.recentActivity.push({ type: "purchase", message: `You purchased ${quantity}x ${product.title}`, date: new Date() });
+
+      // Queue seller updates
       await User.updateOne(
         { userId: product.ownerUserId },
         {
           $addToSet: { soldProducts: product._id, closeCustomers: buyer._id, transactionHistory: transaction._id },
           $inc: { rank: 0.5 },
+          $push: { recentActivity: { type: "order-received", message: `You received a new order for ${product.title} (${quantity}x)`, date: new Date() } }
         }
-      );
-
-      // Record recent activity
-      await User.updateOne(
-        { userId: buyerUserId },
-        { $push: { recentActivity: { type: "purchase", message: `You purchased ${quantity}x ${product.title}`, date: new Date() } } }
-      );
-      await User.updateOne(
-        { userId: seller.userId },
-        { $push: { recentActivity: { type: "order-received", message: `You received a new order for ${product.title} (${quantity}x)`, date: new Date() } } }
       );
 
       // Send real-time notifications via socket
@@ -193,7 +186,7 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
         productId: product._id
       });
 
-      // Queue emails for async sending (don't wait for them)
+      // Queue emails
       emailQueue.push({
         type: 'seller',
         to: seller.email,
@@ -210,6 +203,9 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
         data: { buyer, seller, product, transaction, quantity, totalPrice }
       });
     }
+
+    // Finalize buyer updates in one DB call
+    await buyer.save();
 
     // Send response immediately (don't wait for emails)
     res.json({
