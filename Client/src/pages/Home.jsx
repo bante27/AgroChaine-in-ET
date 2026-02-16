@@ -66,8 +66,12 @@ const styles = `
   }
 `;
 
-const DemoModal = ({ isOpen, onClose, video }) => {
+const DemoModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
+
+  // YouTube video ID from: https://www.youtube.com/watch?v=BKVNRxmm9Qk
+  const youtubeVideoId = 'BKVNRxmm9Qk';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <motion.div
@@ -83,17 +87,14 @@ const DemoModal = ({ isOpen, onClose, video }) => {
           <X className="h-6 w-6" />
         </button>
         <div className="w-full h-full flex items-center justify-center bg-gray-900">
-          <video
-            key={video}
-            className="w-full h-full object-contain"
-            controls
-            autoPlay
-            muted
-            playsInline
-          >
-            <source src={video} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          <iframe
+            className="w-full h-full"
+            src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&rel=0`}
+            title="AgroChain Ethiopia Demo"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
         </div>
       </motion.div>
     </div>
@@ -589,7 +590,6 @@ const Home = () => {
           <DemoModal
             isOpen={isDemoOpen}
             onClose={() => setIsDemoOpen(false)}
-            video={heroContent[currentVideoIndex].video}
           />
         )}
       </AnimatePresence>
