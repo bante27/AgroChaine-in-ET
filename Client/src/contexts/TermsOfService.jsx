@@ -76,7 +76,7 @@ const TermsOfService = () => {
           </div>
 
           <div className="mt-24 pt-10 border-t border-gray-100 text-center text-gray-400">
-            AgroChain Ethiopia © 2026. All rights reserved.
+            {t('nav.brand')} {t('nav.country')} © 2026. {t('footer.allRights')}
           </div>
         </div>
       </section>
