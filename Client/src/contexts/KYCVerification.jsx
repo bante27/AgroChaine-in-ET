@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shield, UserCheck, Lock, FileCheck, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -110,7 +111,7 @@ const KYCVerification = () => {
               >
                 <div className="flex items-center gap-4 mb-8">
                   <FileCheck className="h-10 w-10 text-amber-400" />
-                  <span className="text-2xl font-bold italic">AgroChain Verified</span>
+                  <span className="text-2xl font-bold italic">{t('kycPage.verifiedBadge')}</span>
                 </div>
                 <div className="space-y-4">
                   {[1, 2, 3, 4].map((i) => (
@@ -128,7 +129,7 @@ const KYCVerification = () => {
               </motion.div>
               <div className="absolute -bottom-6 -left-6 bg-amber-500 p-6 rounded-2xl shadow-xl flex items-center gap-4 rotate-3">
                 <Shield className="h-8 w-8 text-white" />
-                <span className="font-bold">100% Secure</span>
+                <span className="font-bold">{t('kycPage.secureBadge')}</span>
               </div>
             </div>
           </div>
@@ -139,16 +140,15 @@ const KYCVerification = () => {
       <section className="py-24 px-4 text-center">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-10">
-            Ready to become a trusted AgroChain Ethiopia partner?
+            {t('kycPage.ctaTitle')}
           </h2>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-teal-600 text-white px-12 py-5 rounded-full font-bold text-xl shadow-xl shadow-teal-100 hover:bg-teal-700 transition flex items-center gap-3 mx-auto"
+          <Link
+            to="/dashboard"
+            className="bg-teal-600 text-white px-12 py-5 rounded-full font-bold text-xl shadow-xl shadow-teal-100 hover:bg-teal-700 transition flex items-center gap-3 mx-auto w-fit"
           >
-            Start My KYC
+            {t('kycPage.ctaButton')}
             <ArrowRight className="h-6 w-6" />
-          </motion.button>
+          </Link>
         </div>
       </section>
     </div>

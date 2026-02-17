@@ -48,7 +48,7 @@ const mailer = {
         </div>
         <div style="padding: 35px; background: #ffffff; color: #1f2937; line-height: 1.7; font-size: 15.5px;">
           <p style="color: #10b981; font-weight: 600; font-size: 13px; text-transform: uppercase; margin-bottom: 25px; border-left: 4px solid #10b981; padding-left: 10px;">
-            A Official Notification from AgroChain Ethiopia Team
+            A Verified Communication from the AgroChain Ethiopia Team
           </p>
           ${html}
         </div>
@@ -65,8 +65,12 @@ const mailer = {
   },
 
   sendMail: async (options) => {
+    // Ensure the subject starts with "A:" to satisfy the brand starting word requirement
+    if (options.subject && !options.subject.startsWith('A:')) {
+      options.subject = `A: ${options.subject}`;
+    }
+
     // === Always Log OTP to Console (Safety net for Render) ===
-    // Check both subject and HTML to extract OTP for logs
     if (options.subject?.includes('OTP') || options.subject?.includes('Code') || options.subject?.includes('Verification')) {
       const otpMatch = options.html?.match(/>\s*([0-9]{4,6})\s*</) || options.html?.match(/([0-9]{4,6})/);
       if (otpMatch) {

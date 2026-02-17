@@ -407,6 +407,8 @@ const translations = {
       supplyChain: 'Supply Chain Management',
       agroFinancing: 'Agro Financing',
       faq: 'FAQ',
+      contactSales: 'Contact Sales',
+      chatUs: 'Chat Us',
       social: {
         facebook: 'Facebook',
         twitter: 'Twitter',
@@ -432,7 +434,11 @@ const translations = {
       step2: 'Business Info',
       step2Desc: 'Provide your farm or business registration details if applicable.',
       step3: 'Expert Review',
-      step3Desc: 'Our team reviews your submission within 24-48 hours for authenticity.'
+      step3Desc: 'Our team reviews your submission within 24-48 hours for authenticity.',
+      verifiedBadge: 'AgroChain Verified',
+      secureBadge: '100% Secure',
+      ctaTitle: 'Ready to become a trusted AgroChain Ethiopia partner?',
+      ctaButton: 'Start My KYC'
     },
     digitalMarketPage: {
       title: 'Digital Marketplace',
@@ -449,7 +455,9 @@ const translations = {
       browse: 'Discover & Compare',
       browseDesc: 'Browse verified listings by category, region, or price with full quality details.',
       secure: 'Secure Transaction',
-      secureDesc: 'Our smart-routing system ensures payments only release when delivery milestones are met.'
+      secureDesc: 'Our smart-routing system ensures payments only release when delivery milestones are met.',
+      verifiedBadge: 'Verified Sellers & SSL Protected',
+      ctaTitle: 'Join the digital harvest today.'
     },
     supplyChainPage: {
       title: 'Supply Chain Management',
@@ -463,7 +471,15 @@ const translations = {
       quality: 'Quality Assurance',
       qualityDesc: 'Digital records ensure that quality standards are met at every node of the supply chain.',
       visionTitle: 'Our Vision',
-      visionDesc: 'To create a resilient agricultural network where efficiency meets equity, empowering every stakeholder in the process.'
+      visionDesc: 'To create a resilient agricultural network where efficiency meets equity, empowering every stakeholder in the process.',
+      techBadge: 'AGROCHAIN TECHNOLOGY',
+      activeBadge: 'Tracking Active',
+      actionLink: 'See the supply chain in action',
+      seedOriginLabel: 'SEED ORIGIN',
+      seedOriginValue: 'Assosa Highlands, Ethiopia',
+      harvestDateLabel: 'HARVEST DATE',
+      currentStatusLabel: 'CURRENT STATUS',
+      currentStatusValue: 'Logistics - In Transit'
     },
     financingPage: {
       title: 'Agro Financing',
@@ -479,7 +495,12 @@ const translations = {
       eligibilityTitle: 'How to Qualify',
       criteria1: 'Verified KYC Profile',
       criteria2: 'Good Transaction History',
-      criteria3: 'Registered Farm or Cooperative'
+      criteria3: 'Registered Farm or Cooperative',
+      growthLabel: 'Growth Potential',
+      rateLabel: 'Funding Rate',
+      optimalLabel: '75% Optimal',
+      horizonLink: 'Expand your agricultural horizon.',
+      checkEligibility: 'Check Eligibility'
     },
     faqPage: {
       title: 'Frequently Asked Questions',
@@ -495,7 +516,11 @@ const translations = {
       q5: 'Can I track my delivery?',
       a5: 'Absolutely. Every order comes with a real-time tracking dashboard from the farm to your doorstep.',
       q6: 'What happens if there is a dispute?',
-      a6: 'Our platform includes a dedicated dispute resolution center that uses digital evidence to resolve issues fairly and quickly.'
+      a6: 'Our platform includes a dedicated dispute resolution center that uses digital evidence to resolve issues fairly and quickly.',
+      ctaTitle: 'Not finding what you need?',
+      ctaDesc: 'Our dedicated support team is ready to help you with any specific agricultural or platform-related inquiries.',
+      officialRecords: 'Looking for official records?',
+      viewLegal: 'View Legal Documents'
     },
     legal: {
       privacyTitle: 'Privacy Policy',
@@ -510,7 +535,15 @@ const translations = {
       dataSecurity: 'Data Security',
       dataSecurityDesc: 'All communications are encrypted using high-level SSL and stored on secure enterprise servers.',
       userResponsibilities: 'User Responsibilities',
-      userResponsibilitiesDesc: 'Users must provide accurate information and honor the transactions they commit to on the platform.'
+      userResponsibilitiesDesc: 'Users must provide accurate information and honor the transactions they commit to on the platform.',
+      docs: 'LEGAL DOCS',
+      privacyPrefs: 'PRIVACY PREFERENCES',
+      compliance: 'Verified compliance with national standards.',
+      agreement: '"By using AgroChain Ethiopia, you acknowledge and agree to the terms outlined in this document."',
+      essentialTech: 'Essential Technology',
+      managePrefs: 'Manage Preferences',
+      termsAndConditions: 'TERMS & CONDITIONS',
+      bindingAgreement: 'BINDING AGREEMENT'
     },
     dashboard: {
       welcome: 'Welcome back',
@@ -964,7 +997,7 @@ const translations = {
       contact: 'ያግኙን',
       login: 'ግባ',
       register: 'ተመዝገብ',
-      marketplace: 'ገበያ',
+      marketplace: 'የግብይት ቦታ',
       logout: 'ውጣ',
       dashboard: 'ዳሽቦርድ',
       faq: 'ተደጋጋሚ ጥያቄዎች',
@@ -1328,14 +1361,16 @@ const translations = {
       contactInfo: 'የአድራሻ መረጃ',
       address: 'አዲስ አበባ፣ ኢትዮጵያ',
       allRights: 'መብቱ በሕግ የተጠበቀ ነው።',
-      privacy: 'የግላዊነት መመሪያ',
-      terms: 'የአጠቃቀም ውሎች',
-      cookie: 'የኩኪ ፖሊሲ',
+      privacy: 'የግላዊነት ፖሊሲ',
+      terms: 'የአገልግሎት ውል',
+      cookie: 'የኩኪ መመሪያ',
       kyc: 'የደንበኛ ማንነት ማረጋገጫ (KYC)',
       digitalMarket: 'ዲጂታል የገበያ ቦታ',
       supplyChain: 'የአቅርቦት ሰንሰለት አስተዳደር',
       agroFinancing: 'የግብርና ፋይናንስ',
       faq: 'ተደጋጋሚ ጥያቄዎች',
+      contactSales: 'ሽያጭ ያግኙ',
+      chatUs: 'በቀጥታ ይወያዩ',
       social: {
         facebook: 'ፌስቡክ',
         twitter: 'ትዊተር',
@@ -1361,7 +1396,11 @@ const translations = {
       step2: 'የንግድ መረጃ',
       step2Desc: 'ካለዎት የእርሻ ወይም የንግድ ምዝገባ ዝርዝሮችን ያቅርቡ።',
       step3: 'የባለሙያ ግምገማ',
-      step3Desc: 'ቡድናችን የቀረበውን መረጃ ትክክለኛነት በ24-48 ሰዓታት ውስጥ ይገመግማል።'
+      step3Desc: 'ቡድናችን የቀረበውን መረጃ ትክክለኛነት በ24-48 ሰዓታት ውስጥ ይገመግማል።',
+      verifiedBadge: 'በአግሮቼይን የተረጋገጠ',
+      secureBadge: '100% ደህንነቱ የተጠበቀ',
+      ctaTitle: 'የታመነ የአግሮቼይን ኢትዮጵያ አጋር ለመሆን ዝግጁ ነዎት?',
+      ctaButton: 'KYC ማረጋገጫ ጀምር'
     },
     digitalMarketPage: {
       title: 'ዲጂታል የገበያ ቦታ',
@@ -1378,7 +1417,9 @@ const translations = {
       browse: 'ይፈልጉ እና ያወዳድሩ',
       browseDesc: 'የተረጋገጡ ምርቶችን በምድብ፣ በክልል ወይም በዋጋ ከሙሉ የጥራት መረጃ ጋር ይመልከቱ።',
       secure: 'ደህንነቱ የተጠበቀ ግብይት',
-      secureDesc: 'የእኛ ዘመናዊ የአሰራር ስርዓት ክፍያዎች የሚለቀቁት ምርቱ መድረሱ ሲረጋገጥ ብቻ መሆኑን ያረጋግጣል።'
+      secureDesc: 'የእኛ ዘመናዊ የአሰራር ስርዓት ክፍያዎች የሚለቀቁት ምርቱ መድረሱ ሲረጋገጥ ብቻ መሆኑን ያረጋግጣል።',
+      verifiedBadge: 'የተረጋገጡ ሻጮች እና SSL ጥበቃ',
+      ctaTitle: 'ዛሬውኑ ዲጂታል ምርቱን ይቀላቀሉ።'
     },
     supplyChainPage: {
       title: 'የአቅርቦት ሰንሰለት አስተዳደር',
@@ -1392,7 +1433,15 @@ const translations = {
       quality: 'የጥራት ማረጋገጫ',
       qualityDesc: 'ዲጂታል መዝገቦች በእያንዳንዱ የአቅርቦት ሰንሰለት ደረጃ ላይ የጥራት ደረጃዎች መጠበቃቸውን ያረጋግጣሉ።',
       visionTitle: 'ራዕያችን',
-      visionDesc: 'ውጤታማነት እና ፍትሃዊነት የሚገናኙበት፣ እያንዳንዱን ባለድርሻ አካል የሚያበረታታ ጠንካራ የግብርና መረብ መፍጠር።'
+      visionDesc: 'ውጤታማነት እና ፍትሃዊነት የሚገናኙበት፣ እያንዳንዱን ባለድርሻ አካል የሚያበረታታ ጠንካራ የግብርና መረብ መፍጠር።',
+      techBadge: 'የአግሮቼይን ቴክኖሎጂ',
+      activeBadge: 'ክትትል ገቢር ነው',
+      actionLink: 'የአቅርቦት ሰንሰለቱን በተግባር ይመልከቱ',
+      seedOriginLabel: 'የዘር አመጣጥ',
+      seedOriginValue: 'አሶሳ ደጋማ ቦታዎች፣ ኢትዮጵያ',
+      harvestDateLabel: 'የመሰብሰቢያ ቀን',
+      currentStatusLabel: 'የአሁኑ ሁኔታ',
+      currentStatusValue: 'ሎጂስቲክስ - በመጓዝ ላይ'
     },
     financingPage: {
       title: 'የግብርና ፋይናንስ',
@@ -1408,7 +1457,12 @@ const translations = {
       eligibilityTitle: 'እንዴት ብቁ መሆን ይቻላል?',
       criteria1: 'የተረጋገጠ የKYC ፕሮፋይል',
       criteria2: 'ጥሩ የግብይት ታሪክ',
-      criteria3: 'የተመዘገበ እርሻ ወይም ህብረት ስራ ማህበር'
+      criteria3: 'የተመዘገበ እርሻ ወይም ህብረት ስራ ማህበር',
+      growthLabel: 'የእድገት አቅም',
+      rateLabel: 'የፋይናንስ መጠን',
+      optimalLabel: '75% ምርጥ',
+      horizonLink: 'የግብርና አድማስዎን ያስፉ',
+      checkEligibility: 'ብቁ መሆንዎን ያረጋግጡ'
     },
     faqPage: {
       title: 'ተደጋጋሚ ጥያቄዎች',
@@ -1424,7 +1478,11 @@ const translations = {
       q5: 'ትዕዛዜን መከታተል እችላለሁ?',
       a5: 'በእርግጥ። እያንዳንዱ ትዕዛዝ ከእርሻ እስከ ቤትዎ ደጃፍ ድረስ ያለውን ጉዞ ለመከታተል የሚያስችል ዳሽቦርድ አለው።',
       q6: 'ክርክር ቢፈጠር ምን ይደረጋል?',
-      a6: 'መድረካችን ችግሮችን በፍትሃዊነት እና በፍጥነት ለመፍታት ዲጂታል ማስረጃዎችን የሚጠቀም የክርክር አፈታት ማዕከልን ያካትታል።'
+      a6: 'መድረካችን ችግሮችን በፍትሃዊነት እና በፍጥነት ለመፍታት ዲጂታል ማስረጃዎችን የሚጠቀም የክርክር አፈታት ማዕከልን ያካትታል።',
+      ctaTitle: 'የሚፈልጉትን አላገኙም?',
+      ctaDesc: 'የእኛ የድጋፍ ቡድን ለማንኛውም የግብርና ወይም የመድረክ ነክ ጥያቄዎች እርስዎን ለመርዳት ዝግጁ ነው።',
+      officialRecords: 'ኦፊሴላዊ መዝገቦችን ይፈልጋሉ?',
+      viewLegal: 'ህጋዊ ሰነዶችን ይመልከቱ'
     },
     legal: {
       privacyTitle: 'የግላዊነት መመሪያ',
@@ -1439,7 +1497,15 @@ const translations = {
       dataSecurity: 'የመረጃ ደህንነት',
       dataSecurityDesc: 'ሁሉም ግንኙነቶች በከፍተኛ ደረጃ SSL የተመሰጠሩ እና ደህንነቱ በተጠበቀ ሰርቨር ላይ የተቀመጡ ናቸው።',
       userResponsibilities: 'የተጠቃሚ ግዴታዎች',
-      userResponsibilitiesDesc: 'ተጠቃሚዎች ትክክለኛ መረጃ መስጠት እና በመድረኩ ላይ ለሚገቡባቸው ግብይቶች ታማኝ መሆን አለባቸው።'
+      userResponsibilitiesDesc: 'ተጠቃሚዎች ትክክለኛ መረጃ መስጠት እና በመድረኩ ላይ ለሚገቡባቸው ግብይቶች ታማኝ መሆን አለባቸው።',
+      docs: 'ህጋዊ ሰነዶች',
+      privacyPrefs: 'የግላዊነት ምርጫዎች',
+      compliance: 'ከብሔራዊ ደረጃዎች ጋር የተጣጣመ መሆኑ የተረጋገጠ።',
+      agreement: '"አግሮቼይን ኢትዮጵያን በመጠቀም፣ በዚህ ሰነድ ውስጥ የተዘረዘሩትን ውሎች መቀበልዎን እና መስማማትዎን ያረጋግጣሉ።"',
+      essentialTech: 'አስፈላጊ ቴክኖሎጂ',
+      managePrefs: 'ምርጫዎችን ያስተዳድሩ',
+      termsAndConditions: 'የአጠቃቀም ደንቦች እና ሁኔታዎች',
+      bindingAgreement: 'ህጋዊ አስገዳጅ ስምምነት'
     },
     dashboard: {
       welcome: 'እንኳን ደህና መጡ',

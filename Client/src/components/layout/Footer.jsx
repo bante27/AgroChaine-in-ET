@@ -125,8 +125,16 @@ const Footer = () => {
                   to="/contact"
                   className="text-gray-300 hover:text-amber-400 transition-colors"
                 >
-                  {t('nav.contact')}
+                  {t('footer.contactSales')}
                 </Link>
+              </li>
+              <li>
+                <button
+                  onClick={() => window.openChat && window.openChat()}
+                  className="text-gray-300 hover:text-amber-400 transition-colors text-left"
+                >
+                  {t('footer.chatUs')}
+                </button>
               </li>
               <li>
                 <Link

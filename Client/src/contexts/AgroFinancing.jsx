@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Landmark, Coins, Umbrella, Briefcase, CheckSquare, TrendingUp, Info } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -100,7 +101,7 @@ const AgroFinancing = () => {
               <div className="bg-lime-900 text-white p-10 rounded-[2rem] shadow-2xl">
                 <div className="flex items-center gap-4 mb-8">
                   <TrendingUp className="h-8 w-8 text-lime-400" />
-                  <span className="text-2xl font-bold">Growth Potential</span>
+                  <span className="text-2xl font-bold">{t('financingPage.growthLabel')}</span>
                 </div>
                 <div className="space-y-6">
                   <div className="h-3 bg-white/20 rounded-full overflow-hidden">
@@ -112,8 +113,8 @@ const AgroFinancing = () => {
                     ></motion.div>
                   </div>
                   <div className="flex justify-between text-sm font-bold text-lime-200 uppercase tracking-widest">
-                    <span>Funding Rate</span>
-                    <span>75% Optimal</span>
+                    <span>{t('financingPage.rateLabel')}</span>
+                    <span>{t('financingPage.optimalLabel')}</span>
                   </div>
                 </div>
                 <div className="mt-12 p-6 bg-white/5 rounded-2xl border border-white/10 flex gap-4">
@@ -128,15 +129,14 @@ const AgroFinancing = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-24 px-4 text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-10">Expand your agricultural horizon.</h2>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          className="bg-lime-600 text-white px-12 py-5 rounded-full font-bold text-xl shadow-xl shadow-lime-100 hover:bg-lime-700 transition"
+        <h2 className="text-3xl font-bold text-gray-900 mb-10">{t('financingPage.horizonLink')}</h2>
+        <Link
+          to="/contact"
+          className="bg-lime-600 text-white px-12 py-5 rounded-full font-bold text-xl shadow-xl shadow-lime-100 hover:bg-lime-700 transition inline-block"
         >
-          Check Eligibility
-        </motion.button>
+          {t('financingPage.checkEligibility')}
+        </Link>
       </section>
     </div>
   );

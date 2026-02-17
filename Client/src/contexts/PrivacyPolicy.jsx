@@ -23,7 +23,7 @@ const PrivacyPolicy = () => {
           >
             <div className="flex items-center gap-3 text-teal-600 font-bold mb-4">
               <FileText className="h-6 w-6" />
-              <span>LEGAL DOCS</span>
+              <span>{t('legal.docs')}</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">
               {t('legal.privacyTitle')}
@@ -65,7 +65,7 @@ const PrivacyPolicy = () => {
                     {[1, 2].map((i) => (
                       <li key={i} className="flex items-center gap-3 text-gray-500">
                         <CheckCircle className="h-5 w-5 text-green-500" />
-                        <span>Verified compliance with national standards.</span>
+                        <span>{t('legal.compliance')}</span>
                       </li>
                     ))}
                   </ul>
@@ -75,7 +75,7 @@ const PrivacyPolicy = () => {
           </div>
 
           <div className="mt-20 p-10 bg-gray-50 rounded-[2.5rem] border border-gray-100 italic text-gray-500 text-center">
-            "By using AgroChain Ethiopia, you acknowledge and agree to the terms outlined in this document."
+            {t('legal.agreement')}
           </div>
         </div>
       </section>

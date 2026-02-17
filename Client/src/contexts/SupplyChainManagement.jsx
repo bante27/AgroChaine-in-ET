@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Link2, Truck, BadgeCheck, MoveRight, Eye, Layers } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -76,7 +77,7 @@ const SupplyChainManagement = () => {
               >
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-bold mb-6">
                   <Layers className="h-4 w-4" />
-                  AGROCHAIN TECHNOLOGY
+                  {t('supplyChainPage.techBadge')}
                 </div>
                 <h2 className="text-4xl font-bold text-gray-900 mb-6 leading-tight">
                   {t('supplyChainPage.visionTitle')}
@@ -97,28 +98,28 @@ const SupplyChainManagement = () => {
             <div className="lg:w-1/2 bg-white p-12 rounded-[3rem] shadow-xl border border-gray-100">
               <div className="flex justify-between items-center mb-10">
                 <BadgeCheck className="h-10 w-10 text-green-500" />
-                <div className="px-4 py-2 bg-gray-100 rounded-lg text-xs font-mono text-gray-500 uppercase tracking-widest">Tracking Active</div>
+                <div className="px-4 py-2 bg-gray-100 rounded-lg text-xs font-mono text-gray-500 uppercase tracking-widest">{t('supplyChainPage.activeBadge')}</div>
               </div>
               <div className="space-y-8">
                 <div className="flex gap-4">
                   <div className="w-1 bg-green-500 rounded-full h-12"></div>
                   <div>
-                    <div className="text-xs text-gray-400 font-bold mb-1">SEED ORIGIN</div>
-                    <div className="text-sm font-bold text-gray-800 uppercase">Assosa Highlands, Ethiopia</div>
+                    <div className="text-xs text-gray-400 font-bold mb-1">{t('supplyChainPage.seedOriginLabel')}</div>
+                    <div className="text-sm font-bold text-gray-800 uppercase">{t('supplyChainPage.seedOriginValue')}</div>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="w-1 bg-green-500 rounded-full h-12"></div>
                   <div>
-                    <div className="text-xs text-gray-400 font-bold mb-1">HARVEST DATE</div>
+                    <div className="text-xs text-gray-400 font-bold mb-1">{t('supplyChainPage.harvestDateLabel')}</div>
                     <div className="text-sm font-bold text-gray-800 uppercase">Feb 14, 2026</div>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="w-1 bg-amber-400 rounded-full h-12"></div>
                   <div>
-                    <div className="text-xs text-gray-400 font-bold mb-1">CURRENT STATUS</div>
-                    <div className="text-sm font-bold text-gray-800 uppercase">Logistics - In Transit</div>
+                    <div className="text-xs text-gray-400 font-bold mb-1">{t('supplyChainPage.currentStatusLabel')}</div>
+                    <div className="text-sm font-bold text-gray-800 uppercase">{t('supplyChainPage.currentStatusValue')}</div>
                   </div>
                 </div>
               </div>
@@ -133,10 +134,10 @@ const SupplyChainManagement = () => {
           whileHover={{ y: -5 }}
           className="inline-block"
         >
-          <a href="/marketplace" className="text-green-600 font-bold text-xl flex items-center gap-3 hover:text-green-700 transition lg:text-3xl">
-            See the supply chain in action
+          <Link to="/marketplace" className="text-green-600 font-bold text-xl flex items-center gap-3 hover:text-green-700 transition lg:text-3xl">
+            {t('supplyChainPage.actionLink')}
             <MoveRight className="h-8 w-8" />
-          </a>
+          </Link>
         </motion.div>
       </section>
     </div>

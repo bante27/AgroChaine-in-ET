@@ -130,7 +130,7 @@ const Login = () => {
   const { login, user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/dashboard';
+  const from = location.state?.from || '/dashboard';
 
   // Dynamic Date and Time
   const [currentDateTime, setCurrentDateTime] = useState('05:47 PM EAT on Saturday, August 30, 2025');

@@ -233,7 +233,7 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
           </p>
         </div>
         <p style="margin-top:14px;">
-          <a href="${WEBSITE_URL}/dashboard/orders" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
+          <a href="${WEBSITE_URL}/orders" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
             View Order in Dashboard
           </a>
         </p>
@@ -268,7 +268,7 @@ router.post("/buy", auth, restrictUnverifiedUsers, isNotRestricted, async (req, 
           </p>
         </div>
         <p style="margin-top:14px;">
-          <a href="${WEBSITE_URL}/dashboard/orders" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
+          <a href="${WEBSITE_URL}/orders" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
             Track Order in Dashboard
           </a>
         </p>
@@ -396,7 +396,7 @@ router.post(
           </p>
 
           <p style="margin:12px 0;">
-            <a href="${WEBSITE_URL}/dashboard/orders" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
+            <a href="${WEBSITE_URL}/orders" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
               Track Order Now
             </a>
           </p>
@@ -523,7 +523,7 @@ router.post(
           </table>
 
           <p style="margin:12px 0;">
-            <a href="${WEBSITE_URL}/dashboard/wallet" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
+            <a href="${WEBSITE_URL}/dashboard" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
               View Earnings
             </a>
           </p>
@@ -548,7 +548,7 @@ router.post(
             <tr><td style="padding:6px 8px;"><strong>Seller</strong></td><td style="padding:6px 8px;">${seller.fullName}</td></tr>
           </table>
           <p style="margin:12px 0;">
-            <a href="${WEBSITE_URL}/dashboard/orders" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
+            <a href="${WEBSITE_URL}/orders" target="_blank" style="display:inline-block;background:#22a45d;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;">
               View Order History
             </a>
           </p>

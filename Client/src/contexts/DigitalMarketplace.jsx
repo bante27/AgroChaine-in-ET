@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Globe, BarChart3, ShoppingCart, Zap, Search, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -96,7 +97,7 @@ const DigitalMarketplace = () => {
             <div className="mt-20 flex justify-center">
               <div className="flex items-center gap-4 bg-white/5 px-8 py-4 rounded-full border border-white/10">
                 <ShieldCheck className="h-6 w-6 text-green-400" />
-                <span className="text-lg font-medium">Verified Sellers & SSL Protected</span>
+                <span className="text-lg font-medium">{t('digitalMarketPage.verifiedBadge')}</span>
               </div>
             </div>
           </div>
@@ -111,12 +112,15 @@ const DigitalMarketplace = () => {
           className="max-w-4xl mx-auto"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-10">
-            Join the digital harvest today.
+            {t('digitalMarketPage.ctaTitle')}
           </h2>
-          <button className="bg-amber-500 hover:bg-amber-600 text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all shadow-lg shadow-amber-200 flex items-center gap-3 mx-auto">
-            Explore Marketplace
+          <Link
+            to="/marketplace"
+            className="bg-amber-500 hover:bg-amber-600 text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all shadow-lg shadow-amber-200 flex items-center gap-3 mx-auto w-fit"
+          >
+            {t('digitalMarketPage.title')}
             <ArrowRight className="h-6 w-6" />
-          </button>
+          </Link>
         </motion.div>
       </section>
     </div>

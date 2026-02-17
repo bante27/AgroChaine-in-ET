@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HelpCircle, ChevronDown, MessageCircle, PhoneCall, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -87,26 +88,32 @@ const FAQ = () => {
       <section className="py-24 px-4">
         <div className="max-w-6xl mx-auto bg-green-600 rounded-[4rem] p-12 md:p-20 text-white text-center shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-          <h2 className="text-3xl md:text-5xl font-bold mb-8">Not finding what you need?</h2>
+          <h2 className="text-3xl md:text-5xl font-bold mb-8">{t('faqPage.ctaTitle')}</h2>
           <p className="text-xl text-green-100 mb-12 max-w-2xl mx-auto">
-            Our dedicated support team is ready to help you with any specific agricultural or platform-related inquiries.
+            {t('faqPage.ctaDesc')}
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <button className="bg-white text-green-700 px-10 py-5 rounded-2xl font-bold text-xl hover:bg-green-50 transition shadow-xl flex items-center gap-3">
+            <button
+              onClick={() => window.openChat && window.openChat()}
+              className="bg-white text-green-700 px-10 py-5 rounded-2xl font-bold text-xl hover:bg-green-50 transition shadow-xl flex items-center justify-center gap-3"
+            >
               <MessageCircle className="h-6 w-6" />
-              Chat With Us
+              {t('footer.chatUs')}
             </button>
-            <button className="bg-green-500 text-white px-10 py-5 rounded-2xl font-bold text-xl hover:bg-green-400 transition flex items-center gap-3">
+            <Link
+              to="/contact"
+              className="bg-green-500 text-white px-10 py-5 rounded-2xl font-bold text-xl hover:bg-green-400 transition flex items-center justify-center gap-3"
+            >
               <PhoneCall className="h-6 w-6" />
-              Contact Sales
-            </button>
+              {t('footer.contactSales')}
+            </Link>
           </div>
           <div className="mt-16 flex items-center justify-center gap-4 text-green-100 font-medium">
-            <span>Looking for official records?</span>
-            <a href="/legal" className="underline hover:text-white flex items-center gap-1">
-              View Legal Documents
+            <span>{t('faqPage.officialRecords')}</span>
+            <Link to="/privacy" className="underline hover:text-white flex items-center gap-1">
+              {t('faqPage.viewLegal')}
               <ArrowRight className="h-4 w-4" />
-            </a>
+            </Link>
           </div>
         </div>
       </section>

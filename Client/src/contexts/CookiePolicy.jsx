@@ -23,7 +23,7 @@ const CookiePolicy = () => {
           >
             <div className="flex items-center gap-3 text-blue-600 font-bold mb-4">
               <Cookie className="h-6 w-6" />
-              <span>PRIVACY PREFERENCES</span>
+              <span>{t('legal.privacyPrefs')}</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">
               {t('legal.cookieTitle')}
@@ -63,7 +63,7 @@ const CookiePolicy = () => {
                   <p className="text-lg text-gray-600 leading-relaxed mb-6">{section.desc}</p>
                   <div className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 uppercase tracking-widest">
                     <Info className="h-4 w-4" />
-                    Essential Technology
+                    {t('legal.essentialTech')}
                   </div>
                 </div>
               </motion.div>
@@ -72,7 +72,7 @@ const CookiePolicy = () => {
 
           <div className="mt-20 flex justify-center">
             <button className="bg-gray-900 text-white px-10 py-4 rounded-2xl font-bold text-lg hover:bg-gray-800 transition">
-              Manage Preferences
+              {t('legal.managePrefs')}
             </button>
           </div>
         </div>

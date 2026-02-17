@@ -41,6 +41,13 @@ export default function LiveChatRealTime() {
     const [isTyping, setIsTyping] = useState(false);
     const [typingUser, setTypingUser] = useState('');
 
+    useEffect(() => {
+        window.openChat = () => setIsOpen(true);
+        return () => {
+            delete window.openChat;
+        };
+    }, []);
+
     // Connection State
     const [socket, setSocket] = useState(null);
     const [isConnected, setIsConnected] = useState(false);

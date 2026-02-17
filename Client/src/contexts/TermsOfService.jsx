@@ -23,7 +23,7 @@ const TermsOfService = () => {
           >
             <div className="flex items-center gap-3 text-amber-600 font-bold mb-4">
               <Scale className="h-6 w-6" />
-              <span>TERMS & CONDITIONS</span>
+              <span>{t('legal.termsAndConditions')}</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">
               {t('legal.termsTitle')}
@@ -69,7 +69,7 @@ const TermsOfService = () => {
                 </p>
                 <div className="mt-6 flex items-center gap-2 text-green-600 font-bold pl-16">
                   <FileCheck className="h-5 w-5" />
-                  <span className="text-sm">BINDING AGREEMENT</span>
+                  <span className="text-sm">{t('legal.bindingAgreement')}</span>
                 </div>
               </motion.div>
             ))}
