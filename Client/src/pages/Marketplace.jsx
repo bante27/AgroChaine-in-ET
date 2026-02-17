@@ -22,7 +22,7 @@ const modalBackdrop = {
 };
 
 const Marketplace = () => {
-  const { t } = useLanguage();
+  const { t, language, transliterateName } = useLanguage();
   const { user } = useAuth();
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [searchTerm, setSearchTerm] = useState("");
@@ -159,7 +159,7 @@ const Marketplace = () => {
 
   const handleAddToCart = (product) => {
     if (user?.isRestricted) {
-      return toast.error("Your account is restricted. You cannot add products to cart.");
+      return toast.error(t('marketplace.toast.restricted'));
     }
     const exist = cartItems.find((i) => i._id === product._id);
     const updated = exist
@@ -169,14 +169,14 @@ const Marketplace = () => {
       : [...cartItems, { ...product, quantity: 1 }];
     setCartItems(updated);
     setIsCartOpen(true);
-    toast.success(`${product.title} added to cart`, {
+    toast.success(`${language === 'am' ? transliterateName(product.title) : product.title} ${t('marketplace.toast.addedToCart')}`, {
       style: { background: "#10b981", color: "#fff", borderRadius: "8px" },
     });
   };
 
   const handleBuyNow = (product) => {
     if (user?.isRestricted) {
-      return toast.error("Your account is restricted. You cannot buy products.");
+      return toast.error(t('marketplace.toast.restricted'));
     }
     setCartItems([{ ...product, quantity: 1 }]);
     setIsCheckoutOpen(true);

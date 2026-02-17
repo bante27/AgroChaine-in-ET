@@ -33,7 +33,8 @@ const CartSidebar = ({
     const today = new Date();
     const minDate = new Date(today.getTime() + 3 * 86400000);
     const maxDate = new Date(today.getTime() + 25 * 86400000);
-    return `${minDate.toLocaleDateString()} - ${maxDate.toLocaleDateString()}`;
+    const locale = language === 'am' ? 'am-ET' : 'en-US';
+    return `${minDate.toLocaleDateString(locale)} - ${maxDate.toLocaleDateString(locale)}`;
   };
 
   return (

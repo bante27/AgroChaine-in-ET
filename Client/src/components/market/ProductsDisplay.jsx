@@ -66,7 +66,7 @@ const ProductsDisplay = ({
           <div className="text-center py-16 bg-white/5 rounded-2xl shadow-xl backdrop-blur-md">
             <Search className="h-16 w-16 text-teal-300 mx-auto mb-4 animate-pulse" />
             <h3 className="text-lg md:text-xl font-medium text-blue-600 mb-2">{t('marketplace.noProductsFound')}</h3>
-            <p className="text-gray-400">Try adjusting your search or filter criteria.</p>
+            <p className="text-gray-400">{t('marketplace.adjustSearch')}</p>
           </div>
         ) : (
           <motion.div

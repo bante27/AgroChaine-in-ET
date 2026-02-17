@@ -44,7 +44,7 @@ const ProductModal = ({
 
   const handleAddComment = async () => {
     if (!comment.trim()) return;
-    if (!token) return alert("Login required to post a review.");
+    if (!token) return alert(t('marketplace.product.errors.loginToReview'));
     setIsSubmittingReview(true);
     try {
       const res = await fetch(
@@ -63,14 +63,14 @@ const ProductModal = ({
       refreshProduct?.();
     } catch (err) {
       console.error(err);
-      alert("Failed to post review.");
+      alert(t('marketplace.product.errors.postFailed'));
     } finally {
       setIsSubmittingReview(false);
     }
   };
 
   const handleLike = async () => {
-    if (!token) return alert("Login required to like.");
+    if (!token) return alert(t('marketplace.product.errors.loginToLike'));
     setLikeLoading(true);
     try {
       const res = await fetch(
@@ -85,7 +85,7 @@ const ProductModal = ({
       refreshProduct?.();
     } catch (err) {
       console.error(err);
-      alert("Failed to update like.");
+      alert(t('marketplace.product.errors.likeFailed'));
     } finally {
       setLikeLoading(false);
     }
