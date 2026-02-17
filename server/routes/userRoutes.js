@@ -115,16 +115,12 @@ router.post(
             to: email,
             subject: 'Your OTP Code - Agrochain Ethiopia',
             html: `
-              <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                <h2 style="color: #10b981;">Welcome to AgroChain Ethiopia</h2>
                 <p>Dear <strong>${fullName}</strong>,</p>
-                <p>Thank you for registering. Please use the following OTP to verify your account:</p>
-                <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
+                <p>Welcome to AgroChain Ethiopia! Please use the following OTP to verify your account and get started:</p>
+                <div style="background: #f4f4f4; padding: 25px; text-align: center; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #10b981; border: 1px dashed #10b981; margin: 20px 0;">
                   ${otp}
                 </div>
-                <p style="color: #666; font-size: 14px; margin-top: 20px;">This OTP will expire in 5 minutes.</p>
-                <p>Best regards,<br/><strong>Agrochain Ethiopia Team</strong></p>
-              </div>
+                <p style="color: #666; font-size: 14px; margin-top: 20px;">This OTP will expire in 5 minutes for your security.</p>
             `,
           });
         } catch (emailErr) {
@@ -187,16 +183,12 @@ router.post(
             to: email,
             subject: 'Your New OTP Code - Agrochain Ethiopia',
             html: `
-              <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                <h2 style="color: #10b981;">New OTP Requested</h2>
                 <p>Dear <strong>${pending.fullName}</strong>,</p>
-                <p>You requested a new OTP code for your AgroChain Ethiopia registration. Please use the code below:</p>
-                <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
+                <p>You requested a new OTP code for your AgroChain Ethiopia registration. Please use the code below to complete your verification:</p>
+                <div style="background: #f4f4f4; padding: 25px; text-align: center; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #10b981; border: 1px dashed #10b981; margin: 20px 0;">
                   ${otp}
                 </div>
                 <p style="color: #666; font-size: 14px; margin-top: 20px;">This OTP will expire in 5 minutes.</p>
-                <p>Best regards,<br/><strong>Agrochain Ethiopia Team</strong></p>
-              </div>
             `,
           });
         } catch (emailErr) {
@@ -326,16 +318,12 @@ router.post(
             to: email,
             subject: 'Password Reset OTP - Agrochain Ethiopia',
             html: `
-              <div style="font-family: sans-serif; max-width: 600px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                <h2 style="color: #10b981;">Password Reset Request</h2>
                 <p>Dear <strong>${user.fullName}</strong>,</p>
-                <p>We received a request to reset your password. Use the following OTP to proceed:</p>
-                <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333;">
+                <p>We received a request to reset your password for your AgroChain account. Use the following OTP to proceed with the reset:</p>
+                <div style="background: #fdf2f2; padding: 25px; text-align: center; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #dc2626; border: 1px dashed #dc2626; margin: 20px 0;">
                   ${otp}
                 </div>
-                <p style="color: #666; font-size: 14px; margin-top: 20px;">This OTP will expire in 5 minutes. If you did not request this, please ignore this email.</p>
-                <p>Best regards,<br/><strong>Agrochain Ethiopia Team</strong></p>
-              </div>
+                <p style="color: #666; font-size: 14px; margin-top: 20px;">This OTP will expire in 5 minutes. If you did not request this, please ignore this email or contact support.</p>
             `,
           });
         } catch (emailErr) {
@@ -588,18 +576,13 @@ router.post('/request-verification-otp', auth, checkEmailCredentials, async (req
           to: user.email,
           subject: 'AgroChain - National ID Verification Code',
           html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-              <h2 style="color: #4B6BFB; text-align: center;">Identity Verification</h2>
-              <p>Hello <strong>${user.fullName}</strong>,</p>
-              <p>You are requesting to verify your National ID for your AgroChain Ethiopia account. Use the following 6-digit code to complete the process:</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; background: #f4f7ff; padding: 10px 20px; border-radius: 5px; color: #1e293b; border: 1px dashed #4B6BFB;">${otp}</span>
-              </div>
-              <p style="color: #666; font-size: 14px;">This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
-              <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
-              <p style="text-align: center; color: #999; font-size: 12px;">© 2026 AgroChain Ethiopia. All rights reserved.</p>
-            </div>
-          `,
+                <p>Hello <strong>${user.fullName}</strong>,</p>
+                <p>You are requesting to verify your National ID for your AgroChain Ethiopia account. Use the following 6-digit code to complete the identity verification process:</p>
+                <div style="text-align: center; margin: 30px 0; background: #f4f7ff; padding: 25px; border-radius: 8px; border: 1px dashed #4B6BFB;">
+                  <span style="font-size: 32px; font-weight: bold; letter-spacing: 10px; color: #1e293b;">${otp}</span>
+                </div>
+                <p style="color: #666; font-size: 14px;">This code will expire in 10 minutes. Please keep your National ID document ready for the next step.</p>
+            `,
         });
       } catch (emailErr) {
         console.error('Error sending verification OTP email:', emailErr.message);

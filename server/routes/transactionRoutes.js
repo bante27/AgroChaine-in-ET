@@ -18,26 +18,11 @@ const WEBSITE_URL = "https://agrochain-client-orz8.onrender.com";
 const sendEmail = async (to, subject, htmlBody) => {
   if (!to) return;
   try {
-    const html = `
-      <div style="font-family: Arial, sans-serif; background:#f4f7f9; padding:20px;">
-        <div style="max-width:650px;margin:auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);">
-          <div style="background:#22a45d;color:#fff;padding:16px;text-align:center;">
-            <h2 style="margin:0;">Agrochain Ethiopia</h2>
-            <p style="margin:0;font-size:14px;">Empowering Farmers & Buyers Nationwide</p>
-          </div>
-          <div style="padding:25px;color:#333;line-height:1.6;">
-            ${htmlBody}
-          </div>
-          <div style="text-align:center;padding:10px 0;background:#f9fafb;font-size:12px;color:#888;">
-            © ${new Date().getFullYear()} Agrochain Ethiopia. All rights reserved.
-          </div>
-        </div>
-      </div>`;
-
+    // The transporter.sendMail will automatically wrap the htmlBody with branding
     await transporter.sendMail({
       to,
       subject,
-      html,
+      html: htmlBody,
     });
   } catch (err) {
     const maskedTo = to ? to.replace(/^(..)(.*)(@.*)$/, "$1***$3") : 'Unknown';

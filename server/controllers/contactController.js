@@ -108,11 +108,8 @@ export const handleContactForm = async (req, res) => {
       try {
         // ===== Email to Admin =====
         let adminHtml = `
-          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <div style="background: linear-gradient(135deg, #a0b910ff 0%, #380596ff 100%); color: white; padding: 30px; text-align: center;">
-              <h1 style="margin: 0; font-size: 22px; letter-spacing: 1px;">📩 New Contact Form Submission</h1>
-              <p style="margin: 5px 0 0; opacity: 0.9;">AgroChain Ethiopia Portal</p>
-            </div>
+            <div style="margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #f0f0f0;">
+              <h2 style="color: #111827; font-size: 18px; margin-top: 0;">📩 New Contact Form Submission</h2>
             
             <div style="padding: 25px; background: #ffffff;">
               <div style="margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #f0f0f0;">
@@ -155,12 +152,6 @@ export const handleContactForm = async (req, res) => {
           adminHtml += "</div></div>";
         }
 
-        adminHtml += `
-            <div style="background: #f3f4f6; padding: 20px; text-align: center; color: #9ca3af; font-size: 11px;">
-              <p style="margin: 0;">&copy; ${new Date().getFullYear()} AgroChain Ethiopia. Professional Contact Inquiry</p>
-            </div>
-          </div>
-        `;
 
         const maskedUserEmail = email.replace(/^(..)(.*)(@.*)$/, "$1***$3");
         console.log(`[ContactForm] Background worker: Sending emails for submission from ${maskedUserEmail}`);
@@ -184,19 +175,12 @@ export const handleContactForm = async (req, res) => {
           to: email,
           subject: `Re: ${subject}`,
           html: `
-            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden;">
-              <div style="background: #10b981; padding: 25px; text-align: center;">
-                <h2 style="color: white; margin: 0;">AgroChain Ethiopia</h2>
+              <p style="font-size: 18px; color: #111827; margin-top: 0;">Hi ${name},</p>
+              <p style="color: #374151; line-height: 1.6;">Thank you for contacting us. We have received your message regarding "<strong>${subject}</strong>".</p>
+              <div style="margin: 25px 0; padding: 20px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">
+                <p style="margin: 0; font-style: italic; color: #166534;">"We are committed to empowering Ethiopian agriculture through technology."</p>
               </div>
-              <div style="padding: 30px; background: #ffffff;">
-                <p style="font-size: 18px; color: #111827; margin-top: 0;">Hi ${name},</p>
-                <p style="color: #374151; line-height: 1.6;">Thank you for contacting us. We have received your message regarding "<strong>${subject}</strong>".</p>
-                <div style="margin: 25px 0; padding: 20px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">
-                  <p style="margin: 0; font-style: italic; color: #166534;">"We are committed to empowering Ethiopian agriculture through technology."</p>
-                </div>
-                <p style="color: #6b7280; font-size: 14px;">Best regards,<br><strong>The AgroChain Ethiopia Team</strong></p>
-              </div>
-            </div>
+              <p style="color: #6b7280; font-size: 14px;">Our team will get back to you shortly.</p>
           `
         });
         console.log("✅ User auto-reply sent");

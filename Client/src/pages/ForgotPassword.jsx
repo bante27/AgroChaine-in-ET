@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
+import logo from '../assets/images/newlogo.png';
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../utils/apiConfig";
 import { useAuth } from "../contexts/AuthContext";
@@ -34,11 +35,11 @@ const ForgotPassword = () => {
     setIsLoading(true);
     try {
       await axios.post(`${API_URL}/api/users/forgot-password`, { email });
-      toast.success(t('auth.forgotPasswordPage.otpSentSuccess'));
+      toast.success(t('auth.forgotPasswordPage.otpSentSuccess'), { icon: <img src={logo} alt="A" className="h-6 w-6 rounded-full object-cover" /> });
       setStep(2);
       setTimer(180); // 3 minutes
     } catch (err) {
-      toast.error(err.response?.data?.error || t('auth.forgotPasswordPage.otpSendFailed'));
+      toast.error(err.response?.data?.error || t('auth.forgotPasswordPage.otpSendFailed'), { icon: <img src={logo} alt="A" className="h-6 w-6 rounded-full object-cover" /> });
     } finally {
       setIsLoading(false);
     }
@@ -50,10 +51,10 @@ const ForgotPassword = () => {
     setIsLoading(true);
     try {
       await axios.post(`${API_URL}/api/users/forgot-password`, { email });
-      toast.success(t('auth.forgotPasswordPage.otpResentSuccess'));
+      toast.success(t('auth.forgotPasswordPage.otpResentSuccess'), { icon: <img src={logo} alt="A" className="h-6 w-6 rounded-full object-cover" /> });
       setTimer(180); // 3 minutes
     } catch (err) {
-      toast.error(err.response?.data?.error || t('auth.forgotPasswordPage.otpResendFailed'));
+      toast.error(err.response?.data?.error || t('auth.forgotPasswordPage.otpResendFailed'), { icon: <img src={logo} alt="A" className="h-6 w-6 rounded-full object-cover" /> });
     } finally {
       setIsLoading(false);
     }

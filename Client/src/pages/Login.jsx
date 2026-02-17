@@ -8,6 +8,7 @@ import Input from '../components/common/Input';
 import Card from '../components/common/Card';
 import PhoneNumberInput from '../components/common/PhoneNumberInput';
 import toast from 'react-hot-toast';
+import logo from '../assets/images/newlogo.png';
 import { parsePhoneNumber } from 'libphonenumber-js';
 import axios from 'axios';
 import { API_URL } from '../utils/apiConfig';
@@ -29,7 +30,7 @@ const OTPInput = ({ email, onVerify, onResend }) => {
 
   const handleVerify = async () => {
     if (isVerifying) return;
-    if (!inputOtp || inputOtp.length !== 6) return toast.error(t('auth.enterValidOtp'));
+    if (!inputOtp || inputOtp.length !== 6) return toast.error(t('auth.enterValidOtp'), { icon: <div className="h-6 w-6 rounded-full bg-white flex items-center justify-center text-xs font-bold">A</div> });
     setIsVerifying(true);
     try {
       await onVerify(inputOtp);
@@ -221,17 +222,17 @@ const Login = () => {
         const loginResult = await login({ email: otpEmail, password: formData.password });
 
         if (loginResult.success) {
-          toast.success(t('auth.otpVerified'));
+          toast.success(t('auth.otpVerified'), { icon: <img src={logo} alt="A" className="h-6 w-6 rounded-full object-cover" /> });
           navigate('/dashboard', { replace: true });
         } else {
-          toast.error(loginResult.error || t('auth.loginFailed'));
+          toast.error(loginResult.error || t('auth.loginFailed'), { icon: <img src={logo} alt="A" className="h-6 w-6 rounded-full object-cover" /> });
         }
       } else {
-        toast.error(res.data.error || t('auth.otpInvalid'));
+        toast.error(res.data.error || t('auth.otpInvalid'), { icon: <img src={logo} alt="A" className="h-6 w-6 rounded-full object-cover" /> });
       }
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.error || t('auth.otpVerificationFailed'));
+      toast.error(err.response?.data?.error || t('auth.otpVerificationFailed'), { icon: <img src={logo} alt="A" className="h-6 w-6 rounded-full object-cover" /> });
     }
   };
 
@@ -240,12 +241,12 @@ const Login = () => {
     try {
       const res = await axios.post(`${API_URL}/api/users/resend-otp`, { email: otpEmail });
       if (res.data.success) {
-        toast.success(t('auth.otpResent'));
+        toast.success(t('auth.otpResent'), { icon: <img src={logo} alt="A" className="h-6 w-6 rounded-full object-cover" /> });
       } else {
-        toast.error(res.data.error);
+        toast.error(res.data.error, { icon: <img src={logo} alt="A" className="h-6 w-6 rounded-full object-cover" /> });
       }
     } catch (err) {
-      toast.error(err.response?.data?.error || t('auth.otpResendFailed'));
+      toast.error(err.response?.data?.error || t('auth.otpResendFailed'), { icon: <img src={logo} alt="A" className="h-6 w-6 rounded-full object-cover" /> });
     }
   };
 
