@@ -101,7 +101,7 @@ export const handleContactForm = async (req, res) => {
     console.log(`[ContactForm] Saved to DB. ID: ${savedMsg._id.toString().slice(-6)}`);
 
     // 🚀 FAST RESPONSE: Send success immediately to client
-    res.status(200).json({ success: true, message: "Message sent successfully" });
+    res.status(200).json({ success: true });
 
     // 📧 BACKGROUND PROCESS: Send emails asynchronously
     (async () => {

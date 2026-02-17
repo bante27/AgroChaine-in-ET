@@ -80,6 +80,7 @@ const Contact = () => {
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const fileInputRef = useRef(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -153,6 +154,9 @@ const Contact = () => {
         setFormData({ name: '', email: '', subject: '', message: '' });
         setFiles([]);
         setAudioBlob(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       } else {
         toast.error(data.error || t('contact.error'));
       }
@@ -393,6 +397,7 @@ const Contact = () => {
                     <FileText className="h-5 w-5 text-emerald-600" /> {t('contact.files')}
                   </label>
                   <input
+                    ref={fileInputRef}
                     type="file"
                     multiple
                     onChange={handleFileChange}

@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   publicDir: 'public', // Explicitly set public directory
   optimizeDeps: {
-    exclude: ['lucide-react'],
+    // include: ['lucide-react'], // Optional: force include if needed, but usually removing exclude is enough
   },
 
   server: {

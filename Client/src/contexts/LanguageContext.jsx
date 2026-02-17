@@ -256,6 +256,12 @@ const translations = {
         verificationPending: 'Please complete your Government ID verification to purchase products',
         accountNotVerified: 'Your account is not verified. Please verify your account to continue.'
       },
+      auth: {
+        title: 'Log in to Continue',
+        subtitle: 'Please log in or create an account to proceed.',
+        login: 'Log In',
+        register: 'Create Account'
+      },
       cart: {
         title: 'Your Cart',
         empty: 'Your cart is empty.',
@@ -1066,6 +1072,12 @@ const translations = {
         verificationRequired: 'ተግባር ተገድቧል፡ የመንግስት መታወቂያ ማረጋገጫ በመጠባበቅ ላይ ወይም አልተጠናቀቀም',
         verificationPending: 'ምርቶችን ለመግዛት እባክዎ የመንግስት መታወቂያ ማረጋገጫዎን ያጠናቅቁ',
         accountNotVerified: 'መለያዎ አልተረጋገጠም። ለመቀጠል እባክዎ መለያዎን ያረጋግጡ።'
+      },
+      auth: {
+        title: 'ለመቀጠል ይግቡ',
+        subtitle: 'እባክዎን ለመቀጠል ይግቡ ወይም መለያ ይፍጠሩ።',
+        login: 'ይግቡ',
+        register: 'መለያ ይፍጠሩ'
       },
       cart: {
         title: 'የእርስዎ ጋሪ',
