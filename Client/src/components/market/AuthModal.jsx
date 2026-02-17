@@ -3,10 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import Button from "../common/Button";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../../contexts/LanguageContext";
 
 const AuthModal = ({ isOpen, onClose }) => {
-  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const redirectToLogin = () => {
@@ -41,10 +39,10 @@ const AuthModal = ({ isOpen, onClose }) => {
 
             {/* Header */}
             <h2 className="text-xl sm:text-2xl font-bold mb-4 text-black text-center">
-              {t('marketplace.auth.title')}
+              Log in to Continue
             </h2>
             <p className="text-gray-600 mb-6 text-center text-sm">
-              {t('marketplace.auth.subtitle')}
+              Please log in or create an account to proceed.
             </p>
 
             {/* Buttons */}
@@ -53,14 +51,14 @@ const AuthModal = ({ isOpen, onClose }) => {
                 onClick={redirectToLogin} // redirect to login page
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm"
               >
-                {t('marketplace.auth.login')}
+                Log In
               </Button>
               <Button
                 onClick={redirectToLogin} // redirect to login/registration page
                 variant="outline"
                 className="w-full text-sm"
               >
-                {t('marketplace.auth.register')}
+                Create Account
               </Button>
             </div>
           </motion.div>

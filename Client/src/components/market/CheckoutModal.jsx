@@ -221,7 +221,7 @@ const CheckoutModal = ({
 
           <p className="text-gray-700 text-sm mt-4">
             {t('marketplace.checkout.deliveryDate')}:{" "}
-            <span className="font-semibold">{deliveryDate.toLocaleDateString(language === 'am' ? 'am-ET' : 'en-US')}</span>
+            <span className="font-semibold">{deliveryDate.toLocaleDateString()}</span>
           </p>
 
           {token && (

@@ -79,9 +79,9 @@ const ProductCard = ({ product, viewMode, onClick, onAddToCart, onBuyNow }) => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 gap-2">
           <div>
             <span className="text-[16px] sm:text-[14px] font-bold text-gray-900">
-              {product.price} {t('common.etb')}
+              {product.price} ETB
             </span>
-            <span className="text-gray-500 ml-1 text-[10px] sm:text-[9px]">{t('marketplace.product.perKg')}</span>
+            <span className="text-gray-500 ml-1 text-[10px] sm:text-[9px]">/kg</span>
           </div>
 
           <div className="flex gap-2 flex-wrap text-[11px] sm:text-[9px]">
