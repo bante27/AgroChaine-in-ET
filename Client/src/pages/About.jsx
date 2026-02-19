@@ -361,7 +361,7 @@ const About = () => {
               backgroundColor: 'rgba(255, 255, 255, 0.9)', /* Added solid background */
             }}
           >
-            {t('about.titlePart1')} <span className="text-yellow-300">{t('about.titlePart2')}</span>
+            {t('')} <span className="text-yellow-300">{t('about.titlePart2')}</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 50 }}
