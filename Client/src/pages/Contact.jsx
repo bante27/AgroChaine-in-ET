@@ -15,7 +15,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import contactBg from '../assets/images/bg-login.jfif';
+import contactBg from '../assets/images/M.S TilahunSitotaw.jpg';
 import { API_URL } from '../utils/apiConfig';
 
 const styles = `
@@ -236,43 +236,132 @@ const Contact = () => {
       <style>{styles}</style>
       {/* Hero Section - Modern & Attractive */}
       <section
-        className="relative h-[80vh] flex items-center justify-center bg-cover bg-center overflow-hidden polygon-bg"
-        style={{ backgroundImage: `url(${contactBg})`, backgroundAttachment: 'fixed' }}
+        className="relative min-h-[88vh] flex items-center overflow-hidden polygon-bg"
+        style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 40%, #0d3b5e 100%)' }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/80 to-blue-600/80"></div>
-        <div className="relative z-10 text-center text-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <motion.h1
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 1.2, type: 'spring', stiffness: 100 }}
-            className="text-5xl sm:text-6xl md:text-7xl font-extrabold mb-6 leading-tight tracking-wide gradient-text glow-effect"
-            style={{ textShadow: '0 6px 15px rgba(0, 0, 0, 0.7)' }}
-          >
-            {t('contact.titlePart1')} <span className="text-yellow-300">{t('contact.titlePart2')}</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 0.2, type: 'spring', stiffness: 100 }}
-            className="text-lg sm:text-xl max-w-3xl mx-auto mb-8 text-gray-500 bg-white/70 rounded-xl p-4 shadow-md"
-          >
-            {t('contact.subtitle')}
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 0.4, type: 'spring', stiffness: 100 }}
-            className="flex justify-center"
-          >
-            <a
-              href="#contact-form"
-              className="bg-teal-500 text-white px-6 py-3 rounded-full font-semibold text-lg hover:bg-teal-600 hover:shadow-2xl transition-all duration-300 deep-shadow hover-lift pulse-animation inline-flex items-center gap-3"
+        {/* Decorative background blobs */}
+        <div className="absolute top-0 left-0 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: '#34d399' }} />
+        <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full opacity-10 blur-3xl pointer-events-none" style={{ background: '#3b82f6' }} />
+
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-16 flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+
+          {/* ── LEFT: Text Content ── */}
+          <div className="flex-1 text-left">
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7 }}
             >
-              {t('contact.getInTouch')}
-              <ArrowRight className="h-5 w-5" />
-            </a>
-          </motion.div>
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-5"
+                style={{ background: 'rgba(52,211,153,0.18)', color: '#6ee7b7', border: '1px solid rgba(52,211,153,0.35)' }}>
+                🌱 AgroChain Ethiopia
+              </span>
+            </motion.div>
+
+            {/* Title */}
+            <motion.h1
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.9, delay: 0.1, type: 'spring', stiffness: 90 }}
+              className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-5"
+              style={{ color: '#ffffff', textShadow: '0 4px 24px rgba(0,0,0,0.4)' }}
+            >
+              {t('contact.titlePart1')}{' '}
+              <span className="gradient-text glow-effect">{t('contact.titlePart2')}</span>
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p
+              initial={{ opacity: 0, x: -40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.9, delay: 0.25, type: 'spring', stiffness: 90 }}
+              className="text-base sm:text-lg mb-8 max-w-lg leading-relaxed"
+              style={{ color: 'rgba(167,243,208,0.92)' }}
+            >
+              {t('contact.subtitle')}
+            </motion.p>
+
+            {/* CTA Buttons */}
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.9, delay: 0.4, type: 'spring', stiffness: 90 }}
+              className="flex flex-wrap gap-4"
+            >
+              <a
+                href="#contact-form"
+                className="bg-teal-400 text-gray-900 px-7 py-3.5 rounded-full font-bold text-base hover:bg-teal-300 hover:shadow-2xl transition-all duration-300 deep-shadow hover-lift pulse-animation inline-flex items-center gap-3"
+              >
+                {t('contact.getInTouch')}
+                <ArrowRight className="h-5 w-5" />
+              </a>
+              <a
+                href="tel:+251985076701"
+                className="px-7 py-3.5 rounded-full font-bold text-base inline-flex items-center gap-3 transition-all duration-300 hover-lift"
+                style={{ background: 'rgba(255,255,255,0.1)', color: '#ffffff', border: '1.5px solid rgba(255,255,255,0.25)', backdropFilter: 'blur(8px)' }}
+              >
+                📞 +251 985 076 701
+              </a>
+            </motion.div>
+
+            {/* Stats strip */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.6 }}
+              className="flex flex-wrap gap-8 mt-10"
+            >
+            {/* { [
+                { val: '500+', label: t('contact.statFarmers') || 'Farmers Served' },
+                { val: '19', label: t('contact.statCities') || 'Cities Covered' },
+                { val: '24/7', label: t('contact.statSupport') || 'Support' },
+              ].map((s, i) => (
+                <div key={i}>
+                  <p className="text-3xl font-extrabold text-teal-300">{s.val}</p>
+                  <p className="text-xs text-emerald-200 mt-0.5">{s.label}</p>
+                </div>
+              )) 
+          } */}
+            </motion.div>
+          </div>
+
+          {/* ── RIGHT: Fully Visible Portrait Image ── */}
+          <div className="flex-1 flex justify-center lg:justify-end relative">
+            {/* Decorative ring behind image */}
+            <div className="absolute w-80 h-80 sm:w-96 sm:h-96 rounded-full pointer-events-none"
+              style={{ background: 'rgba(52,211,153,0.10)', border: '2px dashed rgba(52,211,153,0.28)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)' }} />
+
+            <motion.div
+              initial={{ opacity: 0, x: 60, scale: 0.92 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              transition={{ duration: 1.1, delay: 0.2, type: 'spring', stiffness: 80 }}
+              className="relative z-10"
+              style={{ animation: 'floatImg 4s ease-in-out infinite' }}
+            >
+              <img
+                src={contactBg}
+                alt="Tilahun Sitotaw — AgroChain Ethiopia Founder"
+                className="rounded-3xl object-cover object-top"
+                style={{
+                  width: 'clamp(260px, 34vw, 420px)',
+                  height: 'clamp(340px, 46vw, 560px)',
+                  boxShadow: '0 32px 80px rgba(0,0,0,0.5), 0 0 0 5px rgba(52,211,153,0.22)',
+                  border: '3px solid rgba(52,211,153,0.4)',
+                }}
+              />
+              {/* Name card overlaid at bottom of image */}
+              <div className="absolute bottom-4 left-4 right-4 px-4 py-3 rounded-2xl"
+                style={{ background: 'rgba(6,78,59,0.88)', backdropFilter: 'blur(14px)', border: '1px solid rgba(52,211,153,0.28)' }}>
+                <p className="text-white font-bold text-sm">Tilahun Sitotaw</p>
+                <p className="text-teal-300 text-xs mt-0.5">Co-Founder &amp; CEO, AgroChain Ethiopia</p>
+              </div>
+            </motion.div>
+          </div>
         </div>
+
+        {/* Floating keyframe */}
+        <style>{`@keyframes floatImg { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }`}</style>
       </section>
 
       {/* Form & Contact Info Section - Modern Layout */}
