@@ -12,6 +12,7 @@ export const useLanguage = () => {
 
 const translations = {
   en: {
+    joinNow: 'Join Now',
     next: 'Next',
     back: 'Back',
     common: {
@@ -865,7 +866,7 @@ const translations = {
         title: 'Our Values',
         titlePart1: 'Our',
         titlePart2: 'Values',
-        desc: 'Transparency, innovation, sustainability, and empowerment guide our support for Ethiopian agricultural communities.'
+        desc: 'Transparency, innovation, sustainability, and empowerment guide our support for Ethiopian agricultural communities.',
       },
       impact: {
         title: 'Our Impact',
@@ -882,9 +883,10 @@ const translations = {
       team: {
         title: 'Meet Our Team',
         subtitle: 'Combining agricultural expertise with cutting-edge technology.',
-        tilahun: { role: 'CEO & Founder', bio: 'Agricultural expert with a deep passion for Ethiopia’s farming ecosystem.' },
-        bantalem: { role: 'Chief Technology Officer', bio: 'Expert in securing agricultural supply chain solutions with advanced technology.' },
-        tegene: { role: 'Head of Operations', bio: 'Former agricultural extension officer with profound on-the-ground knowledge.' }
+        estd: 'Est. 2025 • Ethiopia',
+        tilahun: { name: 'Tilahun Sitotaw', role: 'CEO & Founder', bio: 'Agricultural expert with a deep passion for Ethiopia’s farming ecosystem.' },
+        bantalem: { name: 'Bantalem Mitiku', role: 'Chief Technology Officer', bio: 'Expert in securing agricultural supply chain solutions with advanced technology.' },
+        tegene: { name: 'Tegene Mekonnen', role: 'Head of Operations', bio: 'Former agricultural extension officer with profound on-the-ground knowledge.' }
       },
       services: {
         title: 'Our Core Services',
@@ -984,6 +986,7 @@ const translations = {
     },
   },
   am: {
+    joinNow: 'አሁን ይቀላቀሉ',
     next: 'ቀጣይ',
     back: 'ተመለስ',
     common: {
@@ -1841,7 +1844,7 @@ const translations = {
         title: 'እሴቶቻችን',
         titlePart1: 'እሴቶ',
         titlePart2: 'ቻችን',
-        desc: 'ግልጽነት፣ ፈጠራ፣ ዘላቂነት እና ማብቃት ለኢትዮጵያ የግብርና ማህበረሰቦች የምናደርገውን ድጋፍ ይመራሉ ።'
+        desc: 'ግልጽነት፣ ፈጠራ፣ ዘላቂነት እና ማብቃት ለኢትዮጵያ የግብርና ማህበረሰቦች የምናደርገውን ድጋፍ ይመራሉ ።',
       },
       impact: {
         title: 'ተፅእኖአችን',
@@ -1849,8 +1852,8 @@ const translations = {
       },
       story: {
         title: 'ታሪካችን',
-        titlePart1: 'ታሪ',
-        titlePart2: 'ካችን',
+        titlePart1: 'ታሪካ',
+        titlePart2: 'ችን',
         p1: 'አግሮቼይን ኢትዮጵያ የተመሰረተው የኢትዮጵያን ገበሬዎች ለማንሳት እና ባህላዊ የግብርና አቅርቦት ሰንሰለት ጉድለቶችን ለመቅረፍ ባለን ራዕይ ነው። በ2025 የተመሰረተ ሲሆን፣ በገጠር አምራቾች እና በአለም አቀፍ ገበያዎች መካከል ያለውን ልዩነት ለመሙላት የላቀ ቴክኖሎጂን እንጠቀማለን።',
         p2: 'መድረካችን እውነተኛ ጊዜ የክትትል አገልግሎት፣ አስተማማኝ ሎጅስቲክስ እና ዲጂታል ገበያ ያቀርባል፣ ይህም ገበሬዎች ፍትሃዊ ዋጋ እና ቀጥተኛ የገዢ ግንኙነት እንዲኖራቸው ያደርጋል። ለዘላቂ አሰራር፣ ለአካባቢ ኢኮኖሚ ድጋፍ እና በግብርና ላይ ፈጠራን ለማጎልበት ቆርጠን ተነስተናል።',
         p3: 'በግብርና ባለሙያዎች እና በቴክኖሎጂ ፈጣሪዎች ቡድን፣ አግሮቼይን ኢትዮጵያ በመላው አፍሪካ ለግብርና ለውጥ አዲስ ደረጃን ለማውጣት ያለማል፣ ይህም ለሚቀጥሉት ትውልዶች ብልጽግናን ያረጋግጣል።'
@@ -1932,9 +1935,10 @@ const translations = {
       team: {
         title: 'ቡድናችንን ያግኙ',
         subtitle: 'የግብርና እውቀትን ከዘመናዊ ቴክኖሎጂ ጋር ማጣመር።',
-        tilahun: { role: 'ዋና ስራ አስፈፃሚ እና መስራች', bio: 'ስለ ኢትዮጵያ የግብርና ስርዓት ጥልቅ ፍቅር ያላቸው የግብርና ባለሙያ።' },
-        bantalem: { role: 'የቴክኖሎጂ ዋና ኦፊሰር', bio: 'የግብርና አቅርቦት ሰንሰለት መፍትሄዎችን በማስጠበቅ ረገድ ባለሙያ።' },
-        tegene: { role: 'የክንውን ኃላፊ', bio: 'ጥልቅ የግብርና እውቀት ያላቸው የቀድሞ የግብርና ኤክስቴንሽን ኦፊሰር።' }
+        estd: 'ከ 2025 • ኢትዮጵያ',
+        tilahun: { name: 'ጥላሁን ሲቶታው', role: 'ዋና ስራ አስፈፃሚ እና መስራች', bio: 'ስለ ኢትዮጵያ የግብርና ስርዓት ጥልቅ ፍቅር ያላቸው የግብርና ባለሙያ።' },
+        bantalem: { name: 'ባንታለም ሚቲኩ', role: 'የቴክኖሎጂ ዋና ኦፊሰር', bio: 'የግብርና አቅርቦት ሰንሰለት መፍትሄዎችን በማስጠበቅ ረገድ ባለሙያ።' },
+        tegene: { name: 'ተጌኔ መኮንን', role: 'የክንውን ኃላፊ', bio: 'ጥልቅ የግብርና እውቀት ያላቸው የቀድሞ የግብርና ኤክስቴንሽን ኦፊሰር።' }
       },
       weather: {
         title: 'እውነተኛ ጊዜ የአየር ሁኔታ በ',
