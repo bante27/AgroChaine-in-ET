@@ -53,7 +53,12 @@ const heroImages = [
 ];
 
 const About = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [currentTime, setCurrentTime] = useState(new Date());
+  useEffect(() => {
+    const tid = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(tid);
+  }, []);
 
   const values = [
     { icon: Target, title: t('about.mission.title'), description: t('about.mission.desc') },
@@ -246,7 +251,6 @@ const About = () => {
   const currentStoryImage = storyImages[currentImageIndex];
 
   // Translated city names (Amharic mapping)
-  const { language } = useLanguage();
   const cityNamesAm = {
     'Addis Ababa': 'አዲስ አበባ', 'Bahir Dar': 'ባህር ዳር', 'Hawassa': 'ሀዋሳ',
     'Dire Dawa': 'ድሬ ዳዋ', "Mek'ele": 'መቀሌ', 'Mekele': 'መቀሌ', 'Gondar': 'ጎንደር',
@@ -257,58 +261,167 @@ const About = () => {
   };
   const translateCity = (name) => (language === 'am' && cityNamesAm[name]) ? cityNamesAm[name] : name;
 
-  // Condition-based weather configs
+  // ── CROP NAME TRANSLATION MAP ──
+  const cropNamesAm = {
+    'Teff': 'ጤፍ', 'Maize': 'በቆሎ', 'Wheat': 'ስንዴ', 'Barley': 'ገብስ',
+    'Sesame': 'ሰሊጥ', 'Sorghum': 'ማሽላ', 'Coffee': 'ቡና',
+    'Coffee Seedlings': 'የቡና ሥሮች', 'Tomato': 'ቲማቲም', 'Onion': 'ሽንኩርት',
+    'Cabbage': 'ጎመን', 'Potato': 'ድንች', 'Carrot': 'ካሮት', 'Pepper': 'ቃሪያ',
+    'Garlic': 'ነጭ ሽንኩርት', 'Pumpkin': 'ዱባ', 'Bean': 'ባቀላ',
+    'Chickpea': 'ሽምብራ', 'Lentil': 'ምስር', 'Fenugreek': 'አበሽ',
+    'Flaxseed': 'ታዿት', 'Mango': 'ማንጎ', 'Avocado': 'አቮካዶ',
+    'Banana': 'ምዕ', 'Papaya': 'ፓፓያ', 'Guava': 'ዖይትያ',
+    'Groundnut': 'ወደ ቦላ ሌሰርድ', 'Sunflower': 'ሰንፈሎወር',
+    'Vegetable Crops': 'አትክልቶች', 'All Crops': 'ሁሉም ሰብሎች',
+    'Livestock': 'እንስሳ', 'Equipment': 'መሳሪያ',
+    'General Crops': 'አጠቃላይ ሰብሎች',
+  };
+  const translateCrop = (crop) => (language === 'am' && cropNamesAm[crop]) ? cropNamesAm[crop] : crop;
+
+  // ── ETHIOPIAN CALENDAR CONVERTER ──
+  function isLeapYearFn(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+  function gregorianToEthiopian(date) {
+    const gY = date.getFullYear(), gM = date.getMonth() + 1, gD = date.getDate();
+    const eYear = (gM > 9 || (gM === 9 && gD >= 11)) ? gY - 7 : gY - 8;
+    const etNYDay = (eYear + 1) % 4 === 0 ? 12 : 11;
+    const gMD = [0, 31, 28 + (isLeapYearFn(gY) ? 1 : 0), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    let dFromJan = 0;
+    for (let m = 1; m < gM; m++) dFromJan += gMD[m];
+    dFromJan += gD - 1;
+    const nyFromJan = 31 + gMD[2] + 31 + 30 + 31 + 30 + 31 + 31 + (etNYDay - 1);
+    let dOfEthYear;
+    if (dFromJan >= nyFromJan) {
+      dOfEthYear = dFromJan - nyFromJan;
+    } else {
+      const pY = gY - 1;
+      const pMD = [0, 31, 28 + (isLeapYearFn(pY) ? 1 : 0), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+      const pNYD = eYear % 4 === 0 ? 12 : 11;
+      const pNYFromJan = 31 + pMD[2] + 31 + 30 + 31 + 30 + 31 + 31 + (pNYD - 1);
+      dOfEthYear = (isLeapYearFn(pY) ? 366 : 365) - pNYFromJan + dFromJan;
+    }
+    return { year: eYear, month: Math.floor(dOfEthYear / 30) + 1, day: dOfEthYear % 30 + 1 };
+  }
+  const ethMonthsAm = ['ምስከረም', 'ጥቅምት', 'ህዳር', 'ታህሳስ', 'ጥር', 'የካቲት', 'መጋቢት', 'ሚያዚያ', 'ግንቦት', 'ሰኔ', 'ሠምፔ', 'ነቀሴ', 'ጷጹሜ'];
+  const ethMonthsEn = ['Meskerem', 'Tikimt', 'Hidar', 'Tahsas', 'Tir', 'Yekatit', 'Megabit', 'Miyazia', 'Ginbot', 'Sene', 'Hamle', 'Nehase', 'Pagume'];
+  const gMonthsAm = ['ጃንዋሪ', 'ፌብራዋሪ', 'ማርች', 'ኤፕሪል', 'ሜይ', 'ጁን', 'ጁላይ', 'ኦጌስት', 'ሴፕቴምበር', 'ኦክቶበር', 'ኖወምበር', 'ዲሴምበር'];
+  const gDaysAm = ['እሑድ', 'ሰኞ', 'ማክሰኞ', 'ረቡዕ', 'ሐሙስ', 'አርብ', 'ቅዳሜ'];
+  const gDaysEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  function toEthiopianTime(date) {
+    const h = date.getHours(), min = date.getMinutes(), sec = date.getSeconds();
+    const ethH = ((h + 6) % 12) || 12;
+    const minS = String(min).padStart(2, '0'), secS = String(sec).padStart(2, '0');
+    let period;
+    if (h >= 6 && h < 12) period = language === 'am' ? 'ጠዋት' : 'Morning';
+    else if (h >= 12 && h < 18) period = language === 'am' ? 'ከሰዓት' : 'Afternoon';
+    else if (h >= 18 && h < 24) period = language === 'am' ? 'ምሽት' : 'Evening';
+    else period = language === 'am' ? 'ለሊት' : 'Night';
+    return `${ethH}:${minS}:${secS} ${period}`;
+  }
+  const etDate = gregorianToEthiopian(currentTime);
+  const etMonthName = language === 'am' ? ethMonthsAm[etDate.month - 1] : ethMonthsEn[etDate.month - 1];
+  const gMonthName = language === 'am' ? gMonthsAm[currentTime.getMonth()] : currentTime.toLocaleString('en', { month: 'long' });
+  const gDayName = language === 'am' ? gDaysAm[currentTime.getDay()] : gDaysEn[currentTime.getDay()];
+  const timeStr = `${String(currentTime.getHours()).padStart(2, '0')}:${String(currentTime.getMinutes()).padStart(2, '0')}:${String(currentTime.getSeconds()).padStart(2, '0')}`;
+
+
+  // ── CONDITION-BASED AGRICULTURAL ADVISORY ──
+  // Each condition has: gradient, emoji, colors, affected crops, and 6 realistic bilingual tips
   const getWeatherConfig = (condition) => {
     const c = condition?.toLowerCase() || '';
+
+    // ── CLEAR / SUNNY ──────────────────────────────────────────
     if (c.includes('clear') || c.includes('sunny')) return {
-      gradient: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 30%, #93c5fd 100%)',
-      emoji: '☀️', color: '#d97706', badgeBg: '#fef3c7', badgeText: '#92400e',
+      gradient: 'linear-gradient(160deg, #fff7ed 0%, #fef3c7 35%, #fde68a 70%, #fbbf24 100%)',
+      emoji: '☀️', color: '#b45309', badgeBg: '#fef3c7', badgeText: '#92400e',
+      alertLevel: '🟢', alertLabel: { en: 'Routine Day', am: 'መደበኛ ቀን' },
+      crops: ['Teff', 'Maize', 'Wheat', 'Barley', 'Sesame', 'Sorghum', 'Sunflower'],
       tips: [
-        { icon: '🌾', en: 'Excellent day for harvesting — minimal moisture loss.', am: 'ለምርት ሰብሳቢነት ምርጥ ቀን — የእርጥበት ኪሳራ ዝቅተኛ ነው።' },
-        { icon: '💧', en: 'Irrigate crops early morning to minimize evaporation.', am: 'ትነትን ለመቀነስ ሰብሎችን ከጎህ ጀምሮ ያጠጡ።' },
-        { icon: '🌱', en: 'Ideal for planting sun-loving crops like maize and teff.', am: 'ፀሐይ ወዳድ ሰብሎችን ለመትከል — በቆሎ፣ ጤፍ — ምርጥ ጊዜ።' },
-        { icon: '🐄', en: 'Provide extra shade and water for livestock.', am: 'ለእንስሳት ተጨማሪ ጥላ እና ውሃ ያቅርቡ።' },
+        { icon: '🌾', priority: '🟢', en: 'Harvest teff and wheat today — clear skies minimize grain moisture and reduce mold risk in stored crops.', am: 'ጤፍ እና ስንዴ ዛሬ ሰብሱ — ፀሐያማ ሰማይ የቅጥ እርጥበትን ይቀንሳል፣ ይህም ሻጋታን ያስቀራል።' },
+        { icon: '💧', priority: '🟡', en: 'Irrigate maize and vegetables only before 7 AM or after 5 PM — midday watering causes up to 40% evaporation loss.', am: 'በቆሎ እና አትክልቶችን ልክ ከ7 ፀሐዩ በፊት ወይም ከ5 ምሽቱ በኋላ ብቻ ያጠጡ — የቀን-መሐከል ሙቀት 40% ውሃ ያባክናል።' },
+        { icon: '🐛', priority: '🔴', en: 'Scout for aphids and stem borers on sorghum and maize — dry heat causes rapid pest multiplication. Apply pesticide before 8 AM.', am: 'ማሽላ እና በቆሎ ላይ ትኋን እና ግንድ አፋቂዎችን ይፈልጉ — ደረቅ ሙቀት ተባዮችን ያፋጥናል። ፀረ-ተባይ ከ8 ጠዋት በፊት ይርጩ።' },
+        { icon: '🌰', priority: '🟢', en: 'Sun-dry harvested sesame and coffee beans on raised platforms for 3–4 days — ideal curing weather reduces toxins.', am: 'የተሰበሰበ ሰሊጥ እና ቡና በፀሐይ ላይ ከፍ ባሉ መድረኮች 3–4 ቀናት ደርቁ — ምርጥ ማድረቂያ ሁኔታ ጎጂ ነፍሳትን ያስወግዳል።' },
+        { icon: '🐄', priority: '🟡', en: 'Provide extra drinking water for cattle and oxen — animals in full sun can dehydrate by midday. Check water troughs twice daily.', am: 'ለከብቶች እና ለጥቆሮ ተጨማሪ መጠጥ ውሃ ያቅርቡ — ሙሉ ፀሐይ ስር ያሉ እንስሳት ሊደርቁ ይችላሉ። ዕቃዎቹን ቀን ሁለቴ ይፈትሹ።' },
+        { icon: '🚜', priority: '🟢', en: 'Good day for land preparation, plowing and ridging — dry soil makes tillage faster and reduces fuel use.', am: 'ለመሬት ዝግጅት፣ ማረስ እና ጉድጓድ ቆፍሮ ለቦሮ ዘር ምርጥ ቀን — ደረቅ አፈር ማረስን ያቃልላል እና ነዳጅ ይቆጥባል።' },
       ]
     };
+
+    // ── PARTLY CLOUDY ──────────────────────────────────────────
     if (c.includes('cloud')) return {
-      gradient: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 40%, #a5b4fc 100%)',
-      emoji: '⛅', color: '#4f46e5', badgeBg: '#e0e7ff', badgeText: '#3730a3',
+      gradient: 'linear-gradient(160deg, #f0f9ff 0%, #e0f2fe 40%, #bae6fd 80%, #93c5fd 100%)',
+      emoji: '⛅', color: '#1d4ed8', badgeBg: '#e0f2fe', badgeText: '#1e3a8a',
+      alertLevel: '🟢', alertLabel: { en: 'Ideal Farming Day', am: 'ምርጥ የግብርና ቀን' },
+      crops: ['Tomato', 'Onion', 'Cabbage', 'Potato', 'Coffee Seedlings', 'Carrot', 'Garlic', 'Pepper'],
       tips: [
-        { icon: '🌿', en: 'Perfect conditions for transplanting seedlings — less heat stress.', am: 'ሥሮችን ለማስቀመጥ ምርጥ ሁኔታ — ሙቀቱ ዝቅተኛ ነው።' },
-        { icon: '🧪', en: 'Good day to apply foliar fertilizers — better absorption.', am: 'የቅጠል ማዳበሪያ ለመርጨት ምሩ ቀን — ምጣኔ ጥሩ ነው።' },
-        { icon: '🌧️', en: 'Monitor sky — rain may follow. Ensure drainage ditches are clear.', am: 'ሰማዩን ይከታተሉ — ዝናብ ሊከተል ይችላል። ፍሳሽ ቦዮቹ ንጹህ መሆናቸውን ያረጋግጡ።' },
-        { icon: '🚜', en: 'Ideal for field work — cool and comfortable working conditions.', am: 'የሜዳ ሥራ ለማከናወን ምርጥ — ቀዝቃዛ እና ምቹ ሁኔታዎች።' },
+        { icon: '🌿', priority: '🟢', en: 'Transplant tomato, cabbage and onion seedlings today — diffuse cloud light reduces transplant shock and wilting by 60%.', am: 'ዛሬ ቲማቲም፣ ጎመን እና ሽንኩርት ሥሮችን ይቀምሩ — ደመናማ ብርሃን ሠርጊው ድንጋጤን 60% ይቀንሳል።' },
+        { icon: '🧪', priority: '🟡', en: 'Apply urea or DAP foliar fertilizer — overcast sky increases leaf absorption by up to 30% compared to full sun.', am: 'ዩሪያ ወይም DAP የቅጠል ማዳበሪያ ይርጩ — ደመናማ ሰማይ ወደ ቅጠሉ ውስጥ ዘልቆ መግባቱን 30% ይጨምራል።' },
+        { icon: '☕', priority: '🟢', en: 'Plant coffee seedlings in nursery beds — cloud cover protects young plants from burning and root stress.', am: 'የቡና ሥሮችን በስፍራ አልጋ ይትከሉ — የደመናው ሽፋን ለምለም ዕፅዋቶቻቸUserን ከፀሐይ ቃጠሎ ይጠብቃቸዋል።' },
+        { icon: '🔍', priority: '🟡', en: 'Inspect crops for disease — cool humid air promotes fungal leaf spot and rust on wheat. Check for early brown patches.', am: 'ሰብሎቹን ለበሽታ ይፈትሹ — ቀዝቃዛ እርጥብ አየር በስንዴ ላይ ሻጋታ ይስዛቸዋል። ቡናማ ነጠብጣቦችን ቀደም ብሎ ይፈልጉ።' },
+        { icon: '💉', priority: '🟡', en: 'Ideal day for livestock vaccination — cooler temps reduce animal stress during injection and improve immunity response.', am: 'ለእንስሳ ክትትቤት ምርጥ ቀን — ቀዝቃዛ ሙቀት ከመርጊ ወቅት ዕንቅልፍ ያቃልላል እና የዕፅዋት ምላሽ ይሻሻላል።' },
+        { icon: '🚜', priority: '🟢', en: 'Excellent day for hand-weeding and hoeing around teff and maize rows — workers last longer in cool conditions.', am: 'ጤፍ እና በቆሎ ረድፎች ዙሪያ ማረም እና ማሳ ለማረስ ምርጥ ቀን — ሠራተኞች ቀዝቃዛ ሁኔታ ውስጥ ረዘም ያለ ሥራ ይሠሩ።' },
       ]
     };
+
+    // ── RAIN / DRIZZLE ─────────────────────────────────────────
     if (c.includes('rain') || c.includes('drizzle')) return {
-      gradient: 'linear-gradient(135deg, #dbeafe 0%, #93c5fd 40%, #60a5fa 100%)',
-      emoji: '🌧️', color: '#1d4ed8', badgeBg: '#dbeafe', badgeText: '#1e3a8a',
+      gradient: 'linear-gradient(160deg, #eff6ff 0%, #dbeafe 40%, #93c5fd 80%, #3b82f6 100%)',
+      emoji: '🌧️', color: '#1e40af', badgeBg: '#dbeafe', badgeText: '#1e3a8a',
+      alertLevel: '🟡', alertLabel: { en: 'Caution Advisory', am: 'ጥንቃቄ ምክር' },
+      crops: ['Coffee', 'Maize', 'Potato', 'Vegetable Crops', 'Bean', 'Lentil', 'Groundnut'],
       tips: [
-        { icon: '🚫', en: 'Avoid pesticide & fertilizer spraying — rain will wash them away.', am: 'ፀረ-ተባይ ወይም ማዳበሪያ አለመርጨት — ዝናቡ ያጥባቸዋል።' },
-        { icon: '💧', en: 'Natural irrigation in progress — suspend manual watering.', am: 'ተፈጥሯዊ መስኖ በሂደት ላይ — የእጅ መስኖ ያቁሙ።' },
-        { icon: '🌾', en: 'Delay harvesting to prevent mold and crop spoilage.', am: 'ፈንገስ እና ሰብል ብልሻትን ለመከላከል ሰብሳቢነቱን ያቆዩ።' },
-        { icon: '🏠', en: 'Inspect storage facilities — ensure grain is protected from moisture.', am: 'መጋዘኖቹን ይፈትሹ — እህሉ ከእርጥበት የተጠበቀ መሆኑን ያረጋግጡ።' },
+        { icon: '🚫', priority: '🔴', en: 'STOP all pesticide and herbicide spraying immediately — rainfall washes chemicals into rivers, harms fish and contaminates water sources.', am: 'ሁሉንም ፀረ-ተባይ እና ፀረ- አረም ርብርብ ወዲያውኑ ያቁሙ — ዝናብ ኬሚካሎችን ወደ ወንዞች ያስሮጣቸዋል፣ ዓሣ ያጠፋል እና የውሃ ምንጮችን ያዳክማል።' },
+        { icon: '🌊', priority: '🔴', en: 'Check drainage channels in potato and vegetable fields immediately — waterlogging for 6+ hours causes irreversible root rot.', am: 'የድንች እና አትክልት ማሳ የፍሳሽ ቦዮችን ወዲያውኑ ፈትሹ — ከ6 ሰዓት በላይ ውሃ መቆየት የሥር ብስባሽ ያስከትላል።' },
+        { icon: '☕', priority: '🔴', en: 'Monitor coffee trees for CBD (Coffee Berry Disease) — rain + humidity above 80% triggers rapid spread. Apply copper fungicide at field edges.', am: 'የቡና ዛፎች ላይ CBD (የቡና ፍሬ በሽታ) ይከታተሉ — ዝናብ + 80% በላይ እርጥበት ፈጣን ስርጭቱን ይፈጥራል። በማሳ ዳርቻ ልዩ ፈወሲ ይርጩ።' },
+        { icon: '🌾', priority: '🟡', en: 'Delay harvesting teff and wheat by at least 2 days after rain stops — wet grain in storage causes aflatoxin mold within 72 hours.', am: 'ዝናቡ ከቆመ በኋላ ቢያንስ 2 ቀናት ጤፍ እና ስንዴ ሳትሰበስቡ ቆዩ — እርጥብ ሰብል ውስጥ አፍላቶክሲን ሻጋታ በ72 ሰዓት ውስጥ ይፈጠራል።' },
+        { icon: '🏚️', priority: '🟡', en: 'Secure grain in waterproof storage — check roof sheets and sack covers. A single damp sack can spoil an entire store.', am: 'ሰብልን ውሃ-ተከላካይ ማከማቻ ውስጥ አስቀምጡ — የጣራ ሸካዎችን እና ሣዊ ሽፋኖችን ፈትሹ። አንድ እርጥብ ሣዊ ሙሉ ማከማቻ ሊያበላሽ ይችላል።' },
+        { icon: '🪣', priority: '🟢', en: 'Collect rainwater in tanks and pits for dry season irrigation — Ethiopian smallholders can store enough in 2 days of rain for 3 weeks of use.', am: 'ለደረቅ ወቅት መስኖ ዝናብ ውሃ ወደ ታንክ እና ሥፍራ ሰብስቡ — ኢትዮጵያ ትናንሽ ገበሬዎች 2 ቀን ዝናብ ለ3 ሳምንት ሊያዋቅሩ ይችላሉ።' },
       ]
     };
+
+    // ── THUNDERSTORM ───────────────────────────────────────────
     if (c.includes('storm') || c.includes('thunder')) return {
-      gradient: 'linear-gradient(135deg, #374151 0%, #1f2937 60%, #111827 100%)',
-      emoji: '⛈️', color: '#f59e0b', badgeBg: '#1f2937', badgeText: '#fbbf24',
+      gradient: 'linear-gradient(160deg, #1f2937 0%, #111827 50%, #0f172a 100%)',
+      emoji: '⛈️', color: '#fbbf24', badgeBg: '#1e293b', badgeText: '#fbbf24',
+      alertLevel: '🔴', alertLabel: { en: 'URGENT - Emergency Alert', am: '🔴 አስቸኳይ ማስጠንቀቂያ' },
+      crops: ['All Crops', 'Livestock', 'Equipment'],
       tips: [
-        { icon: '⚠️', en: 'Stay indoors and avoid open field work during the storm.', am: 'በቤት ይቆዩ እና በ嵐 ወቅት ሜዳ ላይ ሥራ ያቁሙ።' },
-        { icon: '🐄', en: 'Secure livestock in sheltered areas immediately.', am: 'እንስሳቱን ወዲያውኑ ወደ ጥላ ቦታ ያስግቡ።' },
-        { icon: '🔧', en: 'Check for crop and infrastructure damage after the storm.', am: 'ከ嵐 ካለፈ በኋላ ሰብሉ እና መሠረተ ልማቱ ጉዳት እንደሌለ ይፈትሹ።' },
-        { icon: '💾', en: 'Secure farming equipment and irrigation systems beforehand.', am: 'የግብርና መሳሪያዎትን እና የመስኖ ሥርዓቱን አስቀድሞ ደህና ያድርጉ።' },
+        { icon: '🚨', priority: '🔴', en: 'URGENT: Stop all field work and move indoors now — lightning strikes kill dozens of Ethiopian farmers each rainy season.', am: '🚨 አስቸኳይ: ሁሉንም የሜዳ ሥራ አቁሙ እና ወዲያውኑ ወደ ቤት ግቡ — መብረቅ በየዝናቡ ወቅት የኢትዮጵያ ገበሬዎችን ህይወት ያጠፋ ።' },
+        { icon: '🐄', priority: '🔴', en: 'Move oxen and livestock into barn or sheltered enclosures IMMEDIATELY — animals under trees during lightning are at fatal risk.', am: 'ጊደሮች እና ቀሬዎቹን ወዲያውኑ ወደ ጎተራ ወይም ጥላ ምሽግ አስሩ — ዛፍ ስር ያሉ እንስሳ በመብረቅ ሊሞቱ ይችላሉ።' },
+        { icon: '🔌', priority: '🔴', en: 'Unplug all electrical irrigation pumps — storm surges can fry motors permanently. Disconnect generator ground cables.', am: 'ሁሉንም ኤሌክትሪካዊ ፓምፖች ያጥፉ — የማዕበል ማዕበሎች ሞተሮቹን ሙሉ በሙሉ ያበላሹ ። ጄኔሬተር ኬብሎችን ያላቅቁ።' },
+        { icon: '🏗️', priority: '🟡', en: 'After storm: Walk all farm terraces and bunds for erosion damage — a breached soil bund loses 10 years of land improvement overnight.', am: 'ከማዕበሉ በኋላ: አፈር ሸርሽሮ ያለ ቦታ ፈልጎ ሁሉንም ጉርምቦ እና ቦዩ ፈትሹ — የፈረሰ ጉርምቦ የ10 ዓመት ስራ ቀን ውስጥ ያጠፋ።' },
+        { icon: '🌾', priority: '🟡', en: 'Survey for lodging (fallen crop stems) in tall maize and sorghum after wind — straighten and stake leaning plants within 24 hours.', am: 'ከማዕበሉ በኋላ ረዥም በቆሎ እና ማሽላ ውስጥ የወደቁ ዕፅዋቶችን ፈልጉ — ያጋደሉ ዕፅዋቶችን ውስጥ 24 ሰዓታት ያቆሙ።' },
+        { icon: '📱', priority: '🟢', en: 'Report storm crop damage to local agricultural bureaus within 48 hrs — eligible for government crop compensation schemes.', am: 'የማዕበሉ ሰብል ጉዳትን ለሚያዋድቁ ቢሮ ውስጥ 48 ሰዓታት ውስጥ ሪፖርት ያድርጉ — ለመንግሥት የሰብል ካሳ ዕቅዶች አብቃ ።' },
       ]
     };
-    // default (haze, mist, etc.)
-    return {
-      gradient: 'linear-gradient(135deg, #d1fae5 0%, #6ee7b7 40%, #34d399 100%)',
-      emoji: '🌫️', color: '#059669', badgeBg: '#d1fae5', badgeText: '#065f46',
+
+    // ── FOG / HAZE / MIST ──────────────────────────────────────
+    if (c.includes('fog') || c.includes('mist') || c.includes('haze')) return {
+      gradient: 'linear-gradient(160deg, #f8fafc 0%, #e2e8f0 40%, #cbd5e1 80%, #94a3b8 100%)',
+      emoji: '🌫️', color: '#475569', badgeBg: '#e2e8f0', badgeText: '#1e293b',
+      alertLevel: '🟡', alertLabel: { en: 'Monitor Conditions', am: 'ሁኔታን ይከታተሉ' },
+      crops: ['Potato', 'Tomato', 'Coffee', 'Wheat', 'Garlic', 'Pumpkin', 'Chickpea'],
       tips: [
-        { icon: '📊', en: 'Monitor weather forecasts regularly for planning.', am: 'ለእቅድ አወጣጥ የአየር ሁኔታ ትንበያን በየጊዜው ይከታተሉ።' },
-        { icon: '🌱', en: 'Mild conditions are generally good for most crops.', am: 'መካከለኛ ሁኔታዎች ለአብዛኛዎቹ ሰብሎች በጠቅላላ ጥሩ ናቸው።' },
-        { icon: '🐑', en: 'Good time to assess livestock health and feed supplies.', am: 'የእንስሳቱን ጤና እና የምግብ አቅርቦት ለመፈተሽ ጥሩ ጊዜ ነው።' },
-        { icon: '🗺️', en: 'Plan upcoming planting or harvesting schedules now.', am: 'መጪውን የዘር ወይም የሰብሳቢነት ቀናት አሁን ያቅዱ።' },
+        { icon: '🍃', priority: '🔴', en: 'High blight risk for potato and tomato — humid fog triggers Phytophthora within hours. Apply mancozeb fungicide this morning.', am: 'ለድንች እና ቲማቲም የፈንገስ ስጋት ከፍተኛ ነው — ጭጋግ Phytophthora ወደ ጥቂት ሰዓታት ውስጥ ያስጀምረዋል። ዛሬ ጠዋት ፈወሲ ይርጩ።' },
+        { icon: '☕', priority: '🟡', en: 'Fog benefits coffee cherry ripening in highland zones — monitor for coffee leaf rust (orange powder under leaves).', am: 'ጭጋግ ከፍተኛ የቡና ፍሬ ለማብሰሉ ይጠቅማል — የቡና ቅጠል ዝገት (ቅጠሎቹ ስር ብርቱካናማ ዱቄት) ይፈትሹ።' },
+        { icon: '🌱', priority: '🟡', en: 'Fog moisture helps seed germination in nurseries — ideal to sow onion and carrot seeds directly into moist soil.', am: 'ጭጋግ እርጥበት ዘሮችን ለማቆቆም ይጠቅማል — ሽንኩርት እና ካሮት ዘሮችን ወደ እርጥብ አፈር ለመዝራት ምርጥ ጊዜ።' },
+        { icon: '🐑', priority: '🟢', en: 'Ensure livestock pens have ventilation — fog causes respiratory issues in sheep and goats kept in enclosed damp areas.', am: 'ለከብቶቹ ፓምፕ ቡናቱ አየር ማናፈሻ እንዳለ ያረጋግጡ — ጭጋግ ለበጎች እና ፍየሎች አተነፋፈስ ችግር ያስከትላል።' },
+        { icon: '📅', priority: '🟢', en: 'Use foggy mornings for farm record-keeping and market planning — analyze which crops gave best returns last season.', am: 'ጭጋጋማ ጠዋቶችን ለማሳ መዝገብ አያያዝ እና የገበያ ዕቅድ ይጠቀሙ — ባለፈው ወቅት ምርጥ ትርፍ ያስገኙ ሰብሎችን ይሞግቱ።' },
+        { icon: '🔬', priority: '🟡', en: 'Collect leaf samples today for lab disease testing — visible symptoms in fog conditions identify problems faster.', am: 'ዛሬ የቅጠል ናሙናዎችን ለምርምር ቤት ፍተሻ ሰብስቡ — ጭጋጋዊ ሁኔታ ምልክቶችን ፈጠን ብሎ ያሳያቸዋል።' },
+      ]
+    };
+
+    // ── DEFAULT / MILD ──────────────────────────────────────────
+    return {
+      gradient: 'linear-gradient(160deg, #ecfdf5 0%, #d1fae5 40%, #6ee7b7 80%, #34d399 100%)',
+      emoji: '🌤️', color: '#059669', badgeBg: '#d1fae5', badgeText: '#065f46',
+      alertLevel: '🟢', alertLabel: { en: 'Good Farming Conditions', am: 'ጥሩ የግብርና ሁኔታ' },
+      crops: ['General Crops', 'Vegetable Crops', 'Livestock', 'Chickpea', 'Bean', 'Fenugreek', 'Flaxseed'],
+      tips: [
+        { icon: '📊', priority: '🟢', en: 'Use today to analyze farm data and update your AgroChain marketplace listings with current stock and prices.', am: 'ዛሬ የማሳ ውሂብ ይሞካሽ እና አሁን ያለዎትን ምርት እና ዋጋ በAgroChain ገበያ ዝርዝር ያዘምኑ።' },
+        { icon: '🌱', priority: '🟢', en: 'General mild conditions favor most Ethiopian crops. Focus on soil health: apply compost and organic matter to boost next season.', am: 'አጠቃላይ መካከለኛ ሁኔታዎች ለኢትዮጵያ ሰብሎች ጥሩ ናቸው። አፈር ጤና ላይ ትኩረት ስጡ: ለሚቀጥለው ወቅት ብስባሽ ጨምሩ።' },
+        { icon: '🐄', priority: '🟢', en: 'Good time to deworm livestock and check hoof condition on oxen — healthy oxen are critical for plowing season.', am: 'ለከብቶቹ ትል ማስወጫ መሥጫ እና ጥቆሮ እግሮቻቸውን ለማፅዳት ጥሩ ጊዜ ነው — ጤናማ ጥቆሮ ለማረስ ወቅት ወሳኝ ናቸው።' },
+        { icon: '🗺️', priority: '🟡', en: 'Plan ahead: check long-range forecasts and decide on crop rotation for next planting cycle using soil test results.', am: 'ቀደም ብሎ ዕቅድ ይሥሩ: የረጅም ጊዜ ትንበያ ይፈትሹ እና ለሚቀጥለው ዘር ዑደት የሰብል ምልቀቃ ከአፈር ምርምር ውጤት ይወስኑ።' },
+        { icon: '🏗️', priority: '🟢', en: 'Good weather for maintaining irrigation infrastructure — clean canals, repair pump seals and check drip line connections.', am: 'የመስኖ ስርዓቱን ለማደስ ጥሩ አየር — ቦዮቹ ያፅዱ፣ የፓምፕ ማሸጊያ ያደሱ እና የቢሮ መዘርጊያ ትስስሮችን ይፈትሹ።' },
+        { icon: '📱', priority: '🟢', en: 'Connect with buyers on the AgroChain marketplace — post crop photos, agree on delivery timelines and get pre-season contracts.', am: 'በAgroChain ገበያ ላይ ከገዢዎች ጋር ይገናኙ — የሰብል ፎቶ ይለጥፉ፣ አካባቢ ሁኔታ ይስማሙ እና ቅድም-ወቅት ውልን ይሙሉ።' },
       ]
     };
   };
@@ -712,6 +825,35 @@ const About = () => {
               </span>
             </h2>
             <p className="text-lg text-gray-700 max-w-2xl mx-auto mb-6">{t('about.weather.subtitle')}</p>
+
+            {/* ⏰ Live Dual-Calendar Date & Time Widget */}
+            <div className="inline-grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 text-left">
+              {/* Gregorian */}
+              <div className="px-5 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.68)', backdropFilter: 'blur(14px)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
+                <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+                  📅 {language === 'am' ? 'የጎረግሮሪያ ቀንተሪ' : 'Gregorian Calendar'}
+                </p>
+                <p className="text-base font-extrabold text-gray-800">
+                  {gDayName}, {currentTime.getDate()} {gMonthName} {currentTime.getFullYear()}
+                </p>
+                <p className="text-xl font-mono font-bold tracking-widest mt-0.5" style={{ color: weather ? getWeatherConfig(weather.condition).color : '#059669' }}>
+                  {timeStr}
+                </p>
+              </div>
+              {/* Ethiopian */}
+              <div className="px-5 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.68)', backdropFilter: 'blur(14px)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
+                <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+                  ✨ {language === 'am' ? 'የኢትዮጵያ ቀንተሪ (ገዕዕ)' : 'Ethiopian Calendar (Geʼez)'}
+                </p>
+                <p className="text-base font-extrabold text-gray-800">
+                  {language === 'am' ? `${etDate.day} ${etMonthName} ${etDate.year} ዓ.ም` : `${etDate.day} ${etMonthName} ${etDate.year} AM`}
+                </p>
+                <p className="text-xl font-mono font-bold tracking-widest mt-0.5" style={{ color: weather ? getWeatherConfig(weather.condition).color : '#059669' }}>
+                  {toEthiopianTime(currentTime)}
+                </p>
+              </div>
+            </div>
+
             {/* Location selector */}
             <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl shadow-lg" style={{ background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(12px)' }}>
               <MapPin className="h-5 w-5 text-teal-600 animate-pulse flex-shrink-0" />
@@ -786,17 +928,48 @@ const About = () => {
                 </div>
               </div>
 
-              {/* Condition-based Agricultural Tips */}
+              {/* Condition-based Agricultural Advisory */}
               <div className="max-w-5xl mx-auto">
-                <h3 className="text-xl font-bold text-gray-800 text-center mb-5">
-                  🌿 {language === 'am' ? 'የአካባቢ የግብርና ምክሮች' : 'Agricultural Tips for Today'}
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Advisory header */}
+                <div className="flex flex-col sm:flex-row items-center justify-between mb-6 p-4 rounded-2xl gap-3"
+                  style={{ background: 'rgba(255,255,255,0.60)', backdropFilter: 'blur(14px)' }}>
+                  <div>
+                    <h3 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
+                      🌾 {language === 'am' ? 'ዛሬ ለኢትዮጵያ ግብርና የምክር ቦርድ' : 'Ethiopia Farm Advisory Board — Today'}
+                    </h3>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {getWeatherConfig(weather.condition).crops.map((crop, ci) => (
+                        <span key={ci} className="px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                          style={{ background: 'rgba(255,255,255,0.75)', color: getWeatherConfig(weather.condition).badgeText || '#065f46', border: '1px solid rgba(0,0,0,0.08)' }}>
+                          {translateCrop(crop)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <span className="px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap" style={{ background: 'rgba(255,255,255,0.8)' }}>
+                    {getWeatherConfig(weather.condition).alertLevel}{' '}
+                    {language === 'am' ? getWeatherConfig(weather.condition).alertLabel.am : getWeatherConfig(weather.condition).alertLabel.en}
+                  </span>
+                </div>
+
+                {/* Priority legend */}
+                <div className="flex flex-wrap gap-3 justify-center mb-5 text-xs font-semibold">
+                  <span className="px-3 py-1 rounded-full" style={{ background: 'rgba(239,68,68,0.15)', color: '#dc2626' }}>🔴 {language === 'am' ? 'አስቸኳይ' : 'Urgent'}</span>
+                  <span className="px-3 py-1 rounded-full" style={{ background: 'rgba(234,179,8,0.15)', color: '#b45309' }}>🟡 {language === 'am' ? 'አስፈላጊ' : 'Important'}</span>
+                  <span className="px-3 py-1 rounded-full" style={{ background: 'rgba(34,197,94,0.15)', color: '#166534' }}>🟢 {language === 'am' ? 'መደበኛ' : 'Routine'}</span>
+                </div>
+
+                {/* Tip cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {getWeatherConfig(weather.condition).tips.map((tip, i) => (
-                    <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                      className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(14px)', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
-                      <span className="text-3xl mb-3 block">{tip.icon}</span>
-                      <p className="text-sm text-gray-800 leading-relaxed font-medium">{language === 'am' ? tip.am : tip.en}</p>
+                    <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+                      className="rounded-2xl p-5 flex gap-4 items-start hover:scale-[1.02] transition-transform duration-200"
+                      style={{ background: 'rgba(255,255,255,0.68)', backdropFilter: 'blur(16px)', boxShadow: '0 4px 24px rgba(0,0,0,0.09)' }}>
+                      <span className="text-4xl flex-shrink-0 mt-0.5">{tip.icon}</span>
+                      <div>
+                        <span className="inline-block text-xs font-bold mb-1 opacity-80">{tip.priority}</span>
+                        <p className="text-sm text-gray-800 leading-relaxed">{language === 'am' ? tip.am : tip.en}</p>
+                      </div>
                     </motion.div>
                   ))}
                 </div>
