@@ -76,7 +76,7 @@ const About = () => {
       bio: t('about.team.tilahun.bio'),
       twitter: 'https://x.com/sitotaw_ti83761',
       instagram: 'https://www.instagram.com/tile1673/',
-      telegram: 'https://t.me/Tile123455',
+      telegram: 'https://t.me/tiletechzone',
     },
     {
       name: t('about.team.bantalem.name') || 'Bantalem Mitiku',
@@ -94,7 +94,7 @@ const About = () => {
       bio: t('about.team.tegene.bio'),
       twitter: 'https://twitter.com/example3',
       instagram: 'https://instagram.com/example3',
-      telegram: 'https://t.me/example3',
+      telegram: 'https://t.me/dejen_sw',
     },
   ];
 
