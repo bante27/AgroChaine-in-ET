@@ -132,7 +132,7 @@ const AgroFinancing = () => {
       <section className="py-24 px-4 text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-10">{t('financingPage.horizonLink')}</h2>
         <Link
-          to="/contact"
+          to="/login"
           className="bg-lime-600 text-white px-12 py-5 rounded-full font-bold text-xl shadow-xl shadow-lime-100 hover:bg-lime-700 transition inline-block"
         >
           {t('financingPage.checkEligibility')}
