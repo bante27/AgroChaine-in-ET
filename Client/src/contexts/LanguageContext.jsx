@@ -886,7 +886,7 @@ const translations = {
         estd: 'Est. 2025 • Ethiopia',
         tilahun: { name: 'Tilahun Sitotaw', role: 'CEO & Founder', bio: 'Agricultural expert with a deep passion for Ethiopia’s farming ecosystem.' },
         bantalem: { name: 'Bantalem Mitiku', role: 'Chief Technology Officer', bio: 'Expert in securing agricultural supply chain solutions with advanced technology.' },
-        tegene: { name: 'Tegene Mekonnen', role: 'Head of Operations', bio: 'Former agricultural extension officer with profound on-the-ground knowledge.' }
+        tegene: { name: 'Dejen Sitotaw', role: 'Head of Operations', bio: 'Former agricultural extension officer with profound on-the-ground knowledge.' }
       },
       services: {
         title: 'Our Core Services',
@@ -1935,10 +1935,10 @@ const translations = {
       team: {
         title: 'ቡድናችንን ያግኙ',
         subtitle: 'የግብርና እውቀትን ከዘመናዊ ቴክኖሎጂ ጋር ማጣመር።',
-        estd: 'ከ 2025 • ኢትዮጵያ',
-        tilahun: { name: 'ጥላሁን ሲቶታው', role: 'ዋና ስራ አስፈፃሚ እና መስራች', bio: 'ስለ ኢትዮጵያ የግብርና ስርዓት ጥልቅ ፍቅር ያላቸው የግብርና ባለሙያ።' },
-        bantalem: { name: 'ባንታለም ሚቲኩ', role: 'የቴክኖሎጂ ዋና ኦፊሰር', bio: 'የግብርና አቅርቦት ሰንሰለት መፍትሄዎችን በማስጠበቅ ረገድ ባለሙያ።' },
-        tegene: { name: 'ተጌኔ መኮንን', role: 'የክንውን ኃላፊ', bio: 'ጥልቅ የግብርና እውቀት ያላቸው የቀድሞ የግብርና ኤክስቴንሽን ኦፊሰር።' }
+        estd: 'ከ 202 • ኢትዮጵያ',
+        tilahun: { name: 'ጥላሁን ስጦታው', role: 'ዋና ስራ አስፈፃሚ እና መስራች', bio: 'ስለ ኢትዮጵያ የግብርና ስርዓት ጥልቅ ፍቅር ያላቸው የግብርና ባለሙያ።' },
+        bantalem: { name: 'ባንተአለም ምትኩ', role: 'የቴክኖሎጂ ዋና ኦፊሰር', bio: 'የግብርና አቅርቦት ሰንሰለት መፍትሄዎችን በማስጠበቅ ረገድ ባለሙያ።' },
+        tegene: { name: 'ደጀን ስጦታው', role: 'የክንውን ኃላፊ', bio: 'ጥልቅ የግብርና እውቀት ያላቸው የቀድሞ የግብርና ኤክስቴንሽን ኦፊሰር።' }
       },
       weather: {
         title: 'እውነተኛ ጊዜ የአየር ሁኔታ በ',

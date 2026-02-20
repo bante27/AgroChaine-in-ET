@@ -88,7 +88,7 @@ const About = () => {
       telegram: 'https://t.me/Wubbante',
     },
     {
-      name: t('about.team.tegene.name') || 'Tegene Mekonnen',
+      name: t('about.team.tegene.name') || 'Dejen Sitotaw',
       role: t('about.team.tegene.role'),
       image: TegeneImage,
       bio: t('about.team.tegene.bio'),
