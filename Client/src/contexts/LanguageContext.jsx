@@ -883,7 +883,7 @@ const translations = {
       team: {
         title: 'Meet Our Team',
         subtitle: 'Combining agricultural expertise with cutting-edge technology.',
-        estd: 'Est. 2025 • Ethiopia',
+        estd: 'Est. 2017 • Ethiopia',
         tilahun: { name: 'Tilahun Sitotaw', role: 'CEO & Founder', bio: 'Agricultural expert with a deep passion for Ethiopia’s farming ecosystem.' },
         bantalem: { name: 'Bantalem Mitiku', role: 'Chief Technology Officer', bio: 'Expert in securing agricultural supply chain solutions with advanced technology.' },
         tegene: { name: 'Dejen Sitotaw', role: 'Head of Operations', bio: 'Former agricultural extension officer with profound on-the-ground knowledge.' }
