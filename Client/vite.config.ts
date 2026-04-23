@@ -15,7 +15,7 @@ export default defineConfig({
     },
     port: 5174,       // Desired port
     strictPort: true, // Fail if port is in use instead of switching
-    open: true,       // Automatically open the browser
+    open: false,      // Automatically open the browser
 
     // PROXY: All /api requests go to your backend
     proxy: {

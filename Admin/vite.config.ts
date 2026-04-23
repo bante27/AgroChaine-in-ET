@@ -8,5 +8,6 @@ export default defineConfig({
   server: {
     port: 5175,   // 👈 set frontend port here
     strictPort: true, // fail if port is already in use
+    open: false,
   },
 });
