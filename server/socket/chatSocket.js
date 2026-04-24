@@ -272,6 +272,45 @@ export const initializeSocket = (httpServer) => {
                         userName: senderName,
                         message: message.substring(0, 50)
                     });
+                    
+                    // Offline AI Auto-Responder
+                    // Only respond if NO agents are currently online
+                    if (onlineAgents.size === 0) {
+                        io.to(conversationId).emit('typing:start', { userName: 'AI Support' });
+                        
+                        setTimeout(async () => {
+                            try {
+                                const aiReplyText = "Thank you for reaching out! Our support agents are currently offline, but we have received your message and will get back to you soon.\n\nእናመሰግናለን! አሁን ላይ የድጋፍ ሰጪዎቻችን መስመር ላይ አይደሉም፣ ነገር ግን መልእክትዎን ተቀብለናል በቅርቡ እንመልስልዎታለን።";
+                                const botMessage = new Message({
+                                    conversationId,
+                                    sender: 'agent',
+                                    senderName: 'AI Support',
+                                    senderId: 'ai-agent',
+                                    message: aiReplyText,
+                                    messageType: 'text',
+                                    timestamp: new Date()
+                                });
+                                await botMessage.save();
+
+                                // Update conversation's last message
+                                await Conversation.findOneAndUpdate(
+                                    { conversationId },
+                                    {
+                                        lastMessage: aiReplyText.substring(0, 100),
+                                        lastMessageTime: new Date()
+                                    }
+                                );
+
+                                io.to(conversationId).emit('typing:stop');
+                                io.to(conversationId).emit('message:received', {
+                                    ...botMessage.toObject(),
+                                    _id: botMessage._id
+                                });
+                            } catch (err) {
+                                console.error('[Socket] AI Response Error:', err.message);
+                            }
+                        }, 1500); // 1.5 second delay
+                    }
                 }
 
                 console.log(`💬 Message activity in: ${conversationId.slice(0, 15)}...`);

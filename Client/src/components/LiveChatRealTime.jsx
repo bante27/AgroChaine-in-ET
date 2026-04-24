@@ -59,6 +59,29 @@ export default function LiveChatRealTime() {
     const nodeRef = useRef(null);
     const typingTimeoutRef = useRef(null);
 
+    // Close on outside click
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (isOpen && nodeRef.current && !nodeRef.current.contains(event.target)) {
+                // Allow a small buffer zone, but generally if they click outside, minimize the chat
+                setIsOpen(false);
+            }
+        };
+
+        if (isOpen) {
+            // Use timeout to prevent immediate close on the same click that opened it
+            setTimeout(() => {
+                document.addEventListener('mousedown', handleClickOutside);
+                document.addEventListener('touchstart', handleClickOutside);
+            }, 50);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [isOpen]);
+
     /**
      * Initialize Socket.io connection when chat opens
      */
@@ -306,7 +329,7 @@ export default function LiveChatRealTime() {
                             animate={{ y: 0, opacity: 1, scale: 1 }}
                             exit={{ y: 20, opacity: 0, scale: 0.95 }}
                             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            className="absolute bottom-0 right-0 w-[350px] sm:w-[380px] h-[520px] bg-white dark:bg-gray-950/95 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden border border-gray-200/50 dark:border-white/5 ring-1 ring-black/5"
+                            className="absolute bottom-0 right-0 w-[85vw] max-w-[350px] sm:w-[380px] h-[65dvh] max-h-[480px] sm:h-[520px] bg-white dark:bg-gray-950/95 backdrop-blur-3xl rounded-[2rem] sm:rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden border border-gray-200/50 dark:border-white/5 ring-1 ring-black/5 z-[9999]"
                         >
                             {/* Header - Fixed & Premium */}
                             <div className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white px-6 py-5 flex items-center justify-between chat-handle cursor-grab active:cursor-grabbing relative overflow-hidden shrink-0">
