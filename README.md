@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🌾 AgroChain Ethiopia - Next-Gen Agricultural Ecosystem
 
 AgroChain Ethiopia is a premium, full-stack decentralized agricultural platform designed to empower Ethiopian farmers and buyers. It integrates real-time weather analytics, a transparent marketplace, secure payment systems, and ultra-modern live support.
@@ -112,3 +113,6 @@ npm run dev
 
 ---
 *Created by the AgroChain Development Team - 2026*
+=======
+# AgroChaine-in-ET
+>>>>>>> 2cb5feef7a404d7a17dcbdc499a14a3c3345d686
