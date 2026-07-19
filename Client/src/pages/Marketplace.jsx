@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import HeroSection from "../components/market/HeroSection";
 import FiltersSection from "../components/market/FiltersSection";
 import ProductsDisplay from "../components/market/ProductsDisplay";
@@ -13,7 +14,6 @@ import { API_URL } from '../utils/apiConfig';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
-
 const modalBackdrop = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },
@@ -24,14 +24,15 @@ const modalBackdrop = {
 const Marketplace = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const navigate = useNavigate();
+  const [token, setToken] = useState(sessionStorage.getItem("token") || "");
   const [searchTerm, setSearchTerm] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [viewMode, setViewMode] = useState("grid");
   const [sortBy, setSortBy] = useState("price-low");
-  const [allProducts, setAllProducts] = useState([]); // all fetched products
-  const [displayedProducts, setDisplayedProducts] = useState([]); // filtered products
+  const [allProducts, setAllProducts] = useState([]);
+  const [displayedProducts, setDisplayedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -40,7 +41,7 @@ const Marketplace = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [cartItems, setCartItems] = useState(
-    JSON.parse(localStorage.getItem("cart")) || []
+    JSON.parse(sessionStorage.getItem("cart")) || []
   );
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [comments, setComments] = useState([]);
@@ -60,9 +61,9 @@ const Marketplace = () => {
     { value: "other", label: t('marketplace.filters.categories.other') },
   ];
 
-  // Save cart to localStorage
+  // Save cart to sessionStorage
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cartItems));
+    sessionStorage.setItem("cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
   // Fetch all products
@@ -72,7 +73,7 @@ const Marketplace = () => {
     try {
       const response = await axios.get(`${API_URL}/api/products`, {
         headers: { Authorization: token ? `Bearer ${token}` : undefined },
-        params: { limit: 1000 } // Fetch more products for client-side pagination
+        params: { limit: 100 }
       });
 
       let products = response.data.items || response.data.products || [];
@@ -136,7 +137,7 @@ const Marketplace = () => {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setInputValue(value);
-    setSearchTerm(value); // instant update
+    setSearchTerm(value);
     setPage(1);
   };
 
@@ -164,8 +165,8 @@ const Marketplace = () => {
     const exist = cartItems.find((i) => i._id === product._id);
     const updated = exist
       ? cartItems.map((i) =>
-        i._id === product._id ? { ...i, quantity: i.quantity + 1 } : i
-      )
+          i._id === product._id ? { ...i, quantity: i.quantity + 1 } : i
+        )
       : [...cartItems, { ...product, quantity: 1 }];
     setCartItems(updated);
     setIsCartOpen(true);
@@ -188,6 +189,15 @@ const Marketplace = () => {
       setCartItems(
         cartItems.map((i) => (i._id === id ? { ...i, quantity: qty } : i))
       );
+  };
+
+  // ========== REDIRECT TO DASHBOARD WITHOUT REFRESH ==========
+  const handlePlaceOrder = () => {
+    setCartItems([]);
+    setIsCheckoutOpen(false);
+    toast.success("Order placed successfully!");
+    // Navigate to dashboard with state to trigger refresh
+    navigate("/dashboard", { state: { refreshOrders: true } });
   };
 
   if (loading)
@@ -363,10 +373,7 @@ const Marketplace = () => {
                   cartItems={cartItems}
                   shippingFee={shippingFee}
                   token={token}
-                  onPlaceOrder={() => {
-                    setCartItems([]);
-                    setIsCheckoutOpen(false);
-                  }}
+                  onPlaceOrder={handlePlaceOrder}
                   onLogin={() => {
                     setIsCheckoutOpen(false);
                     setIsAuthModalOpen(true);
@@ -414,7 +421,6 @@ const Marketplace = () => {
           </>
         )}
       </AnimatePresence>
-
     </div>
   );
 };

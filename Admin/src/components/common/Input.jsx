@@ -1,46 +1,45 @@
 import React from 'react';
-import { useTheme } from '../../context/ThemeContext';
 
 const Input = ({ 
   label, 
+  icon: Icon, // This receives the component function (e.g., Search)
   error, 
-  icon: Icon, 
-  className = '', 
+  className = "", 
   ...props 
 }) => {
-  const { isDark } = useTheme();
-
   return (
-    <div className="space-y-2">
+    <div className="w-full space-y-1.5">
       {label && (
-        <label 
-          className={`block text-sm font-medium ${
-            isDark ? 'text-white/90' : 'text-gray-800'
-          }`}
-        >
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {label}
         </label>
       )}
       <div className="relative">
         {Icon && (
-          <Icon 
-            className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${
-              isDark ? 'text-white/60' : 'text-gray-500'
-            }`}
-          />
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            {/* IMPORTANT: We check if Icon is a function/component. 
+               If you pass <Search />, this needs to be {Icon}.
+               If you pass Search, this needs to be <Icon size={18} />.
+               The version below is the most flexible:
+            */}
+            {React.isValidElement(Icon) ? Icon : <Icon size={18} />}
+          </div>
         )}
         <input
-          className={`w-full border rounded-xl pr-4 py-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 ${
-            isDark
-              ? 'bg-gray-900 text-white border-gray-700 placeholder-gray-400'
-              : 'bg-white text-gray-900 border-gray-300 placeholder-gray-500'
-          } ${Icon ? 'pl-10' : 'pl-4'} ${className}`}
+          className={`
+            w-full rounded-xl border bg-white dark:bg-gray-900 px-4 py-2.5 text-sm
+            transition-all duration-200 outline-none
+            ${Icon ? 'pl-10' : 'pl-4'}
+            ${error 
+              ? 'border-red-500 focus:ring-2 focus:ring-red-500/20' 
+              : 'border-gray-200 dark:border-white/10 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+            }
+            dark:text-white ${className}
+          `}
           {...props}
         />
       </div>
-      {error && (
-        <p className="text-red-500 text-sm">{error}</p>
-      )}
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
   );
 };

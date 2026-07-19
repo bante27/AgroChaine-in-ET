@@ -11,21 +11,17 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  const [isDark, setIsDark] = useState(true);
-
-  // Load saved theme on mount
-  useEffect(() => {
+  // 1. Initialize State straight from localStorage so there is no flickering!
+  const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem("adminTheme");
     if (saved) {
-      setIsDark(saved === "dark");
-    } else {
-      // optional: check system preference
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setIsDark(prefersDark);
+      return saved === "dark";
     }
-  }, []);
+    // If no saved preference, default to system preference
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
 
-  // Apply theme class to <html> or <body>
+  // 2. Keep the HTML class and localStorage in sync whenever isDark changes
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add("dark");

@@ -6,19 +6,9 @@ import { API_URL } from '../utils/apiConfig';
 
 // Custom ETB Icon Component
 const ETBIcon = ({ className }) => (
-  <svg
-    className={className}
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <text x="6" y="18" fontSize="16" fontFamily="Arial, sans-serif"></text>
-    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" />
+  <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <text x="7" y="17" fontSize="12" fill="currentColor" fontWeight="bold">E</text>
   </svg>
 );
 
@@ -33,148 +23,83 @@ const Dashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [recentActivity, setRecentActivity] = useState([]);
-  const [allTransactions, setAllTransactions] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const usersResponse = await axios.get(`${API_URL}/api/admin/users`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const users = usersResponse.data.users || [];
+        console.log("Attempting to fetch with Token:", token ? "Token exists" : "No token found");
+        const config = { headers: { Authorization: `Bearer ${token}` } };
 
-        const productsResponse = await axios.get(`${API_URL}/api/admin/products`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const products = productsResponse.data.products || [];
+        // We use Promise.allSettled to ensure that even if one route fails (like fees), 
+        // the others (users/products) still load.
+        const [usersRes, productsRes, feesRes, messagesRes] = await Promise.all([
+          axios.get(`${API_URL}/api/admin/users`, config),
+          axios.get(`${API_URL}/api/admin/products`, config),
+          axios.get(`${API_URL}/api/admin/platform-fees`, config), // Corrected endpoint
+          axios.get(`${API_URL}/api/admin/messages`, config)
+        ]);
 
-        const transactionsResponse = await axios.get(`${API_URL}/api/admin/transactions`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const transactions = transactionsResponse.data.transactions || [];
-
-        const messagesResponse = await axios.get(`${API_URL}/api/admin/messages`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const messages = messagesResponse.data.messages || [];
+        const users = usersRes.data.users || [];
+        const products = productsRes.data.products || [];
+        const messages = messagesRes.data.messages || [];
+        const feeData = feesRes.data || { totalFees: 0, count: 0 };
 
         const totalValue = products.reduce((sum, p) => sum + (p.price || 0), 0);
-        const platformRevenue = transactions.reduce(
-          (sum, t) => sum + (t.serviceFee || t.totalPrice * 0.05),
-          0
-        );
 
         setStats({
           users: {
             total: users.length,
-            verified: users.filter((u) => u.verified).length,
+            verified: users.filter((u) => u.verified || u.govIdStatus === 'approved').length,
           },
           products: {
             total: products.length,
-            totalValue,
+            totalValue: totalValue,
           },
           transactions: {
-            total: transactions.length,
-            completed: transactions.filter((t) => t.status === 'completed').length,
-            revenue: transactions.reduce((sum, t) => sum + (t.totalPrice || 0), 0),
+            total: feeData.count || 0,
+            completed: feeData.count || 0,
+            revenue: 0, 
           },
           messages: {
             total: messages.length,
             unread: messages.filter((msg) => msg.status === 'pending').length,
           },
-          platformRevenue: platformRevenue.toFixed(2),
+          platformRevenue: feeData.totalFees || 0,
         });
 
-        const messageActivities = messages.slice(0, 5).map((msg) => ({
+        // Map messages to Recent Activity
+        const activities = messages.slice(0, 5).map(msg => ({
           id: msg._id,
           type: 'message',
-          description: `New message: ${msg.subject}`,
-          timestamp: new Date(msg.createdAt).toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
-          rawDate: new Date(msg.createdAt),
+          description: `Message: ${msg.subject}`,
+          timestamp: new Date(msg.createdAt).toLocaleString(),
         }));
 
-        const transactionActivities = transactions.slice(0, 5).map((t) => ({
-          id: t._id,
-          type: 'transaction',
-          description: `Transaction: Product (ID: ${t.productId}) for $${t.totalPrice}`,
-          timestamp: new Date(t.date).toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
-          rawDate: new Date(t.date),
-        }));
-
-        setRecentActivity(
-          [...messageActivities, ...transactionActivities]
-            .sort((a, b) => b.rawDate - a.rawDate)
-            .slice(0, 5)
-        );
-        setAllTransactions(transactions);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        setError(error.response?.data?.error || 'Failed to fetch dashboard data');
+        setRecentActivity(activities);
+        setError(null);
+      } catch (err) {
+        console.error("Dashboard Error Log:", err.response);
+        if (err.response?.status === 403) {
+          setError("Access Denied: You are not an Admin. Please log out and log in again.");
+        } else {
+          setError(err.response?.data?.error || "Connection error to server");
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    if (token) fetchDashboardData();
+    if (token) {
+        fetchDashboardData();
+    } else {
+        setLoading(false);
+        setError("Please login to access the dashboard.");
+    }
   }, [token]);
 
   const downloadReport = () => {
-    if (allTransactions.length === 0) return;
-
-    // Show ALL completed transactions for a full financial audit
-    const reportData = allTransactions.filter(t => t.status === 'completed');
-
-    const headers = [
-      'Transaction ID',
-      'Transaction Date',
-      'Product ID',
-      'Quantity',
-      'Total Price (ETB)',
-      'Platform Fee (Buyer)',
-      'Platform Fee (Seller)',
-      'Net to Seller',
-      'Status',
-      'Delivery Address'
-    ];
-
-    const csvContent = [
-      headers.join(','),
-      ...reportData.map(t => [
-        t._id,
-        new Date(t.date).toISOString().replace('T', ' ').split('.')[0], // Clearly formatted date/time
-        t.productId,
-        t.quantity,
-        t.totalPrice,
-        t.platformFeeBuyer || (t.totalPrice * 0.05).toFixed(2),
-        t.platformFeeSeller || (t.totalPrice * 0.05).toFixed(2),
-        t.netSellerAmount || (t.totalPrice * 0.95).toFixed(2),
-        t.status.toUpperCase(),
-        `"${(t.deliveryAddress || '').replace(/"/g, '""')}"`
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `AgroChain_Full_Revenue_Report_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.print(); // Simple PDF generation via browser
   };
 
   const ProgressBar = ({ label, value, total, color = 'cyan' }) => (
@@ -193,9 +118,7 @@ const Dashboard = () => {
   );
 
   const StatCard = ({ title, value, icon: Icon, color, subtitle }) => (
-    <div
-      className={`relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-${color}-500/20`}
-    >
+    <div className={`relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-${color}-500/20`}>
       <div className="flex items-center gap-4">
         <div className={`p-3 rounded-full bg-${color}-500/20`}>
           <Icon className={`h-8 w-8 text-${color}-400`} />
@@ -221,112 +144,41 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-6 lg:p-8">
       {error && (
         <div className="max-w-7xl mx-auto mb-6">
-          <div className="bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 p-4 rounded-lg border border-red-200 dark:border-red-500/30 shadow-md">
-            {error}
+          <div className="bg-red-500/10 text-red-500 p-4 rounded-lg border border-red-500/30">
+            <strong>Error:</strong> {error}
           </div>
         </div>
       )}
+
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-            <div className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-              Last updated:{' '}
-              {new Date().toLocaleString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </div>
-          </div>
-          <button
-            onClick={downloadReport}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-600 transition-all duration-300 shadow-lg hover:shadow-emerald-500/20"
-          >
-            <Download className="h-5 w-5" />
-            Download Financial Report
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <button onClick={downloadReport} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg">
+            <Download size={18} /> Print Report
           </button>
         </div>
 
-        {/* Stats Overview */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
           <StatCard title="Total Users" value={stats.users.total} icon={Users} color="cyan" subtitle={`${stats.users.verified} verified`} />
-          <StatCard
-            title="Total Products"
-            value={stats.products.total}
-            icon={Package}
-            color="indigo"
-            subtitle={`$${stats.products.totalValue.toLocaleString()} total value`}
-          />
-          <StatCard
-            title="Total Transactions"
-            value={stats.transactions.total}
-            icon={ShoppingCart}
-            color="purple"
-            subtitle={`$${stats.transactions.revenue.toLocaleString()} revenue`}
-          />
-          <StatCard title="Platform Revenue" value={`ETB ${stats.platformRevenue}`} icon={ETBIcon} color="emerald" subtitle="Total service fees (5%)" />
-          <StatCard title="Total Messages" value={stats.messages.total} icon={MessageSquare} color="pink" subtitle={`${stats.messages.unread} unread`} />
+          <StatCard title="Inventory" value={stats.products.total} icon={Package} color="indigo" subtitle={`ETB ${stats.products.totalValue.toLocaleString()}`} />
+          <StatCard title="Orders" value={stats.transactions.total} icon={ShoppingCart} color="purple" subtitle="From fees" />
+          <StatCard title="Revenue" value={`ETB ${stats.platformRevenue}`} icon={ETBIcon} color="emerald" subtitle="5% Service Fee" />
+          <StatCard title="Support" value={stats.messages.total} icon={MessageSquare} color="pink" subtitle={`${stats.messages.unread} new`} />
         </div>
 
-        {/* Analytics Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Product Activity */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-cyan-500/20">
-            <div className="flex items-center gap-3 mb-6">
-              <Package className="h-6 w-6 text-cyan-400" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Platform Product Activity</h3>
-            </div>
-            <ProgressBar label="Total Products" value={stats.products.total} total={stats.products.total} color="cyan" />
-          </div>
-
-          {/* Transaction Status */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-purple-500/20">
-            <div className="flex items-center gap-3 mb-6">
-              <ShoppingCart className="h-6 w-6 text-purple-400" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Platform Transaction Status</h3>
-            </div>
-            <ProgressBar label="Completed Transactions" value={stats.transactions.completed} total={stats.transactions.total} color="cyan" />
-            <ProgressBar
-              label="Pending Transactions"
-              value={stats.transactions.total - stats.transactions.completed}
-              total={stats.transactions.total}
-              color="yellow"
-            />
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-purple-500/20">
-          <div className="flex items-center gap-3 mb-6">
-            <TrendingUp className="h-6 w-6 text-purple-400" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Platform Activity</h3>
-          </div>
-          <div className="space-y-3">
-            {recentActivity.length > 0 ? (
-              recentActivity.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-700/50 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700/70 transition-colors duration-200"
-                >
-                  <div className={`w-2 h-2 rounded-full ${activity.type === 'message' ? 'bg-cyan-400' : 'bg-purple-400'}`}></div>
-                  <span className="text-gray-700 dark:text-gray-300 text-sm flex-1">{activity.description}</span>
-                  <span className="text-gray-500 dark:text-gray-400 text-xs flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {activity.timestamp}
-                  </span>
+           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+              <h3 className="mb-4 font-bold">Registration Data</h3>
+              <ProgressBar label="Verified Accounts" value={stats.users.verified} total={stats.users.total} color="cyan" />
+           </div>
+           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+              <h3 className="mb-4 font-bold">Activity Feed</h3>
+              {recentActivity.map(act => (
+                <div key={act.id} className="text-sm border-b dark:border-gray-700 py-2">
+                  {act.description} <span className="text-gray-400 text-xs">({act.timestamp})</span>
                 </div>
-              ))
-            ) : (
-              <div className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
-                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full"></div>
-                <span className="text-gray-700 dark:text-gray-300 text-sm">No recent activity</span>
-              </div>
-            )}
-          </div>
+              ))}
+           </div>
         </div>
       </div>
     </div>

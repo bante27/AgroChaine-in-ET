@@ -6,7 +6,7 @@ const API_BASE_URL = `${API_URL}/api/admin`;
 
 // Generic API call function
 const apiCall = async (endpoint, options = {}) => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
 
   const config = {
     headers: {

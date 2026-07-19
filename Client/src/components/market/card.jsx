@@ -24,7 +24,7 @@ const ProductCard = ({ product, viewMode, onClick, onAddToCart }) => {
 
   // ---------------- Buy Now Function ----------------
   const handleBuyNow = () => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
       toast.error('Please login to continue');
       return;
@@ -183,7 +183,7 @@ const ProductCard = ({ product, viewMode, onClick, onAddToCart }) => {
           isOpen={checkoutOpen}
           onClose={() => setCheckoutOpen(false)}
           cartItems={[currentProduct]} // only this product for Buy Now
-          token={localStorage.getItem('token')}
+          token={sessionStorage.getItem('token')}
           onOrderSuccess={(data) => handleOrderSuccess(data.updatedProduct)}
         />
       )}

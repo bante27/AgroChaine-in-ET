@@ -31,7 +31,7 @@ const VerificationModal = ({ isOpen, onClose, onVerify, verificationStatus, user
   const handleRequestOTP = async () => {
     setIsSendingCode(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       await axios.post(`${API_URL}/api/users/request-verification-otp`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });

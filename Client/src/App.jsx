@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
+import { NotificationProvider } from './contexts/NotificationContext'; // 👈 ADD THIS
 
 // Pages
 import Home from './pages/Home';
@@ -11,7 +12,7 @@ import Dashboard from './pages/Dashboard';
 import Marketplace from './pages/Marketplace';
 import ForgotPassword from './pages/ForgotPassword';
 import SellerProfile from './pages/SellerProfile';
-import Orders from './pages/Orders'; // Added Orders import
+import Orders from './pages/Orders';
 
 // Context / Service Pages
 import KYCVerification from './contexts/KYCVerification';
@@ -28,53 +29,55 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 
 function App() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        {/* Public Pages */}
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/marketplace" element={<Marketplace />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+    <NotificationProvider>
+      <Routes>
+        <Route element={<Layout />}>
+          {/* Public Pages */}
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* Seller Profile */}
-        <Route path="/seller/:id" element={<SellerProfile />} />
+          {/* Seller Profile */}
+          <Route path="/seller/:id" element={<SellerProfile />} />
 
-        {/* Service / Context Pages */}
-        <Route path="/kyc" element={<KYCVerification />} />
-        <Route path="/digital-marketplace" element={<DigitalMarketplace />} />
-        <Route path="/supplychain" element={<SupplyChainManagement />} />
+          {/* Service / Context Pages */}
+          <Route path="/kyc" element={<KYCVerification />} />
+          <Route path="/digital-marketplace" element={<DigitalMarketplace />} />
+          <Route path="/supplychain" element={<SupplyChainManagement />} />
 
-        {/* Policy Pages */}
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/terms" element={<TermsOfService />} />
-        <Route path="/cookie" element={<CookiePolicy />} />
-        <Route path="/financing" element={<AgroFinancing />} />
-        <Route path="/faq" element={<FAQ />} />
+          {/* Policy Pages */}
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/cookie" element={<CookiePolicy />} />
+          <Route path="/financing" element={<AgroFinancing />} />
+          <Route path="/faq" element={<FAQ />} />
 
-        {/* Protected Routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/orders" // Added Orders route
-          element={
-            <ProtectedRoute>
-              <Orders />
-            </ProtectedRoute>
-          }
-        />
+          {/* Protected Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* 404 fallback */}
-        <Route path="*" element={<div className="text-center text-2xl mt-20">404 Not Found</div>} />
-      </Route>
-    </Routes>
+          {/* 404 fallback */}
+          <Route path="*" element={<div className="text-center text-2xl mt-20">404 Not Found</div>} />
+        </Route>
+      </Routes>
+    </NotificationProvider>
   );
 }
 

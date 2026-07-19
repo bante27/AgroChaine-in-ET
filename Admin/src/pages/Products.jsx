@@ -7,6 +7,7 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  MessageSquare,
 } from 'lucide-react';
 import axios from 'axios';
 import { API_URL } from '../utils/apiConfig';
@@ -28,9 +29,11 @@ const Products = () => {
   const fetchProducts = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/admin/products`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
       });
-      setProducts(response.data.products || []);
+      // Backend returns { success: true, products: [...] }
+      const productList = response.data.products || [];
+      setProducts(productList);
       setError(null);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -44,10 +47,10 @@ const Products = () => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
         const response = await axios.delete(`${API_URL}/api/admin/products/${productId}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
         });
         if (response.data.success) {
-          fetchProducts();
+          fetchProducts(); // Refresh list
           setSelectedProduct(null);
           setError(null);
         } else {
@@ -60,11 +63,22 @@ const Products = () => {
     }
   };
 
-  const filteredProducts = products.filter((product) =>
-    [product.title, product.ownerName]
-      .filter(Boolean)
-      .some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // Helper: get display name for owner (backend may not return ownerName)
+  const getOwnerName = (product) => {
+    return product.ownerName || product.ownerUserId || product.sellerName || 'Unknown Seller';
+  };
+
+  // Helper: get product identifier (prefer productId, fallback to _id)
+  const getProductId = (product) => {
+    return product.productId || product._id;
+  };
+
+  const filteredProducts = products.filter((product) => {
+    const title = product.title || '';
+    const owner = getOwnerName(product);
+    return title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           owner.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   const getStatusBadge = (status) => {
     const baseClasses =
@@ -95,6 +109,11 @@ const Products = () => {
           </span>
         );
     }
+  };
+
+  // Helper to extract reviews/comments (backend may use 'reviews' or 'comments')
+  const getProductReviews = (product) => {
+    return product?.reviews || product?.comments || [];
   };
 
   if (loading) {
@@ -148,58 +167,59 @@ const Products = () => {
         {/* Product List */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.length > 0 ? (
-            filteredProducts.map((product) => (
-              <div
-                key={product.productId}
-                className={`rounded-xl border shadow flex flex-col transform transition-all duration-300 ease-in-out overflow-hidden ${isDark
-                  ? 'bg-gray-800 border-gray-700 hover:shadow-cyan-500/20 hover:border-cyan-400/40'
-                  : 'bg-white border-gray-200 hover:shadow-lg hover:border-cyan-400/40'
-                  } hover:scale-[1.02]`}
-              >
-                {/* Image Background */}
+            filteredProducts.map((product) => {
+              const productId = getProductId(product);
+              const ownerName = getOwnerName(product);
+              const imageUrl = product.images?.[0] || 'https://via.placeholder.com/400x160?text=No+Image';
+              return (
                 <div
-                  className="h-40 bg-cover bg-center transition-transform duration-500 ease-in-out hover:scale-105"
-                  style={{
-                    backgroundImage: `url(${product.images[0] ||
-                      'https://via.placeholder.com/400x160?text=No+Image'
-                      })`,
-                  }}
-                />
-                <div className="p-4 flex flex-col flex-1">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-lg font-semibold">{product.title}</h3>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      ${product.price?.toFixed(2)}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    by {product.ownerName}
-                  </p>
-                  <div className="mb-3">{getStatusBadge(product.status)}</div>
-                  <div className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                    {product.quantityAvailable || 0} KG in stock
-                    <br />
-                    Type: {product.type}
-                  </div>
-                  <div className="flex gap-2 mt-auto">
-                    <button
-                      onClick={() => setSelectedProduct(product)}
-                      className="flex-1 p-2 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/20 transition-colors duration-200 flex items-center justify-center gap-2 text-sm"
-                    >
-                      <Eye className="w-4 h-4" />
-                      View
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProduct(product.productId)}
-                      className="p-2 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-colors duration-200 flex items-center justify-center gap-2 text-sm"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </button>
+                  key={productId}
+                  className={`rounded-xl border shadow flex flex-col transform transition-all duration-300 ease-in-out overflow-hidden ${isDark
+                    ? 'bg-gray-800 border-gray-700 hover:shadow-cyan-500/20 hover:border-cyan-400/40'
+                    : 'bg-white border-gray-200 hover:shadow-lg hover:border-cyan-400/40'
+                    } hover:scale-[1.02]`}
+                >
+                  {/* Image Background */}
+                  <div
+                    className="h-40 bg-cover bg-center transition-transform duration-500 ease-in-out hover:scale-105"
+                    style={{ backgroundImage: `url(${imageUrl})` }}
+                  />
+                  <div className="p-4 flex flex-col flex-1">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-lg font-semibold">{product.title || 'Untitled'}</h3>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {product.price?.toFixed(2)} ETB
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      by {ownerName}
+                    </p>
+                    <div className="mb-3">{getStatusBadge(product.status)}</div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                      {product.quantityAvailable || 0} KG in stock
+                      <br />
+                      Type: {product.type || 'N/A'}
+                    </div>
+                    <div className="flex gap-2 mt-auto">
+                      <button
+                        onClick={() => setSelectedProduct(product)}
+                        className="flex-1 p-2 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/20 transition-colors duration-200 flex items-center justify-center gap-2 text-sm"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View Details
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(productId)}
+                        className="p-2 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-colors duration-200 flex items-center justify-center gap-2 text-sm"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="col-span-full text-center text-gray-500 dark:text-gray-400 py-12">
               No products found.
@@ -209,18 +229,21 @@ const Products = () => {
 
         {/* Product Modal */}
         {selectedProduct && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4 py-6 overflow-y-auto">
             <div
-              className={`max-w-2xl w-full p-6 rounded-xl shadow-lg overflow-y-auto max-h-[90vh] border ${isDark
+              className={`max-w-2xl w-full p-6 rounded-xl shadow-lg border my-auto ${isDark
                 ? 'bg-gray-800 border-gray-700 text-white'
                 : 'bg-white border-gray-200 text-gray-900'
                 }`}
             >
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Product Details</h2>
+              <div className="flex justify-between items-center mb-4 border-b pb-3 border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Package className="w-5 h-5 text-cyan-500" />
+                  Product Details
+                </h2>
                 <button
                   onClick={() => setSelectedProduct(null)}
-                  className={`p-2 rounded-lg ${isDark
+                  className={`p-1.5 rounded-lg transition-colors ${isDark
                     ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
@@ -229,39 +252,71 @@ const Products = () => {
                 </button>
               </div>
 
-              <div className="space-y-4 text-sm">
-                <div><strong>Title:</strong> {selectedProduct.title}</div>
-                <div><strong>Owner:</strong> {selectedProduct.ownerName}</div>
-                <div><strong>Price:</strong> ${selectedProduct.price?.toFixed(2)}</div>
+              {/* Detail Rows */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
+                <div><strong>Title:</strong> {selectedProduct.title || '-'}</div>
+                <div><strong>Owner:</strong> {getOwnerName(selectedProduct)}</div>
+                <div><strong>Price:</strong> {selectedProduct.price?.toFixed(2)} ETB</div>
                 <div><strong>Status:</strong> {getStatusBadge(selectedProduct.status)}</div>
-                <div><strong>Type:</strong> {selectedProduct.type}</div>
-                <div><strong>Stock:</strong> {selectedProduct.quantityAvailable || 0} KG</div>
-                <div><strong>Sold:</strong> {selectedProduct.soldQuantity || 0} KG</div>
+                <div><strong>Type:</strong> {selectedProduct.type || '-'}</div>
+                <div><strong>Stock Available:</strong> {selectedProduct.quantityAvailable || 0} KG</div>
+                <div><strong>Sold Quantity:</strong> {selectedProduct.soldQuantity || 0} KG</div>
                 <div><strong>Likes:</strong> {selectedProduct.likesCount || 0}</div>
                 <div><strong>Average Rating:</strong> {selectedProduct.averageRating || 0} / 5</div>
-                <div><strong>Origin Address:</strong> {selectedProduct.originAddress || '-'}</div>
-                <div><strong>Description:</strong> {selectedProduct.description || '-'}</div>
-                <div>
-                  <strong>Comments:</strong>
-                  {selectedProduct.comments && selectedProduct.comments.length > 0 ? (
-                    <ul className="mt-2 list-disc list-inside space-y-1">
-                      {selectedProduct.comments.map((c, i) => (
-                        <li key={i} className="text-gray-700 dark:text-gray-300">
-                          {c.user ? <strong>{c.user}: </strong> : null}
-                          {c.text || c.comment}
-                        </li>
-                      ))}
-                    </ul>
+                <div className="md:col-span-2"><strong>Origin Address:</strong> {selectedProduct.originAddress || '-'}</div>
+                <div className="md:col-span-2"><strong>Description:</strong> {selectedProduct.description || '-'}</div>
+              </div>
+
+              {/* Reviews Section */}
+              <div className="border-t pt-4 border-gray-200 dark:border-gray-700">
+                <h3 className="text-md font-semibold mb-3 flex items-center gap-2 text-cyan-500">
+                  <MessageSquare className="w-4 h-4" />
+                  User Reviews ({getProductReviews(selectedProduct).length})
+                </h3>
+
+                <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
+                  {getProductReviews(selectedProduct).length > 0 ? (
+                    getProductReviews(selectedProduct).map((c, i) => (
+                      <div
+                        key={c._id || i}
+                        className={`p-3 rounded-lg border text-sm transition-colors ${isDark
+                          ? 'bg-gray-700/50 border-gray-600 text-gray-200'
+                          : 'bg-gray-50 border-gray-200 text-gray-700'
+                          }`}
+                      >
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-bold text-cyan-600 dark:text-cyan-400">
+                            {c.userName || c.user || 'Anonymous User'}
+                          </span>
+                          {c.createdAt && (
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                              {new Date(c.createdAt).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                        <p className="leading-relaxed">{c.comment || c.text}</p>
+                      </div>
+                    ))
                   ) : (
-                    <span> - </span>
+                    <p className="text-gray-500 italic text-center py-2">No reviews posted for this product yet.</p>
                   )}
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end">
+              {/* Action Buttons */}
+              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
                 <button
-                  onClick={() => handleDeleteProduct(selectedProduct.productId)}
-                  className="p-2 px-4 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-colors duration-200 flex items-center gap-2"
+                  onClick={() => setSelectedProduct(null)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark
+                    ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => handleDeleteProduct(getProductId(selectedProduct))}
+                  className="px-4 py-2 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-colors duration-200 flex items-center gap-2 text-sm font-medium"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete Product

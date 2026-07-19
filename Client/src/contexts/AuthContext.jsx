@@ -14,9 +14,9 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(sessionStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const [isAuthenticated, setIsAuthenticated] = useState(!!sessionStorage.getItem('token'));
   const socketRef = useRef(null);
 
   // Initialize Socket connection
@@ -32,8 +32,8 @@ export const AuthProvider = ({ children }) => {
       console.log('📡 Notification socket connected');
       if (currentUser) {
         socket.emit('user:join', {
-          userId: currentUser.userId,
-          userName: currentUser.fullName,
+          userId: currentUser.userId || currentUser.id || currentUser._id,
+          userName: currentUser.fullName || currentUser.name,
           userEmail: currentUser.email
         });
       }
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const fetchUserProfile = async () => {
-    const storedToken = localStorage.getItem('token');
+    const storedToken = sessionStorage.getItem('token');
     if (!storedToken) return;
 
     try {
@@ -71,7 +71,6 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (err) {
       console.error('Fetch profile error:', err);
-      // Only logout if 401 Unauthorized or 403 Forbidden
       if (err.response?.status === 401 || err.response?.status === 403) {
         logout();
       }
@@ -81,7 +80,7 @@ export const AuthProvider = ({ children }) => {
   // Check authentication on app load
   useEffect(() => {
     const checkAuth = async () => {
-      const storedToken = localStorage.getItem('token');
+      const storedToken = sessionStorage.getItem('token');
       if (!storedToken) {
         setIsAuthenticated(false);
         setLoading(false);
@@ -102,11 +101,9 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (err) {
         console.error('Auth check error:', err);
-        // Do NOT logout on network error, only on explicit auth failure
         if (err.response?.status === 401 || err.response?.status === 403) {
           logout();
         } else {
-          // Keep current state but stop loading
           console.warn('Network error during auth check, keeping session');
         }
       } finally {
@@ -124,7 +121,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  // Login function
+  // Standard Login function
   const login = async (credentials) => {
     try {
       const res = await axios.post(`${API_URL}/api/users/login`, credentials, {
@@ -133,9 +130,8 @@ export const AuthProvider = ({ children }) => {
 
       const data = res.data;
 
-      // Backend returns: { success: true, token: '...', user: { ... } }
       if (res.status === 200 && data.success) {
-        localStorage.setItem('token', data.token);
+        sessionStorage.setItem('token', data.token);
         setToken(data.token);
         setUser(data.user);
         setIsAuthenticated(true);
@@ -150,9 +146,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Google Login context handler to update states and start Socket.io
+  const googleLoginContext = (retrievedToken, retrievedUser) => {
+    sessionStorage.setItem('token', retrievedToken);
+    setToken(retrievedToken);
+    setUser(retrievedUser);
+    setIsAuthenticated(true);
+    initSocket(retrievedUser);
+  };
+
   // Logout function
   const logout = () => {
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
@@ -164,7 +169,20 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, login, logout, loading, isAuthenticated, setUser, setToken, setIsAuthenticated, fetchUserProfile, socket: socketRef.current }}
+      value={{ 
+        user, 
+        token, 
+        login, 
+        googleLoginContext, 
+        logout, 
+        loading, 
+        isAuthenticated, 
+        setUser, 
+        setToken, 
+        setIsAuthenticated, 
+        fetchUserProfile, 
+        socket: socketRef.current 
+      }}
     >
       {!loading && children}
     </AuthContext.Provider>

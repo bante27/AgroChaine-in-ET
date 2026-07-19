@@ -6,7 +6,7 @@ export const useCart = (openAuthModal) => {
   const { user } = useAuth();
   const [cartItems, setCartItems] = useState(() => {
     try {
-      const storedCart = localStorage.getItem("cartItems");
+      const storedCart = sessionStorage.getItem("cartItems");
       return storedCart ? JSON.parse(storedCart) : [];
     } catch {
       return [];
@@ -15,7 +15,7 @@ export const useCart = (openAuthModal) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+    sessionStorage.setItem("cartItems", JSON.stringify(cartItems));
   }, [cartItems]);
 
   const addToCart = useCallback(

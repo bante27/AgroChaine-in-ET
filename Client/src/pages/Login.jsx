@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Eye, EyeOff, User, Mail, MapPin, ArrowRight } from 'lucide-react';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
@@ -14,15 +14,33 @@ import axios from 'axios';
 import { API_URL } from '../utils/apiConfig';
 import { useLanguage } from '../contexts/LanguageContext';
 
+const GOOGLE_CLIENT_ID = "1088160142171-gs1ds648tsn9vskm3o7v62j3367mrpov.apps.googleusercontent.com";
 
-// OTP Input component
+// Helper function to decode JWT token payload safely on frontend
+const decodeGoogleCredential = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error("Error decoding Google credential:", error);
+    return null;
+  }
+};
+
+// OTP Input component (Static structure, no Framer Motion wrappers)
 const OTPInput = ({ email, onVerify, onResend }) => {
   const { t } = useLanguage();
   const [inputOtp, setInputOtp] = useState('');
   const [timer, setTimer] = useState(300);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // Countdown timer
   useEffect(() => {
     const interval = setInterval(() => setTimer(prev => (prev > 0 ? prev - 1 : 0)), 1000);
     return () => clearInterval(interval);
@@ -30,7 +48,11 @@ const OTPInput = ({ email, onVerify, onResend }) => {
 
   const handleVerify = async () => {
     if (isVerifying) return;
-    if (!inputOtp || inputOtp.length !== 6) return toast.error(t('auth.enterValidOtp'), { icon: <div className="h-6 w-6 rounded-full bg-white flex items-center justify-center text-xs font-bold">A</div> });
+    if (!inputOtp || inputOtp.length !== 6) {
+      return toast.error(t('auth.enterValidOtp'), {
+        icon: <div className="h-6 w-6 rounded-full bg-white flex items-center justify-center text-xs font-bold">A</div>
+      });
+    }
     setIsVerifying(true);
     try {
       await onVerify(inputOtp);
@@ -41,7 +63,7 @@ const OTPInput = ({ email, onVerify, onResend }) => {
 
   const handleResend = async () => {
     await onResend();
-    setTimer(300); // Start the 5-minute timer again
+    setTimer(300);
   };
 
   const handleKeyPress = (e) => {
@@ -53,12 +75,7 @@ const OTPInput = ({ email, onVerify, onResend }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-6 px-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
+      <div className="w-full max-w-md">
         <Card className="bg-white/90 backdrop-blur-lg border border-gray-100 shadow-2xl rounded-2xl p-6">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-900">{t('auth.verifyEmail')}</h2>
@@ -103,13 +120,12 @@ const OTPInput = ({ email, onVerify, onResend }) => {
             </Button>
           </form>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 };
 
-
-const Login = () => {
+const LoginContent = () => {
   const { t } = useLanguage();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -118,7 +134,7 @@ const Login = () => {
   const [otpEmail, setOtpEmail] = useState('');
   const [initialOtp, setInitialOtp] = useState('');
   const [formData, setFormData] = useState({
-    email: localStorage.getItem('rememberedEmail') || '',
+    email: sessionStorage.getItem('rememberedEmail') || '',
     password: '',
     confirmPassword: '',
     fullName: '',
@@ -127,33 +143,10 @@ const Login = () => {
     agreeToTerms: false,
   });
   const [error, setError] = useState(null);
-  const { login, user, isAuthenticated, loading } = useAuth();
+  const { login, user, isAuthenticated, loading, googleLoginContext } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || '/dashboard';
-
-  // Dynamic Date and Time
-  const [currentDateTime, setCurrentDateTime] = useState('05:47 PM EAT on Saturday, August 30, 2025');
-  useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-      const options = {
-        timeZone: 'Africa/Addis_Ababa',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      };
-      const formattedDate = new Intl.DateTimeFormat('en-US', options).format(now);
-      setCurrentDateTime(formattedDate.replace(',', ' at'));
-    };
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 60000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     if (isAuthenticated && user && !loading) {
@@ -162,9 +155,8 @@ const Login = () => {
   }, [user, isAuthenticated, loading, navigate, from]);
 
   const isValidEmail = (email) => /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email.trim());
+  
   const isValidFullName = (fullName) => {
-    // Allow English (a-zA-Z), Amharic (\u1200-\u137F), spaces, and hyphens. 
-    // Min 2 characters, at least 2 words.
     const nameRegex = /^[a-zA-Z\u1200-\u137F\s-]{2,100}$/;
     const hasMultipleWords = fullName.trim().split(/\s+/).length >= 2;
     return nameRegex.test(fullName.trim()) && hasMultipleWords;
@@ -218,7 +210,6 @@ const Login = () => {
       });
 
       if (res.data.success) {
-        // OTP is correct, now log in the user via context
         const loginResult = await login({ email: otpEmail, password: formData.password });
 
         if (loginResult.success) {
@@ -236,7 +227,6 @@ const Login = () => {
     }
   };
 
-
   const handleResendOTP = async () => {
     try {
       const res = await axios.post(`${API_URL}/api/users/resend-otp`, { email: otpEmail });
@@ -246,7 +236,41 @@ const Login = () => {
         toast.error(res.data.error, { icon: <img src={logo} alt="A" className="h-6 w-6 rounded-full object-cover" /> });
       }
     } catch (err) {
-      toast.error(err.response?.data?.error || t('auth.otpResendFailed'), { icon: <img src={logo} alt="A" className="h-6 w-6 rounded-full object-cover" /> });
+      toast.error(err.response?.data?.error || t('auth.otpResentFailed'), { icon: <img src={logo} alt="A" className="h-6 w-6 rounded-full object-cover" /> });
+    }
+  };
+
+  // 🛠️ FIXED: Decodes Identity payload and maps key structures matching the backend validation paths
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setIsLoading(true);
+    try {
+      const decodedData = decodeGoogleCredential(credentialResponse.credential);
+      
+      if (!decodedData) {
+        throw new Error("Failed to extract valid identity claims from Google credential string.");
+      }
+
+      // Map parameters seamlessly to your backend destructured arguments
+      const payload = {
+        email: decodedData.email,
+        fullName: decodedData.name,
+        profilePic: decodedData.picture
+      };
+
+      const res = await axios.post(`${API_URL}/api/users/google`, payload);
+
+      if (res.data.success) {
+        await googleLoginContext(res.data.token, res.data.user);
+        toast.success(t('auth.googleLoginSuccess') || 'Logged in with Google successfully!');
+        navigate(from, { replace: true });
+      } else {
+        toast.error(res.data.message || 'Google login failed');
+      }
+    } catch (err) {
+      console.error('Google Auth Error:', err);
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to authenticate via Google.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -268,7 +292,6 @@ const Login = () => {
       }
 
       try {
-        // Call login exactly like Admin does - pass credentials object
         const result = await login({ email: formData.email, password: formData.password });
 
         if (result.success) {
@@ -336,7 +359,6 @@ const Login = () => {
     setIsLoading(false);
   };
 
-  // Handle Enter key press for form submission
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -433,7 +455,6 @@ const Login = () => {
           onChange={handleInputChange}
           className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
         />
-
         <label htmlFor="agreeToTerms" className="ml-2 text-sm text-gray-600">
           {t('auth.agreeTo')}{' '}
           <Link to="/terms" className="text-indigo-600 hover:text-indigo-700 font-medium">
@@ -452,12 +473,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-6 px-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
+      <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <h2 className="text-3xl font-bold text-gray-900">{isLogin ? t('auth.welcomeBack') : t('auth.joinTitle')}</h2>
           <p className="text-gray-500 text-sm mt-2">
@@ -517,7 +533,7 @@ const Login = () => {
                 <Button
                   type="submit"
                   loading={isLoading}
-                  className="w-md bg-gradient-to-r from-lime-900 to-green-600 text-white hover:from-indigo-700 hover:to-purple-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-lime-950 to-green-600 text-white hover:from-lime-900 hover:to-green-700 py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center"
                 >
                   {t('auth.signIn')}
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -529,7 +545,7 @@ const Login = () => {
                 <Button
                   type="submit"
                   loading={isLoading}
-                  className="w-md mt-4 border-gray-200 text-gray-800 hover:bg-indigo-600 hover:text-white py-2 rounded-xl text-sm font-semibold transition-all duration-300"
+                  className="w-full mt-4 border-gray-200 text-gray-800 hover:bg-indigo-600 hover:text-white py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center"
                 >
                   {t('auth.createAccount')}
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -538,6 +554,28 @@ const Login = () => {
             )}
             {error && <p className="text-red-500 text-center text-sm">{error}</p>}
           </form>
+
+          {isLogin && (
+            <div className="mt-4">
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                </div>
+              </div>
+              <div className="flex justify-center w-full">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => toast.error("Google authentication failed.")}
+                  shape="circle"
+                  theme="filled_blue"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="mt-6 text-center">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -556,10 +594,17 @@ const Login = () => {
             </Button>
           </div>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 };
 
+const Login = () => {
+  return (
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <LoginContent />
+    </GoogleOAuthProvider>
+  );
+};
 
 export default Login;

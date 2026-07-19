@@ -1,338 +1,314 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, CheckCircle, Clock, XCircle, Eye, Calendar, User, Search, Filter, Truck } from 'lucide-react';
-import Button from '../components/common/Button';
-import Input from '../components/common/Input';
-import Modal from '../components/common/Modal';
+import { useLocation } from 'react-router-dom';
+import { Calendar, ArrowRight, User, Phone, MapPin, X, Truck, CheckCircle, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
 import { API_URL } from '../utils/apiConfig';
-import { useLanguage } from '../contexts/LanguageContext';
+import toast from 'react-hot-toast';
 
 const Orders = () => {
-  const { t } = useLanguage();
   const { user: authUser } = useAuth();
+  const location = useLocation();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [showOrderModal, setShowOrderModal] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [activeTab, setActiveTab] = useState('buying');
+  const [actionLoading, setActionLoading] = useState({});
+  const [identityCard, setIdentityCard] = useState(null);
+
+  // Set initial tab from notification state
+  useEffect(() => {
+    const state = location.state;
+    if (state?.ordersTab) {
+      setActiveTab(state.ordersTab);
+    }
+  }, [location.state]);
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      if (!authUser) {
-        setError(t('dashboard.verification.cameraDeniedToast'));
-        setLoading(false);
-        return;
-      }
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError(t('dashboard.verification.cameraDeniedToast'));
-        setLoading(false);
-        return;
-      }
-      try {
-        setLoading(true);
-        const res = await axios.get(`${API_URL}/api/transactions/my`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const txns = res.data.transactions || [];
-        const mapped = await Promise.all(
-          txns.map(async (txn) => {
-            try {
-              const isBuyer = txn.buyerUserId === authUser.userId;
-              const firstItem = txn.items && txn.items[0] ? txn.items[0] : { quantity: 1, product: {} };
-              let productName = t('dashboard.orders.unknownProduct');
-              let buyerName = t('dashboard.status.unknown');
-              let sellerName = t('dashboard.status.unknown');
-
-              // Fetch product
-              try {
-                const productResponse = await axios.get(`${API_URL}/api/products/${txn.productId || firstItem.product?._id}`, {
-                  headers: { Authorization: `Bearer ${token}` },
-                });
-                productName = productResponse.data.name || productResponse.data.title || t('dashboard.orders.unknownProduct');
-              } catch (productError) {
-                console.error(`Error fetching product ${txn.productId || firstItem.product?._id}:`, productError.response?.data || productError.message);
-              }
-
-              // Fetch buyer
-              try {
-                const buyerResponse = await axios.get(`${API_URL}/api/users/${txn.buyerUserId}`, {
-                  headers: { Authorization: `Bearer ${token}` },
-                });
-                buyerName = buyerResponse.data.user.fullName || t('dashboard.status.unknown');
-              } catch (buyerError) {
-                console.error(`Error fetching buyer ${txn.buyerUserId}:`, buyerError.response?.data || buyerError.message);
-              }
-
-              // Fetch seller
-              try {
-                const sellerResponse = await axios.get(`${API_URL}/api/users/${txn.sellerUserId}`, {
-                  headers: { Authorization: `Bearer ${token}` },
-                });
-                sellerName = sellerResponse.data.user.fullName || t('dashboard.status.unknown');
-              } catch (sellerError) {
-                console.error(`Error fetching seller ${txn.sellerUserId}:`, sellerError.response?.data || sellerError.message);
-              }
-
-              return {
-                _id: txn._id || 'unknown',
-                buyerUserId: txn.buyerUserId || '',
-                sellerUserId: txn.sellerUserId || '',
-                buyerName,
-                sellerName,
-                productId: txn.productId || firstItem.product?._id || '',
-                productName,
-                quantity: firstItem.quantity || 1,
-                totalPrice: txn.totalAmount || 0,
-                platformFeeBuyer: txn.platformFeeBuyer || 0,
-                netSellerAmount: txn.netSellerAmount || 0,
-                status: txn.status || 'pending',
-                date: txn.createdAt || Date.now(),
-                deliveryAddress: txn.deliveryAddress || '-',
-                paymentHeld: txn.paymentHeld || false,
-                type: isBuyer ? 'purchase' : 'sale',
-                description: `${isBuyer ? t('dashboard.activity.youPurchased') : t('dashboard.activity.youSold')} ${firstItem.quantity || 1} × ${productName}`,
-              };
-            } catch (err) {
-              console.error(`Error processing transaction ${txn._id || 'unknown'}:`, err);
-              return null;
-            }
-          })
-        );
-
-        const validOrders = mapped.filter(order => order);
-        if (validOrders.length === 0 && txns.length > 0) {
-          setError(t('dashboard.orders.errorProcess'));
-        } else if (txns.length === 0) {
-          setError(t('dashboard.orders.noOrders'));
-        }
-        setOrders(validOrders);
-      } catch (err) {
-        setError(`${t('dashboard.orders.errorLoad')}: ${err.response?.data?.error || err.message}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
+    if (authUser) fetchOrders();
   }, [authUser]);
 
-  const filteredOrders = orders.filter(
-    (order) =>
-      order &&
-      (order._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.buyerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.sellerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.productName?.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (filterStatus === 'all' || order.status === filterStatus)
-  );
-
-  const handleUpdateOrderStatus = async (orderId, status) => {
+  const fetchOrders = async () => {
+    setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        toast.error('No authentication token found. Please log in.');
-        return;
+      const res = await axios.get(`${API_URL}/api/transactions/my`, {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
+      });
+      if (res.data.success) {
+        const currentUserId = authUser?.userId || authUser?._id?.toString();
+        const formatted = res.data.transactions.map(txn => {
+          const rawStatus = txn.status || 'pending';
+          const normalizedStatus = rawStatus.toLowerCase();
+          const isBuyer = String(txn.buyerUserId) === String(currentUserId);
+          return {
+            ...txn,
+            isBuyer,
+            status: normalizedStatus,
+            productName: txn.productId?.title || 'Item',
+            productImg: txn.productId?.images?.[0] || 'https://via.placeholder.com/100',
+            seller: {
+              name: txn.sellerDetails?.fullName || 'Bantalem M.',
+              phone: txn.sellerDetails?.phone || '+251 9...',
+              address: txn.deliveryAddress || 'Debre Berhan, Ethiopia',
+              img: txn.sellerDetails?.profilePic || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+            },
+            buyer: {
+              name: isBuyer ? 'You' : `Buyer #${txn.buyerUserId?.slice(-4)}`,
+              phone: 'Hidden for Privacy',
+              address: txn.deliveryAddress,
+              img: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+            },
+          };
+        });
+        setOrders(formatted);
       }
-      let response;
-      switch (status) {
-        case 'delivered':
-          response = await axios.post(
-            `${API_URL}/api/transactions/confirm-delivery/${orderId}`,
-            {},
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          break;
-        case 'shipped':
-          response = await axios.post(
-            `${API_URL}/api/transactions/${orderId}/deliver`,
-            {},
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          break;
-        case 'canceled':
-          response = await axios.post(
-            `${API_URL}/api/transactions/${orderId}/cancel`,
-            {},
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          break;
-        default:
-          throw new Error('Invalid status update');
-      }
-      if (response.data.success) {
-        toast.success(t(`dashboard.toast.${status === 'shipped' ? 'markShippedSuccess' : 'confirmDeliverySuccess'}`));
-        setOrders(orders.map(order =>
-          order._id === orderId ? { ...order, status } : order
-        ));
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.error || t(`dashboard.toast.${status === 'shipped' ? 'markShippedError' : 'confirmDeliveryError'}`));
+    } catch (err) {
+      toast.error('Failed to load orders');
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleViewOrder = (order) => {
-    setSelectedOrder(order);
-    setShowOrderModal(true);
+  // Scroll to order after orders are loaded and tab is set
+  useEffect(() => {
+    const state = location.state;
+    if (state?.scrollToOrder && orders.length > 0) {
+      // Clear state so it doesn't re-run on re-render
+      window.history.replaceState({}, document.title);
+      setTimeout(() => {
+        const orderElement = document.getElementById(`order-${state.scrollToOrder}`);
+        if (orderElement) {
+          orderElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          orderElement.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
+          setTimeout(() => {
+            orderElement.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
+          }, 3000);
+        }
+      }, 300);
+    }
+  }, [orders, location.state]);
+
+  const handleShip = async (orderId) => {
+    setActionLoading(prev => ({ ...prev, [orderId]: true }));
+    try {
+      const token = sessionStorage.getItem('token');
+      const { data } = await axios.post(`${API_URL}/api/transactions/mark-shipped/${orderId}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (data.success) {
+        toast.success('Order marked as shipped');
+        await fetchOrders();
+      } else {
+        throw new Error(data.error || 'Failed');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to mark shipped');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [orderId]: false }));
+    }
   };
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      completed: { color: 'bg-green-100 text-green-600 border-green-200', icon: CheckCircle },
-      shipped: { color: 'bg-blue-100 text-blue-600 border-blue-200', icon: Truck },
-      pending: { color: 'bg-yellow-100 text-yellow-600 border-yellow-200', icon: Clock },
-      canceled: { color: 'bg-red-100 text-red-600 border-red-200', icon: XCircle },
-    };
-    const config = statusConfig[status] || statusConfig.pending;
-    const Icon = config.icon;
-    return (
-      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${config.color}`}>
-        <Icon className="w-3 h-3 mr-1" />
-        {t(`dashboard.status.${status}`)}
-      </span>
-    );
+  const handleConfirm = async (orderId) => {
+    setActionLoading(prev => ({ ...prev, [orderId]: true }));
+    try {
+      const token = sessionStorage.getItem('token');
+      const { data } = await axios.post(`${API_URL}/api/transactions/confirm-delivery/${orderId}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (data.success) {
+        toast.success('Delivery confirmed');
+        await fetchOrders();
+      } else {
+        throw new Error(data.error || 'Failed');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to confirm delivery');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [orderId]: false }));
+    }
   };
+
+  const filteredOrders = orders.filter(o => activeTab === 'buying' ? o.isBuyer : !o.isBuyer);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
-        />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center text-red-500">{error}</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, type: 'spring' }}
-        className="mb-6"
-      >
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('dashboard.orders.title')}</h1>
-      </motion.div>
-
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        <Input
-          type="text"
-          placeholder={t('dashboard.orders.searchPlaceholder')}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full sm:w-1/3"
-          icon={<Search className="h-5 w-5 text-gray-400" />}
-        />
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="w-full sm:w-1/3 p-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-        >
-          <option value="all">{t('dashboard.status.all')}</option>
-          <option value="pending">{t('dashboard.status.pending')}</option>
-          <option value="shipped">{t('dashboard.status.shipped')}</option>
-          <option value="completed">{t('dashboard.status.completed')}</option>
-          <option value="canceled">{t('dashboard.status.cancelled')}</option>
-        </select>
+    <div className="p-2 md:p-6 max-w-5xl mx-auto font-sans text-gray-900 bg-white min-h-screen">
+      {/* Mini Header */}
+      <div className="flex justify-between items-end mb-8 border-b border-gray-100 pb-4">
+        <div>
+          <h1 className="text-3xl font-black tracking-tighter uppercase">My Hub</h1>
+          <p className="text-[10px] text-gray-400 font-bold tracking-[0.2em]">TRANSFERS & TRADES</p>
+        </div>
+        <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-200">
+          <button
+            onClick={() => setActiveTab('buying')}
+            className={`px-5 py-2 rounded-lg text-xs font-black transition-all ${
+              activeTab === 'buying' ? 'bg-white text-emerald-600 border border-gray-100' : 'text-gray-400'
+            }`}
+          >
+            PURCHASES
+          </button>
+          <button
+            onClick={() => setActiveTab('selling')}
+            className={`px-5 py-2 rounded-lg text-xs font-black transition-all ${
+              activeTab === 'selling' ? 'bg-white text-blue-600 border border-gray-100' : 'text-gray-400'
+            }`}
+          >
+            SALES
+          </button>
+        </div>
       </div>
 
-      {filteredOrders.length === 0 ? (
-        <div className="text-center text-gray-500">{t('dashboard.orders.noOrders')}</div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredOrders.map((order) => (
-            <motion.div
+      <div className="space-y-3">
+        {filteredOrders.length === 0 ? (
+          <div className="text-center py-12 text-gray-400 text-sm">
+            No {activeTab} orders yet.
+          </div>
+        ) : (
+          filteredOrders.map(order => (
+            <div
               key={order._id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
+              id={`order-${order._id}`}
+              className="border border-gray-100 p-4 rounded-2xl flex flex-wrap items-center gap-5 transition-colors"
             >
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-gray-900 dark:text-white">{order.productName}</h3>
-                <span>{getStatusBadge(order.status)}</span>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard.orders.type')}: {order.type === 'purchase' ? t('dashboard.activity.youPurchased') : t('dashboard.activity.youSold')}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard.orders.price')}: {order.totalPrice} ETB</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard.orders.date')}: {new Date(order.date).toLocaleDateString()}</p>
-              <div className="mt-4 flex gap-2">
-                <Button
-                  onClick={() => handleViewOrder(order)}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  <Eye className="h-4 w-4 mr-1" /> {t('common.view')}
-                </Button>
-                {order.status === 'pending' && order.type === 'sale' && (
-                  <Button
-                    onClick={() => handleUpdateOrderStatus(order._id, 'shipped')}
-                    className="flex-1 bg-blue-500 text-white"
-                  >
-                    <Truck className="h-4 w-4 mr-1" /> {t('dashboard.actions.markShipped')}
-                  </Button>
-                )}
-                {order.status === 'shipped' && order.type === 'purchase' && (
-                  <Button
-                    onClick={() => handleUpdateOrderStatus(order._id, 'delivered')}
-                    className="flex-1 bg-green-500 text-white"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-1" /> {t('dashboard.actions.confirmDelivery')}
-                  </Button>
-                )}
-                {order.status === 'pending' && (
-                  <Button
-                    onClick={() => handleUpdateOrderStatus(order._id, 'canceled')}
-                    className="flex-1 bg-red-500 text-white"
-                  >
-                    <XCircle className="h-4 w-4 mr-1" /> {t('common.cancel')}
-                  </Button>
-                )}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
+              <img src={order.productImg} className="w-14 h-14 rounded-xl object-cover bg-gray-50" alt="product" />
 
-      <AnimatePresence>
-        {showOrderModal && selectedOrder && (
-          <Modal
-            isOpen={showOrderModal}
-            onClose={() => setShowOrderModal(false)}
-            title={t('dashboard.orders.details')}
-          >
-            <div className="p-4">
-              <p><strong>{t('dashboard.productUpload.productTitle')}:</strong> {selectedOrder.productName}</p>
-              <p><strong>{t('dashboard.orders.buyer')}:</strong> {selectedOrder.buyerName}</p>
-              <p><strong>{t('dashboard.orders.seller')}:</strong> {selectedOrder.sellerName}</p>
-              <p><strong>{t('dashboard.orders.quantity')}:</strong> {selectedOrder.quantity}</p>
-              <p><strong>{t('dashboard.orders.price')}:</strong> {selectedOrder.totalPrice} ETB</p>
-              <p><strong>{t('dashboard.status.all')}:</strong> {getStatusBadge(selectedOrder.status)}</p>
-              <p><strong>{t('dashboard.orders.date')}:</strong> {new Date(selectedOrder.date).toLocaleString()}</p>
-              <p><strong>{t('dashboard.orders.deliveryAddress')}:</strong> {selectedOrder.deliveryAddress}</p>
-              <Button
-                onClick={() => setShowOrderModal(false)}
-                className="mt-4 w-full bg-blue-500 text-white"
-              >
-                {t('common.close')}
-              </Button>
+              <div className="flex-1 min-w-[120px]">
+                <h3 className="font-bold text-sm uppercase">{order.productName}</h3>
+                <div className="flex items-center gap-3 mt-1 flex-wrap">
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tight ${
+                      order.status === 'delivered'
+                        ? 'bg-green-100 text-green-700'
+                        : order.status === 'shipped'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-yellow-100 text-yellow-700'
+                    }`}
+                  >
+                    {order.status}
+                  </span>
+                  <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                    <Calendar size={10} /> {new Date(order.createdAt || order.date).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Interactive Trade Photos */}
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-2xl border border-gray-100">
+                <button
+                  onClick={() => setIdentityCard({ ...order.seller, label: 'Seller Info' })}
+                  className="relative group transition-transform active:scale-90"
+                >
+                  <img src={order.seller.img} className="w-8 h-8 rounded-full border-2 border-white object-cover" />
+                  <span className="absolute -bottom-1 -right-1 bg-blue-600 text-[7px] text-white w-3 h-3 flex items-center justify-center rounded-full font-bold">S</span>
+                </button>
+                <ArrowRight size={12} className="text-gray-300" />
+                <button
+                  onClick={() => setIdentityCard({ ...order.buyer, label: 'Buyer Info' })}
+                  className="relative group transition-transform active:scale-90"
+                >
+                  <img src={order.buyer.img} className="w-8 h-8 rounded-full border-2 border-white object-cover" />
+                  <span className="absolute -bottom-1 -right-1 bg-emerald-600 text-[7px] text-white w-3 h-3 flex items-center justify-center rounded-full font-bold">B</span>
+                </button>
+              </div>
+
+              <div className="text-right min-w-[80px]">
+                <p className="font-black text-sm">{order.totalPrice} ETB</p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase">Paid</p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="w-full sm:w-auto mt-2 sm:mt-0">
+                {order.status === 'pending' && !order.isBuyer && (
+                  <button
+                    onClick={() => handleShip(order._id)}
+                    disabled={actionLoading[order._id]}
+                    className="flex items-center gap-1 bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg disabled:opacity-50 transition active:scale-95"
+                  >
+                    {actionLoading[order._id] ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Truck size={12} />
+                    )}
+                    Ship
+                  </button>
+                )}
+                {order.status === 'shipped' && order.isBuyer && (
+                  <button
+                    onClick={() => handleConfirm(order._id)}
+                    disabled={actionLoading[order._id]}
+                    className="flex items-center gap-1 bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg disabled:opacity-50 transition active:scale-95"
+                  >
+                    {actionLoading[order._id] ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <CheckCircle size={12} />
+                    )}
+                    Confirm
+                  </button>
+                )}
+              </div>
             </div>
-          </Modal>
+          ))
+        )}
+      </div>
+
+      {/* Identity Modal */}
+      <AnimatePresence>
+        {identityCard && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-[2px]">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white w-full max-w-xs rounded-[2rem] p-6 border border-gray-200 shadow-xl"
+            >
+              <div className="flex justify-between items-start mb-6">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{identityCard.label}</span>
+                <button onClick={() => setIdentityCard(null)} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="flex flex-col items-center text-center">
+                <img src={identityCard.img} className="w-20 h-20 rounded-3xl object-cover mb-4 border-4 border-gray-50 shadow-sm" />
+                <h2 className="text-xl font-black text-gray-900">{identityCard.name}</h2>
+                <div className="w-8 h-1 bg-emerald-500 rounded-full my-3"></div>
+
+                <div className="w-full space-y-4 mt-2">
+                  <div className="flex items-center gap-3 text-left p-3 bg-gray-50 rounded-xl">
+                    <Phone size={16} className="text-emerald-600" />
+                    <div>
+                      <p className="text-[9px] font-bold text-gray-400 uppercase">Contact</p>
+                      <p className="text-xs font-bold">{identityCard.phone}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 text-left p-3 bg-gray-50 rounded-xl">
+                    <MapPin size={16} className="text-blue-600" />
+                    <div>
+                      <p className="text-[9px] font-bold text-gray-400 uppercase">Location</p>
+                      <p className="text-xs font-bold leading-tight">{identityCard.address}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIdentityCard(null)}
+                className="w-full mt-6 py-3 bg-gray-900 text-white rounded-xl text-xs font-black uppercase tracking-widest active:scale-95 transition-transform"
+              >
+                Close Profile
+              </button>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

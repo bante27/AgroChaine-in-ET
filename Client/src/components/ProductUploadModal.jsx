@@ -1,247 +1,281 @@
-import { useState, useEffect, useRef } from "react";
-import { useLanguage } from "../contexts/LanguageContext";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { X, Upload } from "lucide-react";
+import Button from "./common/Button";
 import toast from "react-hot-toast";
-import Button from "./Button";
 
 const ProductUploadModal = ({ isOpen, onClose, onSubmit }) => {
-  const { t } = useLanguage();
-  const [product, setProduct] = useState({
+  const [formData, setFormData] = useState({
     title: "",
     price: "",
     originAddress: "",
+    type: "",
     quantity: "",
     description: "",
-    type: "",
-    images: [],
+    comment: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const modalRef = useRef(null);
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  // Handle click outside to close modal
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (modalRef.current && !modalRef.current.contains(event.target)) {
-        onClose();
-      }
-    };
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      price: "",
+      originAddress: "",
+      type: "",
+      quantity: "",
+      description: "",
+      comment: "",
+    });
+    setImages([]);
+    setImagePreviews([]);
+    setErrors({});
+  };
 
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isOpen, onClose]);
-
-  const handleFileChange = (e) => {
+  const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    if (files.length > 6) {
-      toast.error(t('dashboard.productUpload.maxImages'));
+    if (files.length === 0) return;
+    if (files.length > 5) {
+      toast.error("Maximum 5 images");
       return;
     }
-    setProduct({ ...product, images: files });
+    setImages(files);
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setImagePreviews(previews);
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.title.trim()) newErrors.title = "Title required";
+    if (!formData.price) newErrors.price = "Price required";
+    else if (isNaN(formData.price) || Number(formData.price) <= 0)
+      newErrors.price = "Positive number";
+    if (!formData.originAddress.trim())
+      newErrors.originAddress = "Origin required";
+    if (!formData.type) newErrors.type = "Type required";
+    if (!formData.quantity) newErrors.quantity = "Quantity required";
+    else if (isNaN(formData.quantity) || Number(formData.quantity) <= 0)
+      newErrors.quantity = "Positive number";
+    if (images.length === 0) newErrors.images = "At least 1 image";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (
-      !product.title ||
-      !product.price ||
-      !product.originAddress ||
-      !product.type ||
-      !product.quantity
-    ) {
-      toast.error(t('dashboard.productUpload.fillRequired'));
+    if (!validateForm()) {
+      toast.error("Fill all required fields");
       return;
     }
-    setIsLoading(true);
-    try {
-      const formData = new FormData();
-      Object.entries(product).forEach(([key, value]) => {
-        if (key === "images") {
-          value.forEach((image) => formData.append("images", image));
-        } else if (value) {
-          formData.append(key, value);
-        }
-      });
 
-      await onSubmit(formData);
-      setProduct({
-        title: "",
-        price: "",
-        originAddress: "",
-        quantity: "",
-        description: "",
-        type: "",
-        images: [],
-      });
-      toast.success(t('dashboard.productUpload.uploadSuccess'));
-      onClose();
+    setLoading(true);
+    try {
+      const data = new FormData();
+      data.append("title", formData.title);
+      data.append("price", formData.price);
+      data.append("originAddress", formData.originAddress);
+      data.append("type", formData.type);
+      data.append("quantity", formData.quantity);
+      if (formData.description) data.append("description", formData.description);
+      if (formData.comment) data.append("comment", formData.comment);
+      images.forEach((img) => data.append("images", img));
+
+      await onSubmit(data);
+      handleClose();
     } catch (error) {
-      toast.error(error.response?.data?.error || t('dashboard.productUpload.uploadFailed'));
+      toast.error(error.response?.data?.error || "Upload failed");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm">
-      <motion.div
-        ref={modalRef}
-        initial={{ opacity: 0, scale: 0.9, y: 30 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 30 }}
-        transition={{ duration: 0.3, type: "spring" }}
-        className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 w-full max-w-[95vw] sm:max-w-lg overflow-y-auto max-h-[90vh]"
-      >
-        <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
-          {t('dashboard.productUpload.title')}
-        </h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl">
+        {/* Header */}
+        <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            Add Product
+          </h2>
+          <button
+            onClick={handleClose}
+            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
-          {/* Product Title */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('dashboard.productUpload.productTitle')}
-            </label>
+            <label className="block text-sm font-medium mb-1">Title *</label>
             <input
               type="text"
-              value={product.title}
-              onChange={(e) => setProduct({ ...product, title: e.target.value })}
-              placeholder={t('dashboard.productUpload.enterTitle')}
-              required
-              disabled={isLoading}
-              className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className={`w-full px-3 py-2 rounded-lg border ${
+                errors.title ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+              } bg-white dark:bg-gray-800`}
+              placeholder="Product name"
+            />
+            {errors.title && (
+              <p className="text-red-500 text-xs mt-1">{errors.title}</p>
+            )}
+          </div>
+
+          {/* Price & Quantity */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Price (ETB) *</label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                className={`w-full px-3 py-2 rounded-lg border ${
+                  errors.price ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+                }`}
+                placeholder="0.00"
+              />
+              {errors.price && <p className="text-red-500 text-xs">{errors.price}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Quantity (KG) *</label>
+              <input
+                type="number"
+                step="0.1"
+                value={formData.quantity}
+                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                className={`w-full px-3 py-2 rounded-lg border ${
+                  errors.quantity ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+                }`}
+                placeholder="0"
+              />
+              {errors.quantity && <p className="text-red-500 text-xs">{errors.quantity}</p>}
+            </div>
+          </div>
+
+          {/* Type & Origin */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Type *</label>
+              <select
+                value={formData.type}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                className={`w-full px-3 py-2 rounded-lg border ${
+                  errors.type ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+                } bg-white dark:bg-gray-800`}
+              >
+                <option value="">Select</option>
+                <option value="Fruit">Fruit</option>
+                <option value="Vegetable">Vegetable</option>
+                <option value="Grain">Grain</option>
+                <option value="Dairy">Dairy</option>
+                <option value="Meat">Meat</option>
+                <option value="Other">Other</option>
+              </select>
+              {errors.type && <p className="text-red-500 text-xs">{errors.type}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Origin *</label>
+              <input
+                type="text"
+                value={formData.originAddress}
+                onChange={(e) => setFormData({ ...formData, originAddress: e.target.value })}
+                className={`w-full px-3 py-2 rounded-lg border ${
+                  errors.originAddress ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+                }`}
+                placeholder="City, Country"
+              />
+              {errors.originAddress && (
+                <p className="text-red-500 text-xs">{errors.originAddress}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Description (optional) */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Description</label>
+            <textarea
+              rows={2}
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600"
+              placeholder="Optional"
             />
           </div>
 
-          {/* Type */}
+          {/* Comment (optional) */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('dashboard.productUpload.type')}
-            </label>
-            <select
-              value={product.type}
-              onChange={(e) => setProduct({ ...product, type: e.target.value })}
-              required
-              disabled={isLoading}
-              className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="">{t('dashboard.productUpload.selectType')}</option>
-              <option value="vegetable">{t('dashboard.productUpload.types.vegetable')}</option>
-              <option value="fruit">{t('dashboard.productUpload.types.fruit')}</option>
-              <option value="grain">{t('dashboard.productUpload.types.grain')}</option>
-              <option value="dairy">{t('dashboard.productUpload.types.dairy')}</option>
-              <option value="other">{t('dashboard.productUpload.types.other')}</option>
-            </select>
-          </div>
-
-          {/* Price */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('dashboard.productUpload.price')}
-            </label>
-            <input
-              type="number"
-              value={product.price}
-              onChange={(e) => setProduct({ ...product, price: e.target.value })}
-              placeholder="0.00"
-              required
-              disabled={isLoading}
-              className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              min="0"
-              step="0.01"
-            />
-          </div>
-
-          {/* Quantity */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('dashboard.productUpload.quantity')}
-            </label>
-            <input
-              type="number"
-              value={product.quantity}
-              onChange={(e) => setProduct({ ...product, quantity: e.target.value })}
-              placeholder="0"
-              required
-              disabled={isLoading}
-              className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              min="0"
-              step="0.01"
-            />
-          </div>
-
-          {/* Origin Address */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('dashboard.productUpload.originAddress')}
-            </label>
-            <input
-              type="text"
-              value={product.originAddress}
-              onChange={(e) => setProduct({ ...product, originAddress: e.target.value })}
-              placeholder={t('dashboard.productUpload.enterAddress')}
-              required
-              disabled={isLoading}
-              className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            <label className="block text-sm font-medium mb-1">Comment</label>
+            <textarea
+              rows={1}
+              value={formData.comment}
+              onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600"
+              placeholder="Optional note"
             />
           </div>
 
           {/* Images */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('dashboard.productUpload.images')}
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileChange}
-              disabled={isLoading}
-              className="w-full text-sm text-gray-600 dark:text-gray-300 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-green-600 file:text-white hover:file:bg-green-700 cursor-pointer"
-            />
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('dashboard.productUpload.description')}
-            </label>
-            <textarea
-              value={product.description}
-              onChange={(e) => setProduct({ ...product, description: e.target.value })}
-              placeholder={t('dashboard.productUpload.describeProduct')}
-              disabled={isLoading}
-              rows={4}
-              className="w-full rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-3">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              disabled={isLoading}
-              className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white border-transparent hover:bg-gray-300 dark:hover:bg-gray-600 rounded-xl"
+            <label className="block text-sm font-medium mb-2">Images * (max 5)</label>
+            <div
+              className={`flex items-center justify-center w-full h-28 border-2 border-dashed rounded-lg cursor-pointer ${
+                errors.images ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-emerald-500"
+              }`}
             >
-              {t('dashboard.productUpload.cancel')}
-            </Button>
-            <Button
+              <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer">
+                <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                <span className="text-xs text-gray-500">Upload</span>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            {errors.images && <p className="text-red-500 text-xs mt-1">{errors.images}</p>}
+            {imagePreviews.length > 0 && (
+              <div className="flex gap-2 mt-3 flex-wrap">
+                {imagePreviews.map((src, idx) => (
+                  <div key={idx} className="w-14 h-14 rounded border overflow-hidden">
+                    <img src={src} alt="preview" className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="flex-1 py-2 rounded-lg font-medium bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+            <button
               type="submit"
-              disabled={isLoading}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold"
+              disabled={loading}
+              className="flex-1 py-2 rounded-lg font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
             >
-              {isLoading ? t('dashboard.productUpload.uploading') : t('dashboard.productUpload.upload')}
-            </Button>
+              {loading ? "Uploading..." : "Publish"}
+            </button>
           </div>
         </form>
-      </motion.div>
+      </div>
     </div>
   );
 };

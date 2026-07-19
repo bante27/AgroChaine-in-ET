@@ -5,32 +5,54 @@ const UserSchema = new mongoose.Schema({
   fullName: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true },
-  phone: { type: String, required: true },
-  address: { type: String, required: true },
-  username: { type: String, unique: true, sparse: true }, // optional, unique if set
+  phone: { type: String, required: false, default: "" },
+  address: { type: String, required: false, default: "" },
+  username: { type: String, unique: true, sparse: true }, 
   location: { type: String },
-  profilePic: { type: String }, // Cloudinary URL for profile picture
-  nationalIdNumber: { type: String, unique: true, sparse: true }, // Fayda (National ID) number
-  govIdFront: { type: String }, // Cloudinary URL for front government ID
-  govIdBack: { type: String }, // Cloudinary URL for back government ID
-  govIdSelfie: { type: String }, // Cloudinary URL for live selfie match
-  govIdStatus: { type: String, default: 'unverified' }, // 'not_uploaded', 'pending', 'approved', 'verified', 'rejected'
-  verified: { type: Boolean, default: false }, // gov id verified
+  profilePic: { type: String }, 
+  nationalIdNumber: { type: String, unique: true, sparse: true }, 
+  govIdFront: { type: String }, 
+  govIdBack: { type: String }, 
+  govIdSelfie: { type: String }, 
+  govIdStatus: { 
+    type: String, 
+    // Simplify this: use 'approved' to match your dashboard display logic
+    enum: ['unverified', 'pending', 'approved', 'rejected'],
+    default: 'unverified' 
+  },
+  verified: { type: Boolean, default: false }, 
   registrationDate: { type: Date, default: Date.now },
-  rank: { type: Number, default: 0 }, // can be used for reputation
+  rank: { type: Number, default: 0 }, 
+  
+  // --- AUTH TYPE IDENTIFIER (✨ NEWLY ADDED) ---
+  isGoogleUser: { type: Boolean, default: false }, // 👈 የጉግል ተጠቃሚዎች የይለፍ ቃል ሲቀይሩ ወይም ፕሮፋይል ሲያድሱ መለያ ፍላግ
+  
+  // --- ROLE & PERMISSION FIELDS ---
+  isAdmin: { type: Boolean, default: false },
+  role: { 
+    type: String, 
+    enum: ['user', 'admin', 'superadmin'], 
+    default: 'user' 
+  },
+  isRestricted: { type: Boolean, default: false }, 
+  
+  // --- FINANCIALS ---
+  balance: { type: Number, default: 0 }, 
+  pendingBalance: { type: Number, default: 0 }, 
+  
+  // --- RELATIONSHIPS ---
   transactionHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }],
   savedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   closeCustomers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   boughtProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   soldProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   postedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
-  customerRating: { type: Number, default: 0 }, // average rating
-  isAdmin: { type: Boolean, default: false },
-  isRestricted: { type: Boolean, default: false }, // to restrict usage
-  balance: { type: Number, default: 0 }, // total available balance
-  pendingBalance: { type: Number, default: 0 }, // amount on hold during transactions
-  otp: { type: String, default: null }, // one-time password
-  otpExpires: { type: Date, default: null }, // OTP expiration
+  
+  customerRating: { type: Number, default: 0 },
+  
+  // --- SECURITY ---
+  otp: { type: String, default: null }, 
+  otpExpires: { type: Date, default: null }, 
   recentActivity: [
     {
       type: { type: String },
@@ -38,6 +60,18 @@ const UserSchema = new mongoose.Schema({
       date: { type: Date, default: Date.now },
     }
   ],
+}, {
+  timestamps: true // Automatically adds createdAt and updatedAt
+});
+
+// Middleware to keep isAdmin and role in sync
+UserSchema.pre('save', function(next) {
+  if (this.role === 'admin' || this.role === 'superadmin') {
+    this.isAdmin = true;
+  } else {
+    this.isAdmin = false;
+  }
+  next();
 });
 
 export default mongoose.model("User", UserSchema);

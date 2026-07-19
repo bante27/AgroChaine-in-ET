@@ -4,15 +4,18 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/layout/Layout';
+
+// Pages
 import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
 import Products from './pages/Products';
 import Orders from './pages/Orders';
 import Messages from './pages/Messages';
 import Profile from './pages/Profile';
-import Settings from './pages/Settings';
+import Verifications from './pages/Verifications'; // Renamed for consistency
 import Login from './pages/Login';
 import AdminChatDashboard from './pages/ChatDashboard';
+// import ForgotPassword from './pages/ForgotPassword'; // Add this when you create the page
 
 function App() {
   return (
@@ -20,10 +23,26 @@ function App() {
       <ThemeProvider>
         <Router>
           <Routes>
-            {/* Public route */}
+            {/* Public routes */}
             <Route path="/login" element={<Login />} />
+            {/* <Route path="/forgot-password" element={<ForgotPassword />} /> */}
 
-            {/* Live Chat route */}
+            {/* Protected Routes Wrapper */}
+            {/* All routes below require authentication */}
+            
+            {/* Dashboard */}
+            <Route
+              path="/"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+
+            {/* Live Chat */}
             <Route
               path="/chat"
               element={
@@ -35,17 +54,7 @@ function App() {
               }
             />
 
-            {/* Protected admin routes */}
-            <Route
-              path="/"
-              element={
-                <PrivateRoute>
-                  <Layout>
-                    <Dashboard />
-                  </Layout>
-                </PrivateRoute>
-              }
-            />
+            {/* User Management - Admin Only */}
             <Route
               path="/users"
               element={
@@ -56,6 +65,8 @@ function App() {
                 </PrivateRoute>
               }
             />
+
+            {/* Product Management */}
             <Route
               path="/products"
               element={
@@ -66,6 +77,8 @@ function App() {
                 </PrivateRoute>
               }
             />
+
+            {/* Order Management */}
             <Route
               path="/orders"
               element={
@@ -76,6 +89,8 @@ function App() {
                 </PrivateRoute>
               }
             />
+
+            {/* Messages */}
             <Route
               path="/messages"
               element={
@@ -86,6 +101,8 @@ function App() {
                 </PrivateRoute>
               }
             />
+
+            {/* Profile */}
             <Route
               path="/profile"
               element={
@@ -96,19 +113,21 @@ function App() {
                 </PrivateRoute>
               }
             />
+
+            {/* User ID Verifications */}
             <Route
-              path="/settings"
+              path="/verifications"
               element={
                 <PrivateRoute>
                   <Layout>
-                    <Settings />
+                    <Verifications />
                   </Layout>
                 </PrivateRoute>
               }
             />
 
-            {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            {/* Catch-all: Redirect unknown routes to login or dashboard */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>
       </ThemeProvider>

@@ -12,18 +12,17 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(sessionStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
-  const [role, setRole] = useState('guest'); // Default role
+  const [isAuthenticated, setIsAuthenticated] = useState(!!sessionStorage.getItem('token'));
+  const [role, setRole] = useState('guest'); 
 
-  // Check authentication on app load
+  // Check auth on load
   useEffect(() => {
     const checkAuth = async () => {
-      const storedToken = localStorage.getItem('token');
+      const storedToken = sessionStorage.getItem('token');
       if (!storedToken) {
-        setIsAuthenticated(false);
-        setRole('guest');
+        handleLogout();
         setLoading(false);
         return;
       }
@@ -34,29 +33,24 @@ export const AuthProvider = ({ children }) => {
         });
 
         if (res.data.success && res.data.user) {
-          // Only set auth state if user is admin
-          if (res.data.user.isAdmin) {
-            setUser(res.data.user);
+          const userData = res.data.user;
+          
+          // Align with Schema: check the .role property directly
+          if (userData.role === 'admin' || userData.role === 'superadmin') {
+            setUser(userData);
             setIsAuthenticated(true);
-            setRole('admin');
+            setToken(storedToken);
+            setRole(userData.role); // Sets 'admin' or 'superadmin'
           } else {
-            localStorage.removeItem('token');
-            setToken(null);
-            setIsAuthenticated(false);
-            setRole('guest');
+            // Not an authorized role for this panel
+            handleLogout();
           }
         } else {
-          localStorage.removeItem('token');
-          setToken(null);
-          setIsAuthenticated(false);
-          setRole('guest');
+          handleLogout();
         }
       } catch (err) {
         console.error('Auth check error:', err);
-        localStorage.removeItem('token');
-        setToken(null);
-        setIsAuthenticated(false);
-        setRole('guest');
+        handleLogout();
       } finally {
         setLoading(false);
       }
@@ -68,41 +62,40 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = async (credentials) => {
     try {
-      const res = await axios.post(`${API_URL}/api/users/login`, credentials, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-
+      const res = await axios.post(`${API_URL}/api/users/login`, credentials);
       const data = res.data;
 
-      if (res.status === 200 && data.success) {
-        // Only allow login for admin users
-        if (data.user.isAdmin) {
-          localStorage.setItem('token', data.token);
+      if (data.success && data.token) {
+        const userData = data.user;
+
+        // Ensure role matches the schema's enum
+        if (userData.role === 'admin' || userData.role === 'superadmin') {
+          sessionStorage.setItem('token', data.token);
           setToken(data.token);
-          setUser(data.user);
+          setUser(userData);
           setIsAuthenticated(true);
-          setRole('admin');
-          return { success: true, user: data.user };
+          setRole(userData.role);
+
+          return { success: true, user: userData };
         } else {
-          return { success: false, error: 'Access denied: Only admins can log in' };
+          return { success: false, error: 'Access denied: You do not have administrative privileges.' };
         }
-      } else {
-        return { success: false, error: data.error || 'Login failed' };
       }
+      return { success: false, error: data.error || 'Login failed' };
     } catch (err) {
-      console.error('Login error:', err);
       return { success: false, error: err.response?.data?.error || 'Network error' };
     }
   };
 
-  // Logout function
-  const logout = () => {
-    localStorage.removeItem('token');
+  const handleLogout = () => {
+    sessionStorage.removeItem('token');
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
     setRole('guest');
   };
+
+  const logout = () => handleLogout();
 
   return (
     <AuthContext.Provider
@@ -114,10 +107,6 @@ export const AuthProvider = ({ children }) => {
         logout,
         loading,
         isAuthenticated,
-        setUser,
-        setToken,
-        setIsAuthenticated,
-        setRole
       }}
     >
       {!loading && children}
