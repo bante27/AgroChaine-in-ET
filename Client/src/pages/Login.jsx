@@ -379,7 +379,7 @@ const LoginContent = () => {
           value={formData.fullName}
           onChange={handleInputChange}
           onKeyPress={handleKeyPress}
-          placeholder="Tilahun Sitotaw"
+          placeholder="Wubante Mitiku"
           icon={<User className="h-5 w-5 text-gray-500" />}
           className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
         />

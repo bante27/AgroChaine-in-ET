@@ -27,7 +27,7 @@ const Contact = () => {
 
   const contactInfo = [
     { icon: MapPin, title: t('contact.office'), text: 'Bole, Addis Ababa, Ethiopia' },
-    { icon: Phone, title: t('contact.phoneNumbers'), text: '+251 985 076 701' },
+    { icon: Phone, title: t('contact.phoneNumbers'), text: '+251 927 993 894' },
     { icon: Mail, title: t('contact.emailAddresses'), text: 'agrochainethiopia@gmail.com' },
     { icon: Globe, title: 'Network', text: 'Connecting 500+ Farmers' },
   ];
