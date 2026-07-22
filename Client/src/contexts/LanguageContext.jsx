@@ -792,7 +792,7 @@ const translations = {
       hours: 'Business Hours',
       faqTitle: 'Frequently Asked Questions',
       faqSubtitle: 'Find answers to common questions',
-      faqDesc: 'Find answers to your questions about AgroChain Ethiopia here.',
+      
       faqPart1: 'Frequently',
       faqPart2: 'Asked',
       faqPart3: 'Questions',
@@ -827,7 +827,7 @@ const translations = {
       files: 'Attach Files',
       uploadLabel: 'Upload files',
       faqDesc: 'Discover answers to your questions about AgroChain Ethiopia.',
-      ctaBottomTitle: 'Ready to Transform Your Business?',
+      
       ctaBottomSubtitle: 'Join AgroChain Ethiopia and unlock a transparent, efficient agricultural ecosystem.',
       faq: [
         {
