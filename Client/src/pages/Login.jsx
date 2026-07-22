@@ -389,7 +389,7 @@ const LoginContent = () => {
           value={formData.phone}
           onChange={handlePhoneChange}
           onKeyPress={handleKeyPress}
-          placeholder="+251912345678"
+          placeholder="+251927993894"
           className="text-sm py-2 px-4 bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all"
         />
       </div>
