@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroChain API Diagnostic</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #4F46E5;
+            margin-bottom: 30px;
+        }
+        .test {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #4F46E5;
+            background: #f9fafb;
+        }
+        .success {
+            border-left-color: #10b981;
+            background: #ecfdf5;
+        }
+        .error {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        button {
+            background: #4F46E5;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #4338ca;
+        }
+        pre {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.ok { background: #10b981; color: white; }
+        .status.fail { background: #ef4444; color: white; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔍 AgroChain API Diagnostic Tool</h1>
+        
+        <div id="results"></div>
+        
+        <button onclick="runTests()">Run All Tests</button>
+        <button onclick="location.reload()">Refresh Page</button>
+    </div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+        
+        async function runTests() {
+            resultsDiv.innerHTML = '<p>Running tests...</p>';
+            const results = [];
+            
+            // Test 1: Check environment variable
+            results.push({
+                name: 'Environment Variable (VITE_API_URL)',
+                value: import.meta.env.VITE_API_URL || 'NOT SET',
+                status: import.meta.env.VITE_API_URL ? 'ok' : 'fail'
+            });
+            
+            // Test 2: Check if API URL has protocol
+            const rawUrl = import.meta.env.VITE_API_URL || '';
+            const hasProtocol = rawUrl.startsWith('http://') || rawUrl.startsWith('https://');
+            results.push({
+                name: 'Protocol Check',
+                value: hasProtocol ? 'Has protocol ✓' : 'Missing protocol (will be added)',
+                status: 'ok'
+            });
+            
+            // Test 3: Computed API URL
+            const apiUrl = hasProtocol ? rawUrl : `https://${rawUrl}`;
+            results.push({
+                name: 'Computed API URL',
+                value: apiUrl,
+                status: 'ok'
+            });
+            
+            // Test 4: Server health check
+            try {
+                const healthResponse = await fetch(`${apiUrl}/`);
+                const healthData = await healthResponse.json();
+                results.push({
+                    name: 'Server Health Check',
+                    value: JSON.stringify(healthData, null, 2),
+                    status: healthData.status === 'success' ? 'ok' : 'fail'
+                });
+            } catch (error) {
+                results.push({
+                    name: 'Server Health Check',
+                    value: `Error: ${error.message}`,
+                    status: 'fail'
+                });
+            }
+            
+            // Test 5: Products API
+            try {
+                const productsResponse = await fetch(`${apiUrl}/api/products`);
+                const productsData = await productsResponse.json();
+                results.push({
+                    name: 'Products API',
+                    value: `Found ${productsData.length || 0} products`,
+                    status: productsResponse.ok ? 'ok' : 'fail'
+                });
+            } catch (error) {
+                results.push({
+                    name: 'Products API',
+                    value: `Error: ${error.message}`,
+                    status: 'fail'
+                });
+            }
+            
+            // Test 6: CORS check
+            try {
+                const corsResponse = await fetch(`${apiUrl}/api/products`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                results.push({
+                    name: 'CORS Check',
+                    value: corsResponse.ok ? 'CORS is configured correctly ✓' : 'CORS might be blocking',
+                    status: corsResponse.ok ? 'ok' : 'fail'
+                });
+            } catch (error) {
+                results.push({
+                    name: 'CORS Check',
+                    value: `CORS Error: ${error.message}`,
+                    status: 'fail'
+                });
+            }
+            
+            // Display results
+            let html = '';
+            results.forEach(result => {
+                html += `
+                    <div class="test ${result.status === 'ok' ? 'success' : 'error'}">
+                        <strong>${result.name}</strong>
+                        <span class="status ${result.status}">${result.status.toUpperCase()}</span>
+                        <pre>${result.value}</pre>
+                    </div>
+                `;
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        // Run tests on page load
+        runTests();
+    </script>
+</body>
+</html>
